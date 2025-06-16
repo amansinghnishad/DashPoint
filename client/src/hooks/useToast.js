@@ -9,7 +9,8 @@ export const useToast = () => {
     const id = ++toastId;
     const toast = { id, message, type, duration };
 
-    setToasts(prev => [...prev, toast]);
+    // Replace existing toasts with the new one
+    setToasts([toast]);
 
     return id;
   }, []);
@@ -17,6 +18,14 @@ export const useToast = () => {
   const removeToast = useCallback((id) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
+
+  const clearAllToasts = useCallback(() => {
+    setToasts([]);
+  }, []);
+
+  const showToast = useCallback((message, type = 'info', duration = 4000) => {
+    return addToast(message, type, duration);
+  }, [addToast]);
 
   const success = useCallback((message, duration) => {
     return addToast(message, 'success', duration);
@@ -38,6 +47,8 @@ export const useToast = () => {
     toasts,
     addToast,
     removeToast,
+    clearAllToasts,
+    showToast,
     success,
     error,
     warning,

@@ -13,6 +13,7 @@ const authReducer = (state, action) => {
         loading: false,
         error: null,
         sessionWarning: false,
+        isFirstTimeUser: action.isFirstTimeUser || false,
       };
     case "LOGIN_FAILURE":
       return {
@@ -22,6 +23,7 @@ const authReducer = (state, action) => {
         loading: false,
         error: action.payload,
         sessionWarning: false,
+        isFirstTimeUser: false,
       };
     case "LOGOUT":
       return {
@@ -31,6 +33,7 @@ const authReducer = (state, action) => {
         loading: false,
         error: null,
         sessionWarning: false,
+        isFirstTimeUser: false,
       };
     case "SET_LOADING":
       return {
@@ -47,6 +50,11 @@ const authReducer = (state, action) => {
         ...state,
         sessionWarning: action.payload,
       };
+    case "SET_FIRST_TIME_USER":
+      return {
+        ...state,
+        isFirstTimeUser: action.payload,
+      };
     default:
       return state;
   }
@@ -58,6 +66,7 @@ const initialState = {
   loading: true,
   error: null,
   sessionWarning: false,
+  isFirstTimeUser: false,
 };
 
 export const AuthProvider = ({ children }) => {
@@ -70,14 +79,20 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: "SET_LOADING", payload: true });
         const response = await authAPI.verifyToken();
         if (response.success) {
+          // Check if this is a first-time user
+          const isFirstTimeUser =
+            localStorage.getItem("isFirstTimeUser") === "true";
+
           dispatch({
             type: "LOGIN_SUCCESS",
             payload: response.data,
+            isFirstTimeUser: isFirstTimeUser,
           });
         } else {
           console.log("Token verification failed, clearing local storage");
           localStorage.removeItem("token");
           localStorage.removeItem("userData");
+          localStorage.removeItem("isFirstTimeUser");
           dispatch({ type: "SET_LOADING", payload: false });
         }
       } catch (error) {
@@ -86,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         if (error.response?.status === 401) {
           localStorage.removeItem("token");
           localStorage.removeItem("userData");
+          localStorage.removeItem("isFirstTimeUser");
         }
         dispatch({ type: "SET_LOADING", payload: false });
       }
@@ -93,7 +109,6 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   };
-
   // loginUser function
   const loginUser = async (credentials) => {
     dispatch({ type: "SET_LOADING", payload: true });
@@ -104,12 +119,21 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userData", JSON.stringify(response.data.user));
 
+        // Check if this is a first-time user (just registered)
+        const newlyRegisteredUser = localStorage.getItem("newlyRegisteredUser");
+        const isFirstTimeUser = newlyRegisteredUser === credentials.email;
+
+        if (isFirstTimeUser) {
+          localStorage.setItem("isFirstTimeUser", "true");
+          localStorage.removeItem("newlyRegisteredUser");
+        }
+
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: response.data.user,
         });
 
-        return { success: true };
+        return { success: true, isFirstTimeUser };
       } else {
         dispatch({
           type: "LOGIN_FAILURE",
@@ -126,23 +150,18 @@ export const AuthProvider = ({ children }) => {
       });
       return { success: false, error: errorMessage };
     }
-  };
-
-  // registerUser function
+  }; // registerUser function
   const registerUser = async (userData) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const response = await authAPI.register(userData);
 
       if (response.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userData", JSON.stringify(response.data.user));
+        // Store the registered user's email for first-time login detection
+        localStorage.setItem("newlyRegisteredUser", response.data.user.email);
 
-        dispatch({
-          type: "LOGIN_SUCCESS",
-          payload: response.data.user,
-        });
-
+        // Don't automatically log in after registration
+        dispatch({ type: "SET_LOADING", payload: false });
         return { success: true };
       } else {
         dispatch({
@@ -175,12 +194,18 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
   // logoutUser function
   const logoutUser = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userData");
+    localStorage.removeItem("isFirstTimeUser");
     dispatch({ type: "LOGOUT" });
+  };
+
+  // clearFirstTimeUser function
+  const clearFirstTimeUser = () => {
+    localStorage.removeItem("isFirstTimeUser");
+    dispatch({ type: "SET_FIRST_TIME_USER", payload: false });
   };
   // clearError function
   const clearError = () => {
@@ -232,6 +257,7 @@ export const AuthProvider = ({ children }) => {
     logoutUser,
     clearError,
     extendSession,
+    clearFirstTimeUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

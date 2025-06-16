@@ -8,10 +8,10 @@ import {
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
 import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { Dashboard } from "./pages/Dashboard";
-import { ToastContainer } from "./components/Toast";
-import { SessionWarning } from "./components/SessionWarning";
+import { Register } from "./pages/register/Register";
+import { Dashboard } from "./pages/dashboard/Dashboard";
+import { ToastContainer } from "./components/toast/index";
+import { SessionWarning } from "./components/session-warning/index";
 import { useToast } from "./hooks/useToast";
 import "./App.css";
 
