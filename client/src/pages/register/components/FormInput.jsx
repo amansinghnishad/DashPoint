@@ -38,7 +38,7 @@ export const FormInput = ({
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Icon className="h-5 w-5 text-gray-400" />
           </div>
-        )}
+        )}{" "}
         <input
           id={id}
           name={name}
@@ -50,8 +50,8 @@ export const FormInput = ({
           className={`block w-full ${Icon ? "pl-10" : "pl-3"} ${
             showPasswordToggle ? "pr-10" : "pr-3"
           } ${
-            compact ? "py-2" : "py-3"
-          } border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+            compact ? "py-2 sm:py-2.5" : "py-2.5 sm:py-3"
+          } border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm sm:text-base ${
             error ? "border-red-300 bg-red-50" : "border-gray-300"
           }`}
           placeholder={placeholder}

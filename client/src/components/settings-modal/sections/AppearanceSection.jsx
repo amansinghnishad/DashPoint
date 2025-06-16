@@ -61,19 +61,6 @@ export const AppearanceSection = ({
         onChange={(value) => updateSetting("appearance", "fontSize", value)}
         options={fontSizeOptions}
       />
-
-      <Toggle
-        enabled={settings.appearance.showAnimations}
-        onToggle={() =>
-          updateSetting(
-            "appearance",
-            "showAnimations",
-            !settings.appearance.showAnimations
-          )
-        }
-        label="Show Animations"
-        description="Enable smooth transitions and animations"
-      />
     </SettingsSection>
   );
 };

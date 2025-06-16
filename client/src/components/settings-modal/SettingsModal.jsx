@@ -27,7 +27,6 @@ export const SettingsModal = ({ isOpen, onClose, isDark, toggleTheme }) => {
     appearance: {
       theme: isDark ? "dark" : "light",
       compactMode: false,
-      showAnimations: true,
       fontSize: "medium",
     },
     privacy: {

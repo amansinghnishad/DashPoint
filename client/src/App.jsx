@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
-import { Login } from "./pages/Login";
+import { Login } from "./pages/login/Login";
 import { Register } from "./pages/register/Register";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { ToastContainer } from "./components/toast/index";

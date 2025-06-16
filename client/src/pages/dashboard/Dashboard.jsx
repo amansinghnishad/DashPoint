@@ -9,7 +9,6 @@ import { useToast } from "../../hooks/useToast";
 import { useNotifications } from "../../hooks/useNotifications";
 import { ToastContainer } from "../../components/toast/index";
 import { useAuth } from "../../context/AuthContext";
-import { WelcomeToDashboard } from "../../components/animations";
 
 import { DashboardHeader } from "./components/DashboardHeader";
 import { ContentRenderer } from "./components/ContentRenderer";
@@ -29,10 +28,6 @@ export const Dashboard = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
-
-  // Auth context
-  const { isFirstTimeUser, clearFirstTimeUser } = useAuth();
 
   // Toast functionality
   const { toasts, removeToast, showToast } = useToast();
@@ -61,23 +56,6 @@ export const Dashboard = () => {
   };
   const shortcuts = getKeyboardShortcuts(shortcutHandlers);
   useKeyboardShortcuts(shortcuts);
-
-  // Handle first-time user welcome animation
-  useEffect(() => {
-    if (isFirstTimeUser) {
-      // Small delay to ensure dashboard is loaded
-      const timer = setTimeout(() => {
-        setShowWelcomeAnimation(true);
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isFirstTimeUser]);
-
-  const handleWelcomeAnimationComplete = () => {
-    setShowWelcomeAnimation(false);
-    clearFirstTimeUser();
-  };
 
   // Get current page title
   const pageTitle = getPageTitle(activeTab);
@@ -174,11 +152,6 @@ export const Dashboard = () => {
         onAddTodo={handleAddTodo}
         onUploadFile={handleUploadFile}
         onBookmark={handleBookmark}
-      />
-      {/* Welcome Animation for First-Time Users */}
-      <WelcomeToDashboard
-        isVisible={showWelcomeAnimation}
-        onComplete={handleWelcomeAnimationComplete}
       />
     </div>
   );
