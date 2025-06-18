@@ -15,15 +15,15 @@ export const LoginForm = ({
     <div className="w-full lg:w-1/2 p-4 sm:p-8">
       <div className="h-full flex flex-col justify-center">
         <div className="max-w-sm mx-auto w-full">
+          {" "}
           <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Sign In
+              Sign In to DashPoint
             </h2>
             <p className="text-sm sm:text-base text-gray-600">
-              Enter your credentials to access your account
+              Access your free productivity dashboard
             </p>
           </div>
-
           <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
             {/* Email Field */}
             <div>
@@ -41,7 +41,7 @@ export const LoginForm = ({
                   name="email"
                   value={formData.email}
                   onChange={onInputChange}
-                  className={`w-full pl-10 pr-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                  className={`w-full pl-10 pr-4 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
                     errors.email
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300"
@@ -77,7 +77,7 @@ export const LoginForm = ({
                   name="password"
                   value={formData.password}
                   onChange={onInputChange}
-                  className={`w-full pl-10 pr-12 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                  className={`w-full pl-10 pr-12 py-2.5 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base ${
                     errors.password
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300"
@@ -116,11 +116,11 @@ export const LoginForm = ({
                 </div>
               </div>
             )}{" "}
-            {/* Submit Button */}
+            {/* Submit Button */}{" "}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2.5 sm:py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base"
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-purple-400 disabled:to-blue-400 text-white font-medium py-2.5 sm:py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-sm sm:text-base"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -132,16 +132,16 @@ export const LoginForm = ({
               )}
             </button>
           </form>
-
           {/* Sign Up Link */}
           <div className="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+            {" "}
             <p className="text-xs sm:text-sm text-gray-600">
               Don't have an account?{" "}
               <Link
                 to="/register"
-                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                className="font-medium text-purple-600 hover:text-purple-500 transition-colors"
               >
-                Create one here
+                Create one free
               </Link>
             </p>
           </div>

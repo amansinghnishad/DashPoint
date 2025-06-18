@@ -1,0 +1,8 @@
+<!-- This is a placeholder for the 192x192 icon -->
+<!-- In a real production app, you would replace this with actual PNG files -->
+<!-- For now, we'll use the SVG icon as fallback -->
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#8B5CF6"/>
+  <circle cx="96" cy="96" r="60" fill="white"/>
+  <text x="96" y="110" text-anchor="middle" fill="#8B5CF6" font-family="Arial" font-size="48" font-weight="bold">DP</text>
+</svg>

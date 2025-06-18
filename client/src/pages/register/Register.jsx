@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Mail, Lock, User, Shield, FileText, CheckCircle } from "lucide-react";
+import { Mail, Lock, User, Zap, Gift, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Navigation } from "../landing/components/Navigation";
+import { Footer } from "../landing/components/Footer";
 import { FormInput } from "./components/FormInput";
 import { ErrorDisplay } from "./components/ErrorDisplay";
 import {
@@ -84,249 +86,315 @@ export const Register = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 sm:px-8 py-4 sm:py-6 border-b border-green-700">
-          <div className="flex items-center space-x-3">
-            <div className="bg-white/20 rounded-full p-2">
-              <FileText className="text-white" size={20} sm:size={24} />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white">
-                DashPoint
-              </h1>
-              <p className="text-green-100 text-xs sm:text-sm">
-                Account Registration Form
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {" "}
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-xl animate-pulse"></div>
+        <div
+          className="absolute top-40 right-20 w-24 h-24 bg-blue-200/40 rounded-full blur-lg animate-bounce"
+          style={{ animationDuration: "3s" }}
+        ></div>
+        <div
+          className="absolute bottom-40 left-20 w-20 h-20 bg-indigo-200/50 rounded-full blur-md animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-20 right-10 w-28 h-28 bg-purple-300/20 rounded-full blur-xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+
+        {/* Geometric shapes */}
+        <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-gradient-to-r from-yellow-200/30 to-pink-200/30 rounded-lg transform rotate-45 blur-sm animate-pulse"></div>
+        <div
+          className="absolute bottom-1/3 right-1/4 w-12 h-12 bg-gradient-to-r from-green-200/40 to-cyan-200/40 rounded-full blur-sm animate-bounce"
+          style={{ animationDuration: "4s" }}
+        ></div>
+
+        {/* Additional floating elements for register page */}
+        <div
+          className="absolute top-60 left-1/3 w-8 h-8 bg-gradient-to-r from-indigo-200/40 to-purple-200/40 rounded-full blur-sm animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
+        <div
+          className="absolute top-80 right-1/3 w-6 h-6 bg-gradient-to-r from-pink-200/50 to-yellow-200/50 rounded-full blur-sm animate-bounce"
+          style={{ animationDuration: "5s" }}
+        ></div>
+
+        {/* Background pattern */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
+      </div>
+      <Navigation />
+      <div className="relative z-10 pt-24 pb-8 px-2 sm:px-4">
+        <div className="max-w-5xl mx-auto bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-white/50 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 px-4 sm:px-8 py-4 sm:py-6 border-b border-purple-700">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-yellow-400 to-pink-400 rounded-xl p-2">
+                <Zap className="text-purple-900" size={20} sm:size={24} />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
+                  Dash<span className="text-yellow-300">Point</span>
+                </h1>
+                <p className="text-purple-100 text-xs sm:text-sm">
+                  Join Free - No Payment Required!
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex flex-col lg:flex-row">
-          {" "}
-          {/* Left Panel - Information */}
-          <div className="hidden lg:block lg:w-1/2 bg-gray-50 p-4 sm:p-8 border-r border-gray-200">
-            <div className="h-full flex flex-col justify-center">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-3">
-                    Create Your Account
-                  </h2>
-                  <p className="text-gray-600 leading-relaxed">
-                    Join DashPoint to access your personalized productivity
-                    dashboard. All information is securely encrypted and
-                    protected.
-                  </p>
-                </div>
+          <div className="flex flex-col lg:flex-row">
+            {" "}
+            {/* Left Panel - Information */}
+            <div className="hidden lg:block lg:w-1/2 bg-gradient-to-br from-purple-100/70 via-blue-100/70 to-indigo-100/70 backdrop-blur-sm p-4 sm:p-8 border-r border-white/30">
+              <div className="h-full flex flex-col justify-center">
+                <div className="space-y-6">
+                  <div>
+                    <div className="inline-flex items-center bg-gradient-to-r from-green-100 to-blue-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
+                      <Gift className="mr-2" size={16} />
+                      Launch Special - Everything Free!
+                    </div>
 
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <h3 className="font-medium text-blue-900 mb-2">
-                    Account Benefits
-                  </h3>
-                  <ul className="space-y-2 text-sm text-blue-800">
-                    <li className="flex items-center">
-                      <CheckCircle className="text-blue-600 mr-2" size={16} />
-                      Personalized dashboard with your preferences
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="text-blue-600 mr-2" size={16} />
-                      Secure cloud storage for all your data
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="text-blue-600 mr-2" size={16} />
-                      Access from any device, anywhere
-                    </li>
-                    <li className="flex items-center">
-                      <CheckCircle className="text-blue-600 mr-2" size={16} />
-                      Regular feature updates and improvements
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <Shield className="text-green-500 mt-0.5" size={20} />
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        Data Security
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Your personal information is protected with bank-level
-                        encryption
-                      </p>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                      Create Your Free Account
+                    </h2>
+                    <p className="text-gray-600 leading-relaxed">
+                      Join DashPoint and unlock your complete productivity
+                      dashboard. All premium features are completely free during
+                      our launch phase - no credit card required, no hidden
+                      fees!
+                    </p>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4 border border-purple-200">
+                    <h3 className="font-medium text-purple-900 mb-2">
+                      🎉 What You Get Free
+                    </h3>
+                    <ul className="space-y-2 text-sm text-purple-800">
+                      <li className="flex items-center">
+                        <CheckCircle
+                          className="text-purple-600 mr-2"
+                          size={16}
+                        />
+                        AI-powered content extraction & organization
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle
+                          className="text-purple-600 mr-2"
+                          size={16}
+                        />
+                        Advanced task management & sticky notes
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle
+                          className="text-purple-600 mr-2"
+                          size={16}
+                        />
+                        Real-time widgets & customizable dashboard
+                      </li>
+                      <li className="flex items-center">
+                        <CheckCircle
+                          className="text-purple-600 mr-2"
+                          size={16}
+                        />
+                        Cross-platform access & secure cloud storage
+                      </li>
+                    </ul>
+                  </div>{" "}
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <Zap className="text-yellow-500 mt-0.5" size={20} />
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Lightning Fast Setup
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Get started in under 60 seconds with instant access
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle
+                        className="text-green-500 mt-0.5"
+                        size={20}
+                      />
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Privacy Protected
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Enterprise-grade security with no data sharing
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <Gift className="text-purple-500 mt-0.5" size={20} />
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Launch Special
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Early users get lifetime benefits & priority support
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="text-green-500 mt-0.5" size={20} />
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        Privacy First
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        We never share your data with third parties
-                      </p>
-                    </div>
+                </div>
+              </div>
+            </div>{" "}
+            {/* Right Panel - Registration Form */}
+            <div className="w-full lg:w-1/2 p-4 sm:p-8">
+              <div className="h-full flex flex-col justify-center">
+                <div className="max-w-sm mx-auto w-full">
+                  {" "}
+                  <div className="text-center mb-6 sm:mb-8">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                      Join DashPoint Free
+                    </h2>
+                    <p className="text-sm sm:text-base text-gray-600">
+                      Create your account and start boosting productivity
+                    </p>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <CheckCircle className="text-green-500 mt-0.5" size={20} />
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        Free Account
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        No hidden fees or subscription required
-                      </p>
+                  <ErrorDisplay error={error} backendErrors={backendErrors} />{" "}
+                  <form
+                    onSubmit={handleSubmit}
+                    className="space-y-3 sm:space-y-4"
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <FormInput
+                        id="firstName"
+                        name="firstName"
+                        label="First Name"
+                        placeholder="First name"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        error={errors.firstName}
+                        icon={User}
+                        autoComplete="given-name"
+                        required
+                        compact
+                      />
+
+                      <FormInput
+                        id="lastName"
+                        name="lastName"
+                        label="Last Name"
+                        placeholder="Last name"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        error={errors.lastName}
+                        icon={User}
+                        autoComplete="family-name"
+                        required
+                        compact
+                      />
                     </div>
+                    <FormInput
+                      id="username"
+                      name="username"
+                      label="Username"
+                      placeholder="Choose a username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      error={errors.username}
+                      icon={User}
+                      autoComplete="username"
+                      required
+                      compact
+                    />
+                    <FormInput
+                      id="email"
+                      name="email"
+                      type="email"
+                      label="Email Address"
+                      placeholder="Enter your email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      error={errors.email}
+                      icon={Mail}
+                      autoComplete="email"
+                      required
+                      compact
+                    />
+                    <FormInput
+                      id="password"
+                      name="password"
+                      label="Password"
+                      placeholder="Create a password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      error={errors.password}
+                      icon={Lock}
+                      autoComplete="new-password"
+                      showPasswordToggle
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                      required
+                      compact
+                    />
+                    <FormInput
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      label="Confirm Password"
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      error={errors.confirmPassword}
+                      icon={Lock}
+                      autoComplete="new-password"
+                      showPasswordToggle
+                      showPassword={showConfirmPassword}
+                      onTogglePassword={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      required
+                      compact
+                    />{" "}
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>Join DashPoint Free</span>
+                        </div>
+                      ) : (
+                        "Join DashPoint Free"
+                      )}
+                    </button>
+                  </form>
+                  <div className="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/30">
+                    {" "}
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Already have an account?{" "}
+                      <Link
+                        to="/login"
+                        className="font-medium text-purple-600 hover:text-purple-500 transition-colors"
+                      >
+                        Sign in here
+                      </Link>
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>{" "}
-          {/* Right Panel - Registration Form */}
-          <div className="w-full lg:w-1/2 p-4 sm:p-8">
-            <div className="h-full flex flex-col justify-center">
-              <div className="max-w-sm mx-auto w-full">
-                <div className="text-center mb-6 sm:mb-8">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                    Registration
-                  </h2>
-                  <p className="text-sm sm:text-base text-gray-600">
-                    Fill out the form below to create your account
-                  </p>
-                </div>
-                <ErrorDisplay error={error} backendErrors={backendErrors} />{" "}
-                <form
-                  onSubmit={handleSubmit}
-                  className="space-y-3 sm:space-y-4"
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <FormInput
-                      id="firstName"
-                      name="firstName"
-                      label="First Name"
-                      placeholder="First name"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      error={errors.firstName}
-                      icon={User}
-                      autoComplete="given-name"
-                      required
-                      compact
-                    />
-
-                    <FormInput
-                      id="lastName"
-                      name="lastName"
-                      label="Last Name"
-                      placeholder="Last name"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      error={errors.lastName}
-                      icon={User}
-                      autoComplete="family-name"
-                      required
-                      compact
-                    />
-                  </div>
-                  <FormInput
-                    id="username"
-                    name="username"
-                    label="Username"
-                    placeholder="Choose a username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    error={errors.username}
-                    icon={User}
-                    autoComplete="username"
-                    required
-                    compact
-                  />
-                  <FormInput
-                    id="email"
-                    name="email"
-                    type="email"
-                    label="Email Address"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    error={errors.email}
-                    icon={Mail}
-                    autoComplete="email"
-                    required
-                    compact
-                  />
-                  <FormInput
-                    id="password"
-                    name="password"
-                    label="Password"
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    error={errors.password}
-                    icon={Lock}
-                    autoComplete="new-password"
-                    showPasswordToggle
-                    showPassword={showPassword}
-                    onTogglePassword={() => setShowPassword(!showPassword)}
-                    required
-                    compact
-                  />
-                  <FormInput
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    error={errors.confirmPassword}
-                    icon={Lock}
-                    autoComplete="new-password"
-                    showPasswordToggle
-                    showPassword={showConfirmPassword}
-                    onTogglePassword={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                    required
-                    compact
-                  />{" "}
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>Creating Account...</span>
-                      </div>
-                    ) : (
-                      "Create Account"
-                    )}
-                  </button>
-                </form>
-                <div className="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    Already have an account?{" "}
-                    <Link
-                      to="/login"
-                      className="font-medium text-green-600 hover:text-green-500 transition-colors"
-                    >
-                      Sign in here
-                    </Link>
-                  </p>
-                </div>
-              </div>
+          {/* Footer */}
+          <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 backdrop-blur-sm px-4 sm:px-8 py-3 sm:py-4 border-t border-white/30">
+            <div className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 space-y-1 sm:space-y-0">
+              <p>© 2025 DashPoint. All rights reserved.</p>
+              <p>Version 1.0</p>
             </div>
-          </div>
-        </div>{" "}
-        {/* Footer */}
-        <div className="bg-gray-50 px-4 sm:px-8 py-3 sm:py-4 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-500 space-y-1 sm:space-y-0">
-            <p>© 2025 DashPoint. All rights reserved.</p>
-            <p>Version 1.0</p>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

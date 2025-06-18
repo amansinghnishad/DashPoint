@@ -7,11 +7,14 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
+import { Landing } from "./pages/landing";
 import { Login } from "./pages/login/Login";
 import { Register } from "./pages/register/Register";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { ToastContainer } from "./components/toast/index";
 import { SessionWarning } from "./components/session-warning/index";
+import { UpdateNotification } from "./components/update-notification";
+import { OfflineIndicator } from "./components/offline-indicator";
 import { useToast } from "./hooks/useToast";
 import "./App.css";
 
@@ -58,7 +61,16 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+  // For login and register pages, redirect to dashboard if authenticated
+  if (
+    isAuthenticated &&
+    (window.location.pathname === "/login" ||
+      window.location.pathname === "/register")
+  ) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
 };
 
 function AppContent() {
@@ -67,7 +79,9 @@ function AppContent() {
   return (
     <Router>
       <div className="App">
+        {" "}
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route
             path="/login"
             element={
@@ -94,11 +108,10 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
+          <Route path="*" element={<Navigate to="/" replace />} />        </Routes>        <ToastContainer toasts={toasts} removeToast={removeToast} />
         <SessionWarning />
+        <UpdateNotification />
+        <OfflineIndicator />
       </div>
     </Router>
   );

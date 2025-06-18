@@ -1,4 +1,6 @@
 import { Menu, Bell } from "lucide-react";
+import { PWAStatus } from "../../../components/pwa-status";
+import { InstallButton } from "../../../components/install-button";
 
 export const DashboardHeader = ({
   sidebarOpen,
@@ -89,10 +91,16 @@ export const DashboardHeader = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"                />
               </svg>
             </button>
+            
+            {/* PWA Status */}
+            <PWAStatus />
+            
+            {/* Install Button */}
+            <InstallButton className="hidden sm:inline-flex" />
+            
             {/* Notifications Button */}
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
