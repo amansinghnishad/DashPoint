@@ -71,43 +71,35 @@ exports.getCollectionWithItems = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
 
-    const collection = await Collection.findOne({ _id: id, userId });
-
-    if (!collection) {
+    const collection = await Collection.findOne({ _id: id, userId }); if (!collection) {
       return res.status(404).json({
         success: false,
         message: 'Collection not found'
       });
-    } console.log(`Collection ${id} has ${collection.items.length} items`); // Debug log
+    }
 
     // Populate item data for each item in the collection
     const populatedItems = await Promise.all(
       collection.items.map(async (item) => {
         let itemData = null;
 
-        console.log(`Fetching ${item.itemType} with id ${item.itemId}`); // Debug log
-
         try {
           switch (item.itemType) {
             case 'youtube':
               const YouTube = require('../models/YouTube');
               itemData = await YouTube.findOne({ _id: item.itemId, userId });
-              console.log(`YouTube item found:`, !!itemData); // Debug log
               break;
             case 'content':
               const ContentExtraction = require('../models/ContentExtraction');
               itemData = await ContentExtraction.findOne({ _id: item.itemId, userId });
-              console.log(`Content item found:`, !!itemData); // Debug log
               break;
             case 'sticky-note':
               const StickyNote = require('../models/StickyNote');
               itemData = await StickyNote.findOne({ _id: item.itemId, userId });
-              console.log(`Sticky note found:`, !!itemData); // Debug log
               break;
             case 'todo':
               const Todo = require('../models/Todo');
               itemData = await Todo.findOne({ _id: item.itemId, userId });
-              console.log(`Todo item found:`, !!itemData); // Debug log
               break;
             default:
               itemData = null;
@@ -124,10 +116,10 @@ exports.getCollectionWithItems = async (req, res, next) => {
           itemData: itemData
         };
       })
-    );    // Filter out items that couldn't be found (itemData is null)
-    const validItems = populatedItems.filter(item => item.itemData !== null);
+    );
 
-    console.log(`Total items in collection: ${populatedItems.length}, Valid items: ${validItems.length}`); // Debug log
+    // Filter out items that couldn't be found (itemData is null)
+    const validItems = populatedItems.filter(item => item.itemData !== null);
 
     const collectionWithItems = {
       ...collection.toObject(),

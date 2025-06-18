@@ -16,6 +16,7 @@ const contentExtractionRoutes = require('./routes/contentExtractionRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
+const aiServicesRoutes = require('./routes/aiServicesRoutes');
 
 const app = express();
 
@@ -50,13 +51,14 @@ const corsOptions = {
       'http://localhost:3000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
-      process.env.CLIENT_URL
-    ].filter(Boolean);
+      process.env.CLIENT_URL].filter(Boolean);
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log('CORS blocked origin:', origin);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('CORS blocked origin:', origin);
+      }
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -74,12 +76,6 @@ app.options('*', cors(corsOptions));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Log all requests for debugging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - Origin: ${req.get('origin') || 'none'}`);
-  next();
-});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -99,6 +95,7 @@ app.use('/api/content-extraction', contentExtractionRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/collections', collectionRoutes);
+app.use('/api/ai', aiServicesRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

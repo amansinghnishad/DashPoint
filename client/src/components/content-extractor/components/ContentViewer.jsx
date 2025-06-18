@@ -38,11 +38,10 @@ export const ContentViewer = ({
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
   const handleContentUpdate = (newContent) => {
     setCurrentContent(newContent);
     if (onContentUpdate) {
-      onContentUpdate(selectedContent.id, newContent);
+      onContentUpdate(selectedContent._id, newContent);
     }
   };
 

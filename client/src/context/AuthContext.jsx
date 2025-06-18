@@ -82,21 +82,18 @@ export const AuthProvider = ({ children }) => {
           // Check if this is a first-time user
           const isFirstTimeUser =
             localStorage.getItem("isFirstTimeUser") === "true";
-
           dispatch({
             type: "LOGIN_SUCCESS",
             payload: response.data,
             isFirstTimeUser: isFirstTimeUser,
           });
         } else {
-          console.log("Token verification failed, clearing local storage");
           localStorage.removeItem("token");
           localStorage.removeItem("userData");
           localStorage.removeItem("isFirstTimeUser");
           dispatch({ type: "SET_LOADING", payload: false });
         }
       } catch (error) {
-        console.log("Auth check error:", error.message);
         // Only clear token if it's actually an auth error
         if (error.response?.status === 401) {
           localStorage.removeItem("token");
@@ -234,12 +231,9 @@ export const AuthProvider = ({ children }) => {
       if (token && state.isAuthenticated) {
         try {
           await authAPI.verifyToken();
-          console.log("Token verification successful");
         } catch (error) {
-          console.log("Token verification failed:", error.message);
           // Only logout if it's actually an auth error, not a network error
           if (error.response?.status === 401) {
-            console.log("Authentication failed, logging out");
             logoutUser();
           }
         }

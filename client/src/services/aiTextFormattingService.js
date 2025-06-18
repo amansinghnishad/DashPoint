@@ -1,407 +1,318 @@
 /**
  * AI Text Formatting Service
- * Integrates multiple free AI services for advanced text formatting and enhancement
+ * Secure proxy service that routes through the server
  */
+
+import secureAIService from './secureAIService.js';
 
 class AITextFormattingService {
   constructor() {
-    this.huggingFaceToken = import.meta.env.VITE_HUGGING_FACE_TOKEN;
-    this.openAIToken = import.meta.env.VITE_OPENAI_API_KEY; // Optional
-    this.baseUrl = 'https://api-inference.huggingface.co/models';
-
-    // AI Models for different formatting tasks
-    this.models = {
-      // Text correction and grammar
-      grammar: 'grammarly/coedit-large',
-      textCorrection: 'pszemraj/flan-t5-large-grammar-synthesis',
-
-      // Text structuring
-      paragraphSegmentation: 'microsoft/DialoGPT-medium',
-      sentenceRewriter: 'tuner007/pegasus_paraphrase',
-
-      // Content enhancement
-      textSimplification: 'philippelaban/keep_it_simple',
-      readabilityEnhancement: 'facebook/bart-large-cnn',
-
-      // Text analysis for formatting
-      textClassification: 'microsoft/DialoGPT-medium',
-      languageDetection: 'papluca/xlm-roberta-base-language-detection'
-    };
-
-    // Fallback formatting rules
-    this.fallbackRules = {
-      removeWebArtifacts: true,
-      enhanceParagraphs: true,
-      improveReadability: true,
-      standardizeFormatting: true
-    };
+    this.secureService = secureAIService;
   }
 
   /**
-   * Check if services are configured
+   * Format text using comprehensive AI services (server-side)
    */
-  isConfigured() {
-    return !!this.huggingFaceToken && this.huggingFaceToken !== 'your_hugging_face_token_here';
+  async formatText(text, options = {}) {
+    return this.secureService.formatText(text, options);
   }
 
   /**
-   * Main text formatting method
+   * Enhance text readability and structure
    */
-  async formatText(rawText, options = {}) {
-    if (!rawText || rawText.trim().length === 0) {
-      return { formatted: '', confidence: 0, enhancements: [] };
-    }
+  async enhanceReadability(text, options = {}) {
+    return this.secureService.enhanceText(text, {
+      grammarCheck: true,
+      punctuationFix: true,
+      ...options
+    });
+  }
 
-    const results = {
-      original: rawText,
-      formatted: rawText,
-      confidence: 0,
-      enhancements: [],
-      processingTime: Date.now()
-    };
-
+  /**
+   * Fix grammar and spelling using AI
+   */
+  async fixGrammarAndSpelling(text) {
     try {
-      // Step 1: Language detection
-      const language = await this.detectLanguage(rawText);
-      results.language = language;
-
-      // Step 2: Grammar and spelling correction
-      if (options.correctGrammar !== false) {
-        const corrected = await this.correctGrammar(rawText);
-        if (corrected.success) {
-          results.formatted = corrected.text;
-          results.enhancements.push('Grammar correction');
-          results.confidence += 20;
-        }
-      }
-
-      // Step 3: Text structuring and paragraph improvement
-      if (options.improveStructure !== false) {
-        const structured = await this.improveTextStructure(results.formatted);
-        if (structured.success) {
-          results.formatted = structured.text;
-          results.enhancements.push('Structure improvement');
-          results.confidence += 25;
-        }
-      }
-
-      // Step 4: Readability enhancement
-      if (options.enhanceReadability !== false) {
-        const readable = await this.enhanceReadability(results.formatted);
-        if (readable.success) {
-          results.formatted = readable.text;
-          results.enhancements.push('Readability enhancement');
-          results.confidence += 30;
-        }
-      }
-
-      // Step 5: Sentence-level improvements
-      if (options.improveSentences !== false) {
-        const improved = await this.improveSentences(results.formatted);
-        if (improved.success) {
-          results.formatted = improved.text;
-          results.enhancements.push('Sentence improvement');
-          results.confidence += 25;
-        }
-      }
-
-    } catch (error) {
-      console.warn('AI formatting failed, using fallback:', error);
-
-      // Fallback to rule-based formatting
-      results.formatted = this.applyFallbackFormatting(rawText);
-      results.enhancements.push('Fallback formatting');
-      results.confidence = 60;
-    }
-
-    results.processingTime = Date.now() - results.processingTime;
-    return results;
-  }
-
-  /**
-   * Detect text language using AI
-   */
-  async detectLanguage(text) {
-    try {
-      const response = await this.makeHuggingFaceRequest(
-        this.models.languageDetection,
-        text.slice(0, 500) // Use first 500 chars for detection
-      );
-
-      if (response && response[0] && response[0].label) {
-        return response[0].label;
-      }
-    } catch (error) {
-      console.warn('Language detection failed:', error);
-    }
-
-    return 'en'; // Default to English
-  }
-
-  /**
-   * Correct grammar and spelling using AI
-   */
-  async correctGrammar(text) {
-    try {
-      // Split into chunks if text is too long
-      const chunks = this.splitTextIntoChunks(text, 500);
-      const correctedChunks = [];
-
-      for (const chunk of chunks) {
-        const response = await this.makeHuggingFaceRequest(
-          this.models.textCorrection,
-          `Fix grammar and spelling: ${chunk}`
-        );
-
-        if (response && response[0] && response[0].generated_text) {
-          correctedChunks.push(response[0].generated_text);
-        } else {
-          correctedChunks.push(chunk); // Keep original if correction fails
-        }
-
-        // Add delay to avoid rate limiting
-        await this.delay(100);
-      }
+      const result = await this.secureService.enhanceText(text, {
+        grammarCheck: true,
+        punctuationFix: true
+      });
 
       return {
-        success: true,
-        text: correctedChunks.join(' '),
-        improvements: correctedChunks.length
+        success: result.success,
+        formattedText: result.success ? result.data.enhanced : text,
+        improvements: result.success ? result.data.improvements : [],
+        confidence: result.success ? result.data.confidence : 0
       };
     } catch (error) {
-      console.warn('Grammar correction failed:', error);
-      return { success: false, text, error: error.message };
+      console.error('Grammar fixing error:', error);
+      return {
+        success: false,
+        formattedText: this.basicFormat(text),
+        improvements: [{ type: 'basic', status: 'fallback' }],
+        confidence: 0.3,
+        error: error.message
+      };
     }
   }
 
   /**
-   * Improve text structure and paragraph organization
+   * Improve text structure and flow
    */
-  async improveTextStructure(text) {
+  async improveStructure(text, options = {}) {
     try {
-      // Use AI to identify paragraph boundaries and improve structure
-      const response = await this.makeHuggingFaceRequest(
-        this.models.paragraphSegmentation,
-        `Organize this text into well-structured paragraphs: ${text.slice(0, 1000)}`
-      );
+      const result = await this.secureService.enhanceText(text, {
+        grammarCheck: true,
+        punctuationFix: true,
+        entityExtraction: true,
+        ...options
+      });
 
-      if (response && response[0] && response[0].generated_text) {
-        return {
-          success: true,
-          text: response[0].generated_text,
-          improvements: 1
-        };
-      }
+      return {
+        success: result.success,
+        originalText: text,
+        improvedText: result.success ? result.data.enhanced : text,
+        structuralChanges: result.success ? result.data.improvements : [],
+        readabilityScore: this.calculateReadabilityScore(text)
+      };
     } catch (error) {
-      console.warn('Structure improvement failed:', error);
+      console.error('Structure improvement error:', error);
+      return {
+        success: false,
+        originalText: text,
+        improvedText: this.basicFormat(text),
+        structuralChanges: [],
+        readabilityScore: this.calculateReadabilityScore(text),
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Format text for specific purposes (email, blog, academic, etc.)
+   */
+  async formatForPurpose(text, purpose = 'general', options = {}) {
+    const purposeSettings = {
+      email: {
+        grammarCheck: true,
+        punctuationFix: true,
+        formal: true
+      },
+      blog: {
+        grammarCheck: true,
+        punctuationFix: true,
+        engaging: true
+      },
+      academic: {
+        grammarCheck: true,
+        punctuationFix: true,
+        formal: true,
+        precise: true
+      },
+      social: {
+        grammarCheck: true,
+        casual: true
+      },
+      general: {
+        grammarCheck: true,
+        punctuationFix: true
+      }
+    };
+
+    const settings = purposeSettings[purpose] || purposeSettings.general;
+
+    try {
+      const result = await this.secureService.enhanceText(text, {
+        ...settings,
+        ...options
+      });
+
+      return {
+        success: result.success,
+        originalText: text,
+        formattedText: result.success ? result.data.enhanced : this.basicFormat(text),
+        purpose,
+        appliedSettings: settings,
+        improvements: result.success ? result.data.improvements : []
+      };
+    } catch (error) {
+      console.error('Purpose formatting error:', error);
+      return {
+        success: false,
+        originalText: text,
+        formattedText: this.basicFormat(text),
+        purpose,
+        appliedSettings: settings,
+        improvements: [],
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Batch format multiple texts
+   */
+  async batchFormat(texts, options = {}) {
+    const results = [];
+
+    for (let i = 0; i < texts.length; i++) {
+      try {
+        const result = await this.formatText(texts[i], options);
+        results.push({
+          index: i,
+          success: true,
+          ...result
+        });
+
+        // Add delay to avoid overwhelming the server
+        if (i < texts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        results.push({
+          index: i,
+          success: false,
+          originalText: texts[i],
+          formattedText: this.basicFormat(texts[i]),
+          error: error.message
+        });
+      }
     }
 
-    // Fallback: Apply basic structure rules
     return {
       success: true,
-      text: this.applyBasicStructure(text),
-      improvements: 1
+      totalProcessed: texts.length,
+      successfullyProcessed: results.filter(r => r.success).length,
+      results
     };
   }
 
   /**
-   * Enhance readability using AI
+   * Basic text formatting as fallback
    */
-  async enhanceReadability(text) {
-    try {
-      const response = await this.makeHuggingFaceRequest(
-        this.models.textSimplification,
-        text.slice(0, 800)
-      );
+  basicFormat(text) {
+    return text
+      // Fix spacing
+      .replace(/\s+/g, ' ')
+      .replace(/\n+/g, '\n\n')
 
-      if (response && response[0] && response[0].generated_text) {
-        return {
-          success: true,
-          text: response[0].generated_text,
-          improvements: 1
-        };
-      }
-    } catch (error) {
-      console.warn('Readability enhancement failed:', error);
-    }
+      // Fix punctuation
+      .replace(/\s*([,.!?;:])\s*/g, '$1 ')
+      .replace(/\s+([.!?])/g, '$1')
 
-    return { success: false, text };
+      // Capitalize sentences
+      .replace(/(?:^|\. )([a-z])/g, (match, letter) =>
+        match.replace(letter, letter.toUpperCase())
+      )
+
+      // Remove extra spaces before punctuation
+      .replace(/\s+([,.!?;:])/g, '$1')
+
+      .trim();
   }
 
   /**
-   * Improve individual sentences
+   * Calculate basic readability score
    */
-  async improveSentences(text) {
+  calculateReadabilityScore(text) {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const avgWordsPerSentence = words.length / sentences.length || 0;
+
+    // Simple readability score (0-100)
+    let score = 100;
+
+    // Penalize very long sentences
+    if (avgWordsPerSentence > 20) {
+      score -= (avgWordsPerSentence - 20) * 2;
+    }
+
+    // Penalize very short sentences
+    if (avgWordsPerSentence < 5) {
+      score -= (5 - avgWordsPerSentence) * 3;
+    }
+
+    // Check for variety in sentence length
+    const sentenceLengths = sentences.map(s => s.split(/\s+/).length);
+    const variance = this.calculateVariance(sentenceLengths);
+    if (variance < 5) {
+      score -= 10; // Penalize monotonous sentence structure
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  /**
+   * Calculate variance for sentence length analysis
+   */
+  calculateVariance(numbers) {
+    const mean = numbers.reduce((a, b) => a + b, 0) / numbers.length;
+    const variance = numbers.reduce((acc, num) => acc + Math.pow(num - mean, 2), 0) / numbers.length;
+    return variance;
+  }
+
+  /**
+   * Get service status and capabilities
+   */
+  async getCapabilities() {
     try {
-      const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-      const improvedSentences = [];
-
-      // Process a few key sentences
-      for (const sentence of sentences.slice(0, 3)) {
-        const response = await this.makeHuggingFaceRequest(
-          this.models.sentenceRewriter,
-          sentence.trim()
-        );
-
-        if (response && response[0] && response[0].generated_text) {
-          improvedSentences.push(response[0].generated_text);
-        } else {
-          improvedSentences.push(sentence);
-        }
-
-        await this.delay(100);
-      }
-
-      // Combine improved sentences with the rest
-      const remainingSentences = sentences.slice(3);
-      const allSentences = [...improvedSentences, ...remainingSentences];
-
+      const status = await this.secureService.getServiceStatus();
       return {
-        success: true,
-        text: allSentences.join('. ') + '.',
-        improvements: improvedSentences.length
+        available: status.available,
+        authenticated: status.authenticated,
+        services: {
+          grammarCorrection: status.services?.sentiment || false,
+          textEnhancement: status.services?.enhancement || false,
+          structureImprovement: status.services?.enhancement || false,
+          purposeFormatting: status.services?.enhancement || false,
+          batchProcessing: status.available
+        },
+        limitations: {
+          rateLimit: 'Server-side rate limiting applied',
+          authRequired: 'User authentication required',
+          textLength: 'Maximum 3000 characters per request'
+        }
       };
     } catch (error) {
-      console.warn('Sentence improvement failed:', error);
-      return { success: false, text };
-    }
-  }
-
-  /**
-   * Make request to Hugging Face API
-   */
-  async makeHuggingFaceRequest(model, inputs, parameters = {}) {
-    if (!this.isConfigured()) {
-      throw new Error('Hugging Face token not configured');
-    }
-
-    const response = await fetch(`${this.baseUrl}/${model}`, {
-      headers: {
-        'Authorization': `Bearer ${this.huggingFaceToken}`,
-        'Content-Type': 'application/json',
-      },
-      method: 'POST',
-      body: JSON.stringify({
-        inputs,
-        parameters: {
-          max_length: 500,
-          temperature: 0.7,
-          ...parameters
-        },
-        options: {
-          wait_for_model: true
+      return {
+        available: false,
+        error: error.message,
+        services: {
+          grammarCorrection: false,
+          textEnhancement: false,
+          structureImprovement: false,
+          purposeFormatting: false,
+          batchProcessing: false
         }
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      };
     }
-
-    return await response.json();
   }
 
   /**
-   * Apply fallback formatting rules when AI services fail
+   * Check if the service is properly configured
    */
-  applyFallbackFormatting(text) {
-    let formatted = text;
-
-    // Remove web artifacts
-    formatted = formatted
-      .replace(/\b(Advertisement|Sponsored|Related Articles?)\b/gi, '')
-      .replace(/\b(Share|Tweet|Like|Follow|Subscribe)\b/gi, '')
-      .replace(/\b(Cookie|Privacy Policy|Terms of Service)\b/gi, '');
-
-    // Improve paragraph structure
-    formatted = this.applyBasicStructure(formatted);
-
-    // Enhance readability
-    formatted = formatted
-      .replace(/([.!?])\s*([a-z])/g, '$1 $2') // Fix spacing after punctuation
-      .replace(/\s+/g, ' ') // Remove extra spaces
-      .replace(/\n{3,}/g, '\n\n'); // Normalize line breaks
-
-    return formatted.trim();
+  isConfigured() {
+    return this.secureService.isAuthenticated();
   }
 
   /**
-   * Apply basic structure improvements
+   * Get usage recommendations
    */
-  applyBasicStructure(text) {
-    return text
-      .split(/\n\s*\n/)
-      .map(paragraph => paragraph.trim())
-      .filter(paragraph => paragraph.length > 15)
-      .join('\n\n');
-  }
-
-  /**
-   * Split text into manageable chunks
-   */
-  splitTextIntoChunks(text, maxLength = 500) {
-    const sentences = text.split(/[.!?]+/);
-    const chunks = [];
-    let currentChunk = '';
-
-    for (const sentence of sentences) {
-      if ((currentChunk + sentence).length > maxLength && currentChunk) {
-        chunks.push(currentChunk.trim());
-        currentChunk = sentence;
-      } else {
-        currentChunk += sentence + '. ';
-      }
-    }
-
-    if (currentChunk.trim()) {
-      chunks.push(currentChunk.trim());
-    }
-
-    return chunks;
-  }
-
-  /**
-   * Add delay to avoid rate limiting
-   */
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Get formatting suggestions without applying them
-   */
-  async getFormattingSuggestions(text) {
-    const suggestions = [];
-
-    // Analyze text and provide suggestions
-    if (text.length > 2000) {
-      suggestions.push({
-        type: 'length',
-        message: 'Text is quite long. Consider breaking into sections.',
-        priority: 'medium'
-      });
-    }
-
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim());
-    const avgSentenceLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
-
-    if (avgSentenceLength > 100) {
-      suggestions.push({
-        type: 'readability',
-        message: 'Sentences are quite long. AI can help simplify them.',
-        priority: 'high'
-      });
-    }
-
-    if (!/[A-Z]/.test(text.charAt(0))) {
-      suggestions.push({
-        type: 'capitalization',
-        message: 'Text should start with a capital letter.',
-        priority: 'low'
-      });
-    }
-
-    return suggestions;
+  getUsageRecommendations() {
+    return {
+      bestPractices: [
+        'Use specific purposes (email, blog, academic) for better results',
+        'Keep text under 3000 characters for optimal performance',
+        'Use batch processing for multiple texts with delays',
+        'Always check the confidence score of enhancements'
+      ],
+      security: [
+        'All API calls are now routed through your secure server',
+        'API keys are no longer exposed to the client',
+        'User authentication is required for AI services'
+      ],
+      migration: 'This service is deprecated. Use secureAIService.js directly for new implementations.'
+    };
   }
 }
 

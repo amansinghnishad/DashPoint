@@ -32,15 +32,12 @@ export const extractContentFromUrl = async (url, existingContents) => {
   // Step 1: Basic formatting using TextFormatter
   let formattedContent = TextFormatter.formatContent(rawContent);
   const textStats = TextFormatter.getTextStats(formattedContent);
-
   // Step 2: Enhanced AI-powered formatting
   let aiFormattingResult = null;
   let aiEnhancementResult = null;
 
   if (formattedContent && formattedContent.length > 100) {
     try {
-      console.log('🎨 Applying AI-powered text formatting...');
-
       // Try advanced AI formatting first
       if (aiTextFormattingService.isConfigured()) {
         aiFormattingResult = await aiTextFormattingService.formatText(
@@ -55,7 +52,6 @@ export const extractContentFromUrl = async (url, existingContents) => {
 
         if (aiFormattingResult.confidence > 70) {
           formattedContent = aiFormattingResult.formatted;
-          console.log('✅ Advanced AI formatting applied');
         }
       }
 
@@ -73,7 +69,6 @@ export const extractContentFromUrl = async (url, existingContents) => {
 
         if (aiEnhancementResult.confidence > 60) {
           formattedContent = aiEnhancementResult.enhanced;
-          console.log('✅ Free AI enhancement applied');
         }
       }
 
@@ -111,11 +106,9 @@ export const extractContentFromUrl = async (url, existingContents) => {
       ]
     }
   };
-
   // Add AI-powered enhancements if content is available
   if (processedContent.content && processedContent.content.length > 100) {
     try {
-      console.log('🤖 Enhancing content with AI...');
       const aiEnhancements = await huggingFaceService.extractContent(
         processedContent.content,
         {
@@ -138,9 +131,7 @@ export const extractContentFromUrl = async (url, existingContents) => {
           aiProvider: 'Hugging Face',
           extractionMethod: aiEnhancements.data.summary?.method || 'AI-powered'
         };
-        console.log('✅ AI enhancement completed');
       } else {
-        console.warn('⚠️ AI enhancement failed, using fallback');
         processedContent.aiEnhanced = false;
       }
     } catch (error) {

@@ -7,8 +7,9 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
-import freeAIServices from "../../../services/freeAIServices";
-import aiTextFormattingService from "../../../services/aiTextFormattingService";
+import secureAIService from "../../../services/secureAIService";
+import freeAIServices from "../../../services/freeAIServices"; // Fallback for compatibility
+import aiTextFormattingService from "../../../services/aiTextFormattingService"; // Fallback for compatibility
 
 export const AIFormattingPanel = ({
   content,
@@ -32,48 +33,96 @@ export const AIFormattingPanel = ({
       loadFormattingSuggestions();
     }
   }, [content]);
-
   const loadFormattingSuggestions = async () => {
     try {
-      const suggestions =
-        await aiTextFormattingService.getFormattingSuggestions(content);
-      setSuggestions(suggestions);
+      // Use the new secure AI service for better performance
+      if (secureAIService.isAuthenticated()) {
+        const result = await secureAIService.analyzeContent(content, {
+          sentiment: true,
+          keywords: true,
+          summary: false, // Don't need summary for suggestions
+        });
+
+        if (result.success) {
+          const suggestions = [];
+
+          // Add sentiment-based suggestions
+          if (result.data.sentiment) {
+            const sentiment = result.data.sentiment;
+            if (sentiment.label === "NEGATIVE" && sentiment.score > 0.7) {
+              suggestions.push({
+                type: "tone",
+                message: "Consider using more positive language",
+                confidence: sentiment.score,
+              });
+            }
+          }
+
+          // Add keyword-based suggestions
+          if (result.data.keywords && result.data.keywords.length > 0) {
+            suggestions.push({
+              type: "keywords",
+              message: `Found ${result.data.keywords.length} key topics`,
+              confidence: 0.8,
+            });
+          }
+
+          setSuggestions(suggestions);
+        }
+      } else {
+        // Fallback to legacy service
+        const suggestions =
+          (await aiTextFormattingService.getFormattingSuggestions?.(content)) ||
+          [];
+        setSuggestions(suggestions);
+      }
     } catch (error) {
-      console.warn("Failed to load suggestions:", error);
+      console.error("Failed to load suggestions:", error);
+      setSuggestions([]);
     }
   };
-
   const handleAIFormatting = async (useAdvanced = false) => {
     if (!content || content.trim().length === 0) return;
 
     setIsProcessing(true);
 
     try {
-      let result;
+      let result; // Use the new secure AI service for all formatting
+      if (secureAIService.isAuthenticated()) {
+        if (useAdvanced) {
+          // Use comprehensive text enhancement
+          result = await secureAIService.enhanceText(content, {
+            grammarCheck: formattingOptions.correctGrammar,
+            punctuationFix: formattingOptions.restorePunctuation,
+            entityExtraction: formattingOptions.improveStructure,
+          });
+        } else {
+          // Use basic text formatting
+          result = await secureAIService.formatText(content, formattingOptions);
+        }
 
-      if (useAdvanced && aiTextFormattingService.isConfigured()) {
-        console.log("🎨 Applying advanced AI formatting...");
-        result = await aiTextFormattingService.formatText(
-          content,
-          formattingOptions
-        );
+        // Normalize the result format
+        if (result.success) {
+          result.confidence = (result.data.confidence || 0.5) * 100;
+          result.enhanced = result.data.formatted || result.data.enhanced;
+          result.improvements = result.data.improvements || [];
+        }
       } else {
-        console.log("🔧 Applying free AI enhancement...");
-        result = await freeAIServices.enhanceText(content, formattingOptions);
+        // Fallback to legacy services for unauthenticated users
+        if (useAdvanced && aiTextFormattingService.isConfigured()) {
+          result = await aiTextFormattingService.formatText(
+            content,
+            formattingOptions
+          );
+        } else {
+          result = await freeAIServices.enhanceText(content, formattingOptions);
+        }
       }
-
       setLastResults(result);
 
-      if (result.confidence > 50) {
-        const enhancedContent = useAdvanced
-          ? result.formatted
-          : result.enhanced;
+      if (result.success && result.confidence > 50) {
+        const enhancedContent = result.enhanced || result.formatted;
         onContentUpdate(enhancedContent);
-
-        // Show success message
-        console.log(
-          `✅ AI formatting completed with ${result.confidence}% confidence`
-        );
       } else {
         console.warn(
           "⚠️ AI formatting had low confidence, results not applied"

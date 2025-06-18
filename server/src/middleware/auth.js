@@ -7,32 +7,25 @@ const auth = async (req, res, next) => {
     const token = extractTokenFromHeader(req.headers.authorization);
 
     if (!token) {
-      console.log('No token found in request headers');
       return res.status(401).json({
         success: false,
         message: 'Access token is required'
       });
     }
 
-    console.log('Token found:', token.substring(0, 20) + '...');
     const decoded = verifyToken(token);
-    console.log('Token decoded successfully:', decoded);
-
     const user = await User.findById(decoded.userId);
 
     if (!user || !user.isActive) {
-      console.log('User not found or inactive:', decoded.userId);
       return res.status(401).json({
         success: false,
         message: 'User not found or inactive'
       });
     }
 
-    console.log('User authenticated successfully:', user.email);
     req.user = user;
     next();
   } catch (error) {
-    console.log('Auth middleware error:', error.message);
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired token'

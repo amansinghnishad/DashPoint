@@ -116,6 +116,39 @@ export const ContentExtractor = () => {
   const handleShowTips = () => {
     setShowTips(true);
     localStorage.setItem("contentExtractorTipsVisible", JSON.stringify(true));
+  }; // handleContentUpdate function - saves AI-formatted content
+  const handleContentUpdate = async (contentId, newContent) => {
+    try {
+      // Update the content on the server
+      const response = await contentAPI.update(contentId, {
+        content: newContent,
+        text: newContent, // Update both content and text fields
+      });
+
+      if (response.success) {
+        // Update the local state
+        setExtractedContents((prev) =>
+          prev.map((content) =>
+            content._id === contentId
+              ? { ...content, content: newContent, text: newContent }
+              : content
+          )
+        );
+
+        // Update selected content if it's the one being edited
+        if (selectedContent && selectedContent._id === contentId) {
+          setSelectedContent((prev) => ({
+            ...prev,
+            content: newContent,
+            text: newContent,
+          }));
+        }
+        success("Content updated successfully");
+      }
+    } catch (err) {
+      console.error("❌ Failed to update content:", err);
+      showError("Failed to save content changes");
+    }
   };
 
   return (
@@ -137,11 +170,11 @@ export const ContentExtractor = () => {
             onDeleteContent={deleteContent}
             onAddToCollection={handleAddToCollection}
             loading={loadingContents}
-          />
-
+          />{" "}
           <ContentViewer
             selectedContent={selectedContent}
             onExportContent={exportContentAsJson}
+            onContentUpdate={handleContentUpdate}
           />
         </div>
         <UsageTips isVisible={showTips} onVisibilityChange={setShowTips} />{" "}

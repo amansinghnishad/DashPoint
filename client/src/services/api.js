@@ -26,8 +26,7 @@ const createApiClient = () => {
   // Response interceptor
   client.interceptors.response.use(
     (response) => response,
-    (error) => {
-      // Only logout on 401 if it's actually an auth issue, not a network error
+    (error) => {      // Only logout on 401 if it's actually an auth issue, not a network error
       if (error.response?.status === 401) {
         const errorMessage = error.response?.data?.message?.toLowerCase() || '';
 
@@ -36,7 +35,6 @@ const createApiClient = () => {
           errorMessage.includes('expired') ||
           errorMessage.includes('invalid') ||
           errorMessage.includes('unauthorized')) {
-          console.log('Authentication failed, logging out:', errorMessage);
           localStorage.removeItem('token');
           localStorage.removeItem('userData');
 
