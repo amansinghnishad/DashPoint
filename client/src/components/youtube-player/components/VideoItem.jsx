@@ -1,4 +1,4 @@
-import { Play, X, FolderPlus } from "lucide-react";
+import { Play, X, FolderPlus, Clock, Eye } from "lucide-react";
 
 export const VideoItem = ({
   video,
@@ -9,55 +9,81 @@ export const VideoItem = ({
 }) => {
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border ${
-        isActive ? "border-blue-500" : "border-gray-200"
-      } p-3`}
+      className={`bg-white/60 backdrop-blur-sm border rounded-xl p-3 transition-all duration-300 hover:bg-white/80 hover:shadow-lg hover:scale-[1.02] cursor-pointer group ${
+        isActive
+          ? "ring-2 ring-red-500 bg-red-50/80 border-red-200"
+          : "border-gray-200 hover:border-red-200"
+      }`}
     >
       <div className="flex space-x-3">
-        <div className="relative">
+        <div
+          className="relative w-20 h-12 flex-shrink-0 rounded-lg overflow-hidden group-hover:scale-105 transition-transform duration-300"
+          onClick={() => onPlay(video)}
+        >
           <img
             src={video.thumbnail}
             alt={video.title}
-            className="w-20 h-14 object-cover rounded cursor-pointer"
-            onClick={() => onPlay(video)}
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <Play size={16} className="text-white" />
           </div>
+          {isActive && (
+            <div className="absolute inset-0 bg-red-500/20 border-2 border-red-500 rounded-lg"></div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3
-            className="font-medium text-sm text-gray-900 line-clamp-2 cursor-pointer hover:text-blue-600"
+          <h4
+            className="font-medium text-sm text-gray-900 line-clamp-2 mb-1 cursor-pointer hover:text-red-600 transition-colors duration-200"
             onClick={() => onPlay(video)}
+            title={video.title}
           >
             {video.title}
-          </h3>
-          <p className="text-xs text-gray-500 mt-1">
-            {video.channelTitle && (
-              <span className="mr-2">{video.channelTitle}</span>
+          </h4>
+
+          {video.channelTitle && (
+            <p className="text-xs text-gray-600 mb-2 line-clamp-1">
+              {video.channelTitle}
+            </p>
+          )}
+
+          <div className="flex items-center space-x-3 text-xs text-gray-500">
+            {video.duration && (
+              <span className="flex items-center space-x-1">
+                <Clock size={12} />
+                <span>{video.duration}</span>
+              </span>
             )}
-            {video.duration && <span className="mr-2">• {video.duration}</span>}
             {video.viewCount && (
-              <span>• {video.viewCount.toLocaleString()} views</span>
+              <span className="flex items-center space-x-1">
+                <Eye size={12} />
+                <span>{video.viewCount.toLocaleString()}</span>
+              </span>
             )}
-          </p>
+          </div>
         </div>
 
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
-            onClick={() => onAddToCollection(video)}
-            className="text-gray-400 hover:text-blue-500 p-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCollection(video);
+            }}
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all duration-200"
             title="Add to collection"
           >
-            <FolderPlus size={16} />
+            <FolderPlus size={14} />
           </button>
           <button
-            onClick={() => onRemove(video._id)}
-            className="text-gray-400 hover:text-red-500 p-1"
-            title="Remove"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(video._id);
+            }}
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all duration-200"
+            title="Remove from playlist"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
       </div>

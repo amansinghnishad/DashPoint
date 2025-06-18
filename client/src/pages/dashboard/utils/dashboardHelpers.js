@@ -21,23 +21,63 @@ export const getPageTitle = (activeTab) => {
  * Get keyboard shortcuts configuration
  */
 export const getKeyboardShortcuts = (handlers) => {
-  return {
-    "ctrl+1": () => handlers.setActiveTab("overview"),
-    "ctrl+2": () => handlers.setActiveTab("collections"),
-    "ctrl+3": () => handlers.setActiveTab("sticky-notes"),
-    "ctrl+4": () => handlers.setActiveTab("todos"),
-    "ctrl+5": () => handlers.setActiveTab("youtube"),
-    "ctrl+/": () => handlers.setShortcutsOpen(true),
-    "ctrl+b": () => handlers.setSidebarOpen(!handlers.sidebarOpen),
-    "ctrl+d": () => handlers.setIsDark(!handlers.isDark),
-    "ctrl+,": () => handlers.setSettingsOpen(true),
-    escape: () => {
-      handlers.setNotificationsOpen(false);
-      handlers.setShortcutsOpen(false);
-      handlers.setSettingsOpen(false);
-      handlers.setSidebarOpen(false);
+  return [
+    {
+      keys: "ctrl+1",
+      action: () => handlers.setActiveTab("overview"),
+      description: "Go to Overview"
     },
-  };
+    {
+      keys: "ctrl+2",
+      action: () => handlers.setActiveTab("collections"),
+      description: "Go to Collections"
+    },
+    {
+      keys: "ctrl+3",
+      action: () => handlers.setActiveTab("sticky-notes"),
+      description: "Go to Sticky Notes"
+    },
+    {
+      keys: "ctrl+4",
+      action: () => handlers.setActiveTab("todos"),
+      description: "Go to Todo List"
+    },
+    {
+      keys: "ctrl+5",
+      action: () => handlers.setActiveTab("youtube"),
+      description: "Go to YouTube Player"
+    },
+    {
+      keys: "ctrl+/",
+      action: () => handlers.setShortcutsOpen(true),
+      description: "Show Keyboard Shortcuts"
+    },
+    {
+      keys: "ctrl+b",
+      action: () => handlers.setSidebarOpen(!handlers.sidebarOpen),
+      description: "Toggle Sidebar"
+    },
+    {
+      keys: "ctrl+d",
+      action: () => handlers.setIsDark(!handlers.isDark),
+      description: "Toggle Dark Mode"
+    },
+    {
+      keys: "ctrl+,",
+      action: () => handlers.setSettingsOpen(true),
+      description: "Open Settings"
+    },
+    {
+      keys: "escape",
+      action: () => {
+        handlers.setNotificationsOpen(false);
+        handlers.setShortcutsOpen(false);
+        handlers.setSettingsOpen(false);
+        handlers.setSidebarOpen(false);
+      },
+      description: "Close Modals/Panels"
+    },
+  ];
 };
 
 /**

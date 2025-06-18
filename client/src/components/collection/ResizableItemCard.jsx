@@ -124,12 +124,13 @@ export const ResizableItemCard = ({
         );
     }
   };
-
   return (
     <div
       ref={cardRef}
-      className={`relative bg-white border border-gray-200 rounded-lg shadow-sm transition-all duration-200 ${
-        isResizing ? "shadow-lg ring-2 ring-blue-500" : "hover:shadow-md"
+      className={`group relative bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg transition-all duration-300 overflow-hidden ${
+        isResizing
+          ? "shadow-2xl ring-2 ring-blue-500/50 scale-105"
+          : "hover:shadow-xl hover:transform hover:scale-[1.02] hover:border-blue-200/50"
       }`}
       style={{
         width: size.width,
@@ -138,18 +139,22 @@ export const ResizableItemCard = ({
         minHeight: 200,
       }}
     >
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 bg-white bg-opacity-95 backdrop-blur-sm border-b border-gray-200 rounded-t-lg p-2 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-2">
-          {getIcon()}
-          <h3 className="text-sm font-medium text-gray-900 truncate">
+      {/* Gradient overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+
+      {/* Header with enhanced styling */}
+      <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 rounded-t-2xl p-3 flex items-center justify-between z-10">
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          <div className="flex-shrink-0">{getIcon()}</div>
+          <h3 className="text-sm font-semibold text-gray-900 truncate">
             {item.itemData?.title || `${item.itemType} item`}
           </h3>
         </div>
-        <div className="flex items-center space-x-1">
+
+        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title={isExpanded ? "Minimize" : "Maximize"}
           >
             {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -158,7 +163,7 @@ export const ResizableItemCard = ({
           {(item.itemData?.url || item.itemData?.embedUrl) && (
             <button
               onClick={handleExternalOpen}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
               title="Open in new tab"
             >
               <ExternalLink size={14} />
@@ -170,7 +175,7 @@ export const ResizableItemCard = ({
               onClick={() =>
                 handleCopy(item.itemData.content || item.itemData.text)
               }
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
               title="Copy content"
             >
               <Copy size={14} />
@@ -179,7 +184,7 @@ export const ResizableItemCard = ({
 
           <button
             onClick={() => onView(item)}
-            className="p-1 text-gray-500 hover:text-blue-700 hover:bg-blue-50 rounded"
+            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title="View details"
           >
             <Edit3 size={14} />
@@ -187,7 +192,7 @@ export const ResizableItemCard = ({
 
           <button
             onClick={() => onDelete(item)}
-            className="p-1 text-gray-500 hover:text-red-700 hover:bg-red-50 rounded"
+            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
             title="Remove from collection"
           >
             <Trash2 size={14} />
@@ -195,48 +200,58 @@ export const ResizableItemCard = ({
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content area with improved styling */}
       <div
-        className={`absolute top-12 left-0 right-0 bottom-0 ${
+        className={`absolute top-16 left-0 right-0 bottom-6 p-2 ${
           isExpanded ? "z-20" : ""
         }`}
       >
-        {renderContent()}
+        <div className="w-full h-full rounded-xl overflow-hidden">
+          {renderContent()}
+        </div>
       </div>
 
-      {/* Resize handle */}
+      {/* Enhanced resize handle */}
       <div
-        className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-gray-300 hover:bg-gray-400 rounded-tl-lg flex items-center justify-center"
+        className="absolute bottom-2 right-2 w-6 h-6 cursor-se-resize bg-gradient-to-br from-gray-300 to-gray-400 hover:from-blue-400 hover:to-indigo-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:shadow-md"
         onMouseDown={handleResizeStart}
-        style={{
-          backgroundImage: "radial-gradient(circle, #666 1px, transparent 1px)",
-          backgroundSize: "4px 4px",
-        }}
       >
-        <Move size={12} className="text-gray-600" />
+        <Move size={12} className="text-white" />
       </div>
 
-      {/* Expanded overlay */}
+      {/* Loading indicator during resize */}
+      {isResizing && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-t-2xl animate-pulse" />
+      )}
+
+      {/* Enhanced expanded modal */}
       {isExpanded && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {getIcon()}
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {item.itemData?.title || `${item.itemType} item`}
-                </h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-6xl max-h-[90vh] overflow-auto shadow-2xl border border-white/20">
+            <div className="p-6 border-b border-gray-200/50 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                  {getIcon()}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {item.itemData?.title || `${item.itemType} item`}
+                  </h3>
+                  <p className="text-sm text-gray-600 capitalize">
+                    {item.itemType.replace("-", " ")} • Collection Item
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setIsExpanded(false)}
-                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200"
               >
-                <Minimize2 size={18} />
+                <Minimize2 size={20} />
               </button>
             </div>
             <div
-              className="p-4"
-              style={{ minHeight: "400px", minWidth: "600px" }}
+              className="p-6"
+              style={{ minHeight: "500px", minWidth: "700px" }}
             >
               {renderContent()}
             </div>

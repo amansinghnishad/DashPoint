@@ -21,7 +21,7 @@ export const getTodoStats = (todos) => {
 };
 
 export const priorityColors = {
-  low: "bg-green-100 text-green-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-red-100 text-red-800",
+  low: "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200",
+  medium: "bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200",
+  high: "bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border border-red-200",
 };

@@ -9,6 +9,7 @@ import { useToast } from "../../hooks/useToast";
 import { useNotifications } from "../../hooks/useNotifications";
 import { ToastContainer } from "../../components/toast/index";
 import { useAuth } from "../../context/AuthContext";
+import { useLocalStorage } from "../../hooks/useCommon";
 
 import { DashboardHeader } from "./components/DashboardHeader";
 import { ContentRenderer } from "./components/ContentRenderer";
@@ -23,7 +24,7 @@ import {
 export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useLocalStorage("theme-dark-mode", false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -87,7 +88,9 @@ export const Dashboard = () => {
   };
   return (
     <div
-      className={`min-h-screen ${isDark ? "bg-gray-900 dark" : "bg-gray-50"}`}
+      className={`min-h-screen scrollable-area ${
+        isDark ? "bg-gray-900 dark" : "bg-gray-50"
+      }`}
     >
       {" "}
       <div className="flex h-screen">
@@ -103,7 +106,7 @@ export const Dashboard = () => {
         />
 
         {/* Main content area - add left margin for sidebar on large screens */}
-        <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
+        <div className="flex-1 flex flex-col overflow-auto scrollable-area lg:ml-64">
           {/* Header */}
           <DashboardHeader
             sidebarOpen={sidebarOpen}

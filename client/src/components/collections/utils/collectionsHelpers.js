@@ -52,13 +52,3 @@ export const processTags = (tagsString) => {
     .map((tag) => tag.trim())
     .filter((tag) => tag);
 };
-
-/**
- * Format collection for display
- */
-export const formatCollectionData = (formData) => {
-  return {
-    ...formData,
-    tags: processTags(formData.tags),
-  };
-};

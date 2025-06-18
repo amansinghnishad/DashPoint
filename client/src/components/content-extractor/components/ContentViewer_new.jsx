@@ -11,38 +11,21 @@ import {
   Sparkles,
   Tag,
   Brain,
-  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { copyToClipboard } from "../../../utils/helpers";
 import { formatDateTime } from "../../../utils/dateUtils";
-import { FormattedContent } from "./FormattedContent";
-import { AIFormattingPanel } from "./AIFormattingPanel";
 
-export const ContentViewer = ({
-  selectedContent,
-  onExportContent,
-  onContentUpdate,
-}) => {
+export const ContentViewer = ({ selectedContent, onExportContent }) => {
   const [copied, setCopied] = useState(false);
-  const [showAIPanel, setShowAIPanel] = useState(false);
-  const [currentContent, setCurrentContent] = useState(
-    selectedContent?.content || selectedContent?.text
-  );
+
   const handleCopy = async () => {
     const success = await copyToClipboard(
-      currentContent || selectedContent.text || selectedContent.content
+      selectedContent.text || selectedContent.content
     );
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const handleContentUpdate = (newContent) => {
-    setCurrentContent(newContent);
-    if (onContentUpdate) {
-      onContentUpdate(selectedContent.id, newContent);
     }
   };
 
@@ -151,21 +134,10 @@ export const ContentViewer = ({
                   </div>
                 )}
               </div>
-            </div>{" "}
+            </div>
+
             {/* Action Buttons */}
             <div className="flex items-center space-x-2 ml-4">
-              <button
-                onClick={() => setShowAIPanel(!showAIPanel)}
-                className={`px-4 py-2 border rounded-lg font-medium flex items-center space-x-2 transition-all duration-200 hover:shadow-md ${
-                  showAIPanel
-                    ? "bg-purple-50 border-purple-200 text-purple-700"
-                    : "bg-white border-gray-200 text-gray-700 hover:bg-purple-50"
-                }`}
-                title="AI Formatting"
-              >
-                <Settings size={16} />
-                <span>AI Format</span>
-              </button>
               <button
                 onClick={handleCopy}
                 className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg font-medium flex items-center space-x-2 transition-all duration-200 hover:shadow-md"
@@ -199,6 +171,7 @@ export const ContentViewer = ({
             </div>
           </div>
         </div>
+
         {/* AI Summary & Keywords */}
         {(selectedContent.summary || selectedContent.keywords) && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
@@ -237,29 +210,17 @@ export const ContentViewer = ({
                 </div>
               )}
           </div>
-        )}{" "}
-        {/* AI Formatting Panel */}
-        {showAIPanel && (
-          <div className="border-b border-gray-100">
-            <AIFormattingPanel
-              content={
-                currentContent ||
-                selectedContent.content ||
-                selectedContent.text
-              }
-              onContentUpdate={handleContentUpdate}
-              className="m-6"
-            />
-          </div>
         )}
+
         {/* Content */}
         <div className="p-6">
-          <FormattedContent
-            content={
-              currentContent || selectedContent.content || selectedContent.text
-            }
-          />
+          <div className="prose prose-gray max-w-none">
+            <div className="text-gray-800 leading-relaxed text-base whitespace-pre-wrap font-medium">
+              {selectedContent.content || selectedContent.text}
+            </div>
+          </div>
         </div>
+
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-100">
           <div className="flex items-center justify-between">

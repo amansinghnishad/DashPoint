@@ -1,15 +1,4 @@
-/**
- * Extracts YouTube video ID from various YouTube URL formats
- * @param {string} url - YouTube URL
- * @returns {string|null} - Video ID or null if invalid
- */
-export const extractYouTubeId = (url) => {
-  if (!url) return null;
-
-  const regex = /(?:youtube\.com\/(?:embed\/|v\/|watch\?v=)|youtu\.be\/)([^&\n?#]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-};
+import { extractYouTubeId } from "../../../utils/urlUtils";
 
 /**
  * Gets the appropriate icon color based on item type
@@ -84,3 +73,6 @@ export const formatNumber = (num) => {
   }
   return num.toString();
 };
+
+// Re-export shared utility functions for convenience
+export { extractYouTubeId };
