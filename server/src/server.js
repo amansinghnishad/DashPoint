@@ -56,9 +56,23 @@ const corsOptions = {
       'http://localhost:3000',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
-      process.env.CLIENT_URL].filter(Boolean);
+      process.env.CLIENT_URL,
+      // Allow all Vercel deployments for this project
+      /^https:\/\/dash-point-.*\.vercel\.app$/,
+      /^https:\/\/dashpoint-.*\.vercel\.app$/
+    ].filter(Boolean);
 
-    if (allowedOrigins.includes(origin)) {
+    // Check if origin matches any allowed origin (string or regex)
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       if (process.env.NODE_ENV === 'development') {
@@ -66,10 +80,10 @@ const corsOptions = {
       }
       callback(new Error('Not allowed by CORS'));
     }
-  },
-  credentials: true,
+  },  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Authorization'],
   preflightContinue: false,
   optionsSuccessStatus: 200
 };
