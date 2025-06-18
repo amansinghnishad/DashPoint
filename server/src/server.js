@@ -20,6 +20,11 @@ const aiServicesRoutes = require('./routes/aiServicesRoutes');
 
 const app = express();
 
+// Set NODE_ENV to production if not set (for deployment platforms)
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'production';
+}
+
 // Connect to MongoDB
 connectDB();
 
@@ -82,6 +87,28 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
     message: 'Dashboard API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
+
+// Root route - API information
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'DashPoint API',
+    version: '1.0.0',
+    message: 'Welcome to the DashPoint Dashboard API',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      'sticky-notes': '/api/sticky-notes',
+      todos: '/api/todos',
+      'content-extraction': '/api/content-extraction',
+      weather: '/api/weather',
+      youtube: '/api/youtube',
+      collections: '/api/collections',
+      ai: '/api/ai'
+    },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
   });

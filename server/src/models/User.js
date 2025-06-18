@@ -1,11 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
-const userSchema = new mongoose.Schema({
-  username: {
+const userSchema = new mongoose.Schema({  username: {
     type: String,
     required: [true, 'Username is required'],
-    unique: true,
     trim: true,
     minlength: [3, 'Username must be at least 3 characters long'],
     maxlength: [30, 'Username cannot exceed 30 characters'],
@@ -14,7 +13,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
@@ -100,13 +98,12 @@ const userSchema = new mongoose.Schema({
       delete ret.emailVerificationToken;
       delete ret.__v;
       return ret;
-    }
-  }
+    }  }
 });
 
-// Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+// Index definitions - using explicit index() calls for better control
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ createdAt: -1 });
 
 // Virtual for full name
