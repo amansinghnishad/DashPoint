@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Backend server for MERN Dashboard application",
   "main": "src/server.js",
-  "type": "commonjs",  "scripts": {
+  "type": "commonjs",
+  "scripts": {
     "start": "NODE_ENV=production node src/server.js",
     "dev": "nodemon src/server.js",
     "prod": "NODE_ENV=production node src/server.js",
@@ -30,6 +31,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.2",
     "morgan": "^1.10.0",
+    "multer": "^2.0.1",
     "node-cron": "^4.1.0"
   },
   "devDependencies": {

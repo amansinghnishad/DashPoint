@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
@@ -17,6 +18,7 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
 const aiServicesRoutes = require('./routes/aiServicesRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 
 const app = express();
 
@@ -80,7 +82,7 @@ const corsOptions = {
       }
       callback(new Error('Not allowed by CORS'));
     }
-  },  credentials: true,
+  }, credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   exposedHeaders: ['Authorization'],
@@ -95,6 +97,9 @@ app.options('*', cors(corsOptions));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -117,11 +122,11 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       'sticky-notes': '/api/sticky-notes',
       todos: '/api/todos',
-      'content-extraction': '/api/content-extraction',
-      weather: '/api/weather',
+      'content-extraction': '/api/content-extraction', weather: '/api/weather',
       youtube: '/api/youtube',
       collections: '/api/collections',
-      ai: '/api/ai'
+      ai: '/api/ai',
+      files: '/api/files'
     },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
@@ -137,6 +142,7 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/ai', aiServicesRoutes);
+app.use('/api/files', fileRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

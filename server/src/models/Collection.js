@@ -31,7 +31,7 @@ const collectionSchema = new mongoose.Schema({
     itemType: {
       type: String,
       required: true,
-      enum: ['youtube', 'content', 'sticky-note', 'todo']
+      enum: ['youtube', 'content', 'sticky-note', 'todo', 'file']
     },
     itemId: {
       type: String,

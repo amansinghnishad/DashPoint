@@ -81,9 +81,7 @@ exports.getCollectionWithItems = async (req, res, next) => {
     // Populate item data for each item in the collection
     const populatedItems = await Promise.all(
       collection.items.map(async (item) => {
-        let itemData = null;
-
-        try {
+        let itemData = null; try {
           switch (item.itemType) {
             case 'youtube':
               const YouTube = require('../models/YouTube');
@@ -100,6 +98,10 @@ exports.getCollectionWithItems = async (req, res, next) => {
             case 'todo':
               const Todo = require('../models/Todo');
               itemData = await Todo.findOne({ _id: item.itemId, userId });
+              break;
+            case 'file':
+              const File = require('../models/File');
+              itemData = await File.findOne({ _id: item.itemId, userId });
               break;
             default:
               itemData = null;
