@@ -1,9 +1,11 @@
-import React from 'react';
-import { RefreshCw, X, Download } from 'lucide-react';
-import { usePWAUpdates } from '../../hooks/usePWAUpdates';
+import React from "react";
+import { RefreshCw, X, Download } from "lucide-react";
+import { Button } from "../ui";
+import { usePWAUpdates } from "../../hooks/usePWAUpdates";
 
-const UpdateNotification = () => {
-  const { showUpdatePrompt, offlineReady, updateApp, dismissUpdate } = usePWAUpdates();
+export const UpdateNotification = () => {
+  const { showUpdatePrompt, offlineReady, updateApp, dismissUpdate } =
+    usePWAUpdates();
 
   if (!showUpdatePrompt && !offlineReady) {
     return null;
@@ -21,33 +23,34 @@ const UpdateNotification = () => {
                 Update Available
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                A new version of DashPoint is available. Update now to get the latest features.
+                A new version of DashPoint is available. Update now to get the
+                latest features.
               </p>
               <div className="flex gap-2 mt-3">
-                <button
+                <Button
                   onClick={updateApp}
-                  className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded transition-colors duration-200"
+                  variant="primary"
+                  size="sm"
+                  className="bg-violet-600 hover:bg-violet-700"
                 >
                   Update Now
-                </button>
-                <button
-                  onClick={dismissUpdate}
-                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded transition-colors duration-200"
-                >
+                </Button>
+                <Button onClick={dismissUpdate} variant="secondary" size="sm">
                   Later
-                </button>
+                </Button>
               </div>
             </div>
-            <button
+            <Button
               onClick={dismissUpdate}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       )}
-
       {/* Offline Ready Notification */}
       {offlineReady && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg shadow-lg p-4">
@@ -58,14 +61,13 @@ const UpdateNotification = () => {
                 Ready for Offline Use
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                DashPoint is now available offline. You can use it even without an internet connection.
+                DashPoint is now available offline. You can use it even without
+                an internet connection.
               </p>
             </div>
           </div>
         </div>
-      )}
+      )}{" "}
     </div>
   );
 };
-
-export default UpdateNotification;

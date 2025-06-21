@@ -1,2 +1,1 @@
-export { default } from './OfflineIndicator';
-export { default as OfflineIndicator } from './OfflineIndicator';
+export { OfflineIndicator } from './OfflineIndicator';

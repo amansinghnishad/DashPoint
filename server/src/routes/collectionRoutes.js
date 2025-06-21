@@ -42,7 +42,7 @@ const collectionValidation = [
 
 const addItemValidation = [
   body('itemType')
-    .isIn(['youtube', 'content', 'sticky-note', 'todo'])
+    .isIn(['youtube', 'content', 'sticky-note', 'todo', 'file'])
     .withMessage('Invalid item type'),
   body('itemId')
     .notEmpty()

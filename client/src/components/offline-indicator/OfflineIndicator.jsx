@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { WifiOff, Wifi } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { WifiOff, Wifi } from "lucide-react";
 
-const OfflineIndicator = () => {
+export const OfflineIndicator = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
 
@@ -16,8 +16,8 @@ const OfflineIndicator = () => {
       setShowOfflineMessage(true);
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Show offline message if already offline
     if (!navigator.onLine) {
@@ -25,8 +25,8 @@ const OfflineIndicator = () => {
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -45,5 +45,3 @@ const OfflineIndicator = () => {
     </div>
   );
 };
-
-export default OfflineIndicator;

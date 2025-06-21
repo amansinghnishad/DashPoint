@@ -1,4 +1,5 @@
 import { Bell, X, Settings } from "lucide-react";
+import { Button } from "../../ui";
 
 export const NotificationHeader = ({
   unreadCount,
@@ -23,22 +24,30 @@ export const NotificationHeader = ({
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-white/50 rounded-xl transition-colors">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 hover:bg-white/50 rounded-xl"
+          >
             <Settings size={18} className="text-gray-600" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onClose}
-            className="p-2 hover:bg-white/50 rounded-xl transition-colors"
+            variant="ghost"
+            size="sm"
+            className="p-2 hover:bg-white/50 rounded-xl"
           >
             <X size={20} className="text-gray-600" />
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="mt-4 flex space-x-2 bg-white/60 rounded-xl p-1">
-        <button
+        <Button
           onClick={() => setFilter("all")}
+          variant="ghost"
+          size="sm"
           className={`flex-1 px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 ${
             filter === "all"
               ? "bg-white text-blue-700 shadow-sm"
@@ -46,9 +55,11 @@ export const NotificationHeader = ({
           }`}
         >
           All ({totalCount})
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setFilter("unread")}
+          variant="ghost"
+          size="sm"
           className={`flex-1 px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 ${
             filter === "unread"
               ? "bg-white text-blue-700 shadow-sm"
@@ -56,7 +67,7 @@ export const NotificationHeader = ({
           }`}
         >
           Unread ({unreadCount})
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -6,11 +6,12 @@ import {
   Folder,
   RefreshCw,
 } from "lucide-react";
+import { Button } from "../../../components/ui";
 import { ActivityFeed } from "./ActivityFeed";
-import { Weather } from "../../components/weather/index";
-import { Clock } from "../../components/clock/index";
-import { useDashboard } from "../../context/DashboardContext";
-import { useAuth } from "../../context/AuthContext";
+import { Weather } from "../../../components/weather/index";
+import { Clock } from "../../../components/clock/index";
+import { useDashboard } from "../../../context/DashboardContext";
+import { useAuth } from "../../../context/AuthContext";
 import { useEffect } from "react";
 
 export const OverviewTab = () => {
@@ -38,16 +39,23 @@ export const OverviewTab = () => {
           <p className="text-blue-100 mb-6 text-lg">
             Your personal productivity hub with everything you need in one
             place.
-          </p>
+          </p>{" "}
           <div className="flex space-x-4">
-            <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+            <Button
+              variant="secondary"
+              className="bg-white text-blue-600 hover:bg-blue-50"
+            >
               Get Started
-            </button>
-            <button className="border border-white text-white px-6 py-2 rounded-lg font-semibold hover:bg-white hover:bg-opacity-10 transition-colors">
+            </Button>
+            <Button
+              variant="outline"
+              className="border-white text-white hover:bg-white hover:bg-opacity-10"
+            >
               Learn More
-            </button>
+            </Button>
           </div>
-        </div>{" "}
+        </div>
+
         {/* Quick Stats */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Quick Stats</h3>
@@ -69,7 +77,6 @@ export const OverviewTab = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              {" "}
               <div>
                 <p className="text-sm text-gray-600">Total Tasks</p>
                 <div className="text-2xl font-bold text-gray-900">
@@ -90,7 +97,6 @@ export const OverviewTab = () => {
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              {" "}
               <div>
                 <p className="text-sm text-gray-600">Sticky Notes</p>
                 <div className="text-2xl font-bold text-gray-900">
@@ -107,7 +113,6 @@ export const OverviewTab = () => {
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              {" "}
               <div>
                 <p className="text-sm text-gray-600">Collections</p>
                 <div className="text-2xl font-bold text-gray-900">
@@ -124,7 +129,6 @@ export const OverviewTab = () => {
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
-              {" "}
               <div>
                 <p className="text-sm text-gray-600">Saved Content</p>
                 <div className="text-2xl font-bold text-gray-900">
@@ -140,6 +144,7 @@ export const OverviewTab = () => {
             </div>
           </div>
         </div>
+
         {/* Activity Feed */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ActivityFeed limit={6} />

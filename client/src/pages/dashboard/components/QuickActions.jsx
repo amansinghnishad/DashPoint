@@ -56,6 +56,7 @@ export const QuickActions = ({
     if (onBookmark) onBookmark();
     setTimeout(() => setActiveAction(null), 1000);
   };
+
   const toggleQuickMenu = () => {
     setIsExpanded(!isExpanded);
   };
@@ -94,6 +95,7 @@ export const QuickActions = ({
       action: handleBookmark,
     },
   ];
+
   return (
     <>
       {/* Use the fancy desktop design for all screen sizes */}
@@ -118,9 +120,7 @@ export const QuickActions = ({
                       : `${(quickActions.length - index - 1) * 50}ms`,
                   }}
                 >
-                  {" "}
                   <div className="flex items-center space-x-4">
-                    {" "}
                     {/* Label */}
                     <div
                       className={`bg-white/95 backdrop-blur-sm text-gray-800 px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-lg text-xs md:text-sm font-medium whitespace-nowrap border border-gray-200/50 transition-all duration-300 ${
@@ -146,7 +146,6 @@ export const QuickActions = ({
                       } transition-all duration-300 ease-out text-white p-3 md:p-4 rounded-2xl relative overflow-hidden group`}
                       title={action.label}
                     >
-                      {" "}
                       <Icon
                         size={18}
                         className={`w-4.5 h-4.5 md:w-5.5 md:h-5.5 ${
@@ -164,7 +163,8 @@ export const QuickActions = ({
                 </div>
               );
             })}
-          </div>{" "}
+          </div>
+
           {/* Main Toggle Button - All Screen Sizes */}
           <button
             onClick={toggleQuickMenu}
@@ -191,7 +191,8 @@ export const QuickActions = ({
 
             {/* Shine effect on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
-          </button>{" "}
+          </button>
+
           {/* Background overlay when expanded - All Screen Sizes */}
           {isExpanded && (
             <div

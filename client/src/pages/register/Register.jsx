@@ -4,8 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Navigation } from "../landing/components/Navigation";
 import { Footer } from "../landing/components/Footer";
-import { FormInput } from "./components/FormInput";
-import { ErrorDisplay } from "./components/ErrorDisplay";
+import { Input, Button, ErrorList } from "../../components/ui";
 import {
   validateForm,
   processBackendErrors,
@@ -258,116 +257,87 @@ export const Register = () => {
                     <p className="text-sm sm:text-base text-gray-600">
                       Create your account and start boosting productivity
                     </p>
-                  </div>
-                  <ErrorDisplay error={error} backendErrors={backendErrors} />{" "}
+                  </div>{" "}
+                  <ErrorList errors={backendErrors} />
                   <form
                     onSubmit={handleSubmit}
                     className="space-y-3 sm:space-y-4"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <FormInput
-                        id="firstName"
-                        name="firstName"
+                      {" "}
+                      <Input
                         label="First Name"
                         placeholder="First name"
+                        name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
                         error={errors.firstName}
-                        icon={User}
-                        autoComplete="given-name"
+                        icon={<User size={16} />}
                         required
-                        compact
                       />
-
-                      <FormInput
-                        id="lastName"
-                        name="lastName"
+                      <Input
                         label="Last Name"
                         placeholder="Last name"
+                        name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
                         error={errors.lastName}
-                        icon={User}
-                        autoComplete="family-name"
+                        icon={<User size={16} />}
                         required
-                        compact
                       />
-                    </div>
-                    <FormInput
-                      id="username"
-                      name="username"
+                    </div>{" "}
+                    <Input
                       label="Username"
                       placeholder="Choose a username"
+                      name="username"
                       value={formData.username}
                       onChange={handleInputChange}
                       error={errors.username}
-                      icon={User}
-                      autoComplete="username"
+                      icon={<User size={16} />}
                       required
-                      compact
-                    />
-                    <FormInput
-                      id="email"
-                      name="email"
+                    />{" "}
+                    <Input
                       type="email"
                       label="Email Address"
                       placeholder="Enter your email"
+                      name="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       error={errors.email}
-                      icon={Mail}
-                      autoComplete="email"
+                      icon={<Mail size={16} />}
                       required
-                      compact
-                    />
-                    <FormInput
-                      id="password"
-                      name="password"
+                    />{" "}
+                    <Input
+                      type="password"
                       label="Password"
                       placeholder="Create a password"
+                      name="password"
                       value={formData.password}
                       onChange={handleInputChange}
                       error={errors.password}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      showPasswordToggle
-                      showPassword={showPassword}
-                      onTogglePassword={() => setShowPassword(!showPassword)}
+                      icon={<Lock size={16} />}
                       required
-                      compact
                     />
-                    <FormInput
-                      id="confirmPassword"
-                      name="confirmPassword"
+                    <Input
+                      type="password"
                       label="Confirm Password"
                       placeholder="Confirm your password"
+                      name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       error={errors.confirmPassword}
-                      icon={Lock}
-                      autoComplete="new-password"
-                      showPasswordToggle
-                      showPassword={showConfirmPassword}
-                      onTogglePassword={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
+                      icon={<Lock size={16} />}
                       required
-                      compact
-                    />{" "}
-                    <button
+                    />
+                    <Button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full flex justify-center py-2.5 sm:py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      loading={isLoading}
+                      className="w-full"
+                      size="lg"
                     >
-                      {isLoading ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Join DashPoint Free</span>
-                        </div>
-                      ) : (
-                        "Join DashPoint Free"
-                      )}
-                    </button>
+                      Join DashPoint Free
+                    </Button>
                   </form>
                   <div className="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/30">
                     {" "}

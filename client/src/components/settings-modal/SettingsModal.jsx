@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
   Settings,
-  X,
   Bell,
   Palette,
   Keyboard,
   Shield,
   Database,
 } from "lucide-react";
+import { Modal, Button } from "../ui";
 import { GeneralSection } from "./sections/GeneralSection";
 import { AppearanceSection } from "./sections/AppearanceSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
@@ -108,94 +108,75 @@ export const SettingsModal = ({ isOpen, onClose, isDark, toggleTheme }) => {
         );
     }
   };
-
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-        onClick={onClose}
-      />
-
-      {/* Settings Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
-          <div className="flex h-full">
-            {/* Sidebar */}
-            <div className="w-64 bg-gray-50 border-r border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center space-x-2">
-                  <Settings className="text-blue-600" size={20} />
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Settings
-                  </h2>
-                </div>
-              </div>
-              <nav className="p-4">
-                <ul className="space-y-2">
-                  {sections.map((section) => {
-                    const Icon = section.icon;
-                    return (
-                      <li key={section.id}>
-                        <button
-                          onClick={() => setActiveSection(section.id)}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                            activeSection === section.id
-                              ? "bg-blue-100 text-blue-700"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          <Icon size={18} />
-                          <span>{section.label}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </nav>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Settings"
+      size="4xl"
+      showCloseButton={false}
+    >
+      <div className="flex h-[600px]">
+        {/* Sidebar */}
+        <div className="w-64 bg-gray-50 border-r border-gray-200 rounded-l-lg">
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center space-x-2">
+              <Settings className="text-blue-600" size={20} />
+              <h2 className="text-lg font-semibold text-gray-900">Settings</h2>
             </div>
+          </div>
+          <nav className="p-4">
+            <ul className="space-y-2">
+              {sections.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <li key={section.id}>
+                    <button
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                        activeSection === section.id
+                          ? "bg-blue-100 text-blue-700"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <Icon size={18} />
+                      <span>{section.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
 
-            {/* Content */}
-            <div className="flex-1 flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {sections.find((s) => s.id === activeSection)?.label}
-                </h3>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X size={20} />
-                </button>
-              </div>
+        {/* Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {sections.find((s) => s.id === activeSection)?.label}
+            </h3>
+            <Button onClick={onClose} variant="ghost" size="sm">
+              ✕
+            </Button>
+          </div>
 
-              {/* Settings Content */}
-              <div className="flex-1 p-6 overflow-y-auto">
-                {renderSection()}
-              </div>
+          {/* Settings Content */}
+          <div className="flex-1 p-6 overflow-y-auto">{renderSection()}</div>
 
-              {/* Footer */}
-              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
+          {/* Footer */}
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+            <Button onClick={onClose} variant="outline">
+              Cancel
+            </Button>
+            <Button onClick={onClose} variant="primary">
+              Save Changes
+            </Button>
           </div>
         </div>
       </div>
-    </>
+    </Modal>
   );
 };

@@ -14,7 +14,7 @@ import { useLocalStorage } from "../../hooks/useCommon";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { ContentRenderer } from "./components/ContentRenderer";
 import { DashboardSidebar } from "./components/DashboardSidebar";
-import { QuickActions } from "../../components/dashboard/QuickActions";
+import { QuickActions } from "./components/QuickActions";
 import {
   getPageTitle,
   getKeyboardShortcuts,

@@ -1,3 +1,4 @@
+import { Modal } from "../ui";
 import { SessionWarningHeader } from "./components/SessionWarningHeader";
 import { SessionWarningMessage } from "./components/SessionWarningMessage";
 import { SessionWarningActions } from "./components/SessionWarningActions";
@@ -11,8 +12,14 @@ export const SessionWarning = () => {
   if (!sessionWarning) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+    <Modal
+      isOpen={sessionWarning}
+      onClose={() => {}} // Don't allow closing by clicking outside
+      title=""
+      size="sm"
+      showCloseButton={false}
+    >
+      <div className="space-y-4">
         <SessionWarningHeader countdown={countdown} />
 
         <SessionWarningMessage />
@@ -24,6 +31,6 @@ export const SessionWarning = () => {
 
         <SessionProgressBar countdown={countdown} />
       </div>
-    </div>
+    </Modal>
   );
 };

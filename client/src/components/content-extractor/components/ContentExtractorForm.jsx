@@ -1,4 +1,5 @@
 import { Search, Globe, Sparkles } from "lucide-react";
+import { Input, Button, ErrorDisplay } from "../../ui";
 
 export const ContentExtractorForm = ({
   url,
@@ -27,47 +28,40 @@ export const ContentExtractorForm = ({
       {/* URL Input Section */}
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 backdrop-blur-sm">
+          {" "}
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative group">
-              <input
+            <div className="flex-1">
+              <Input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 onKeyPress={onKeyPress}
                 placeholder="Enter website URL to extract content..."
-                className="w-full px-4 py-4 pl-12 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500"
+                icon={<Globe size={20} />}
                 disabled={loading}
               />
-              <Globe
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200"
-                size={20}
-              />
             </div>
-            <button
+            <Button
               onClick={onExtract}
               disabled={loading || !url.trim()}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-xl font-semibold flex items-center justify-center space-x-3 transition-all duration-200 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              loading={loading}
+              variant="primary"
+              size="lg"
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
-              <Search size={20} />
-              <span className="whitespace-nowrap">
-                {loading ? "Extracting..." : "Extract Content"}
-              </span>
-            </button>
+              {loading ? (
+                "Extracting..."
+              ) : (
+                <>
+                  <Search size={20} />
+                  Extract Content
+                </>
+              )}
+            </Button>
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 max-w-4xl mx-auto">
-            <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                <span className="font-medium">Error:</span>
-              </div>
-              <p className="mt-1 text-sm">{error}</p>
-            </div>
-          </div>
-        )}
+        <ErrorDisplay error={error} />
 
         {/* Loading State */}
         {loading && (

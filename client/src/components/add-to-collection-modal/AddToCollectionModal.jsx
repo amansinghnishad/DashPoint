@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "../../hooks/useToast";
-import { ModalHeader } from "./components/ModalHeader";
+import { Modal, Button } from "../ui";
 import { CollectionList } from "./components/CollectionList";
 import { CreateCollectionForm } from "./components/CreateCollectionForm";
 import {
@@ -84,44 +84,41 @@ export const AddToCollectionModal = ({
       return false;
     }
   };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-        <ModalHeader itemTitle={itemTitle} onClose={onClose} />
-
-        <div className="p-4">
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-3">
-              Adding "{itemTitle}" to collections:
-            </p>
-            <CollectionList
-              collections={collections}
-              itemCollections={itemCollections}
-              onToggleCollection={handleToggleCollection}
-              loading={loading}
-            />
-          </div>
-
-          <div className="border-t border-gray-200 pt-4">
-            <CreateCollectionForm
-              onCreateCollection={handleCreateCollection}
-              isCreating={creatingCollection}
-            />
-          </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Add "${itemTitle}" to Collections`}
+      size="md"
+    >
+      <div className="space-y-4">
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-3">
+            Adding "{itemTitle}" to collections:
+          </p>
+          <CollectionList
+            collections={collections}
+            itemCollections={itemCollections}
+            onToggleCollection={handleToggleCollection}
+            loading={loading}
+          />
         </div>
 
-        <div className="p-4 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-          >
+        <div className="border-t border-gray-200 pt-4">
+          <CreateCollectionForm
+            onCreateCollection={handleCreateCollection}
+            isCreating={creatingCollection}
+          />
+        </div>
+
+        <div className="border-t border-gray-200 pt-4">
+          <Button onClick={onClose} variant="secondary" className="w-full">
             Done
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

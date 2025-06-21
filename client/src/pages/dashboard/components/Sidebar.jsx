@@ -16,7 +16,7 @@ import {
   Moon,
   Keyboard,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export const Sidebar = ({
   activeTab,
@@ -87,7 +87,8 @@ export const Sidebar = ({
                 <X size={20} />
               </button>
             </div>
-          </div>{" "}
+          </div>
+
           {/* Navigation */}
           <nav className="flex-1 p-4 overflow-y-auto scrollable-area">
             <ul className="space-y-1">
@@ -96,7 +97,6 @@ export const Sidebar = ({
                 const isActive = activeTab === item.id;
                 return (
                   <li key={item.id}>
-                    {" "}
                     <button
                       onClick={() => {
                         setActiveTab(item.id);
@@ -135,7 +135,6 @@ export const Sidebar = ({
                 isDark ? "border-gray-700" : "border-gray-200"
               }`}
             >
-              {" "}
               <button
                 onClick={() => {
                   onShortcutsOpen();
@@ -151,7 +150,8 @@ export const Sidebar = ({
                 <span className="font-medium">Keyboard Shortcuts</span>
               </button>
             </div>
-          </nav>{" "}
+          </nav>
+
           {/* User Profile */}
           <div
             className={`p-4 border-t transition-colors duration-200 ${
@@ -186,11 +186,11 @@ export const Sidebar = ({
                   {user?.email || "user@example.com"}
                 </p>
               </div>
-            </div>{" "}
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex space-x-2">
-                {" "}
                 <button
                   onClick={toggleTheme}
                   className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${

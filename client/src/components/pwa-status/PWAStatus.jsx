@@ -1,8 +1,8 @@
-import React from 'react';
-import { Wifi, WifiOff, Download } from 'lucide-react';
-import { usePWA } from '../../hooks/usePWA';
+import React from "react";
+import { Wifi, WifiOff, Download } from "lucide-react";
+import { usePWA } from "../../hooks/usePWA";
 
-const PWAStatus = ({ className = '' }) => {
+export const PWAStatus = ({ className = "" }) => {
   const { isInstalled } = usePWA();
   const [isOnline, setIsOnline] = React.useState(navigator.onLine);
 
@@ -10,12 +10,12 @@ const PWAStatus = ({ className = '' }) => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -33,11 +33,12 @@ const PWAStatus = ({ className = '' }) => {
       {/* PWA Install Status */}
       {isInstalled && (
         <div className="flex items-center gap-1">
-          <Download className="w-4 h-4 text-violet-500" title="Installed as PWA" />
+          <Download
+            className="w-4 h-4 text-violet-500"
+            title="Installed as PWA"
+          />
         </div>
       )}
     </div>
   );
 };
-
-export default PWAStatus;

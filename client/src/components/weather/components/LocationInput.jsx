@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Input, Button } from "../../ui";
 
 export const LocationInput = ({ onSubmit, onCancel }) => {
   const [location, setLocation] = useState("");
@@ -14,27 +15,29 @@ export const LocationInput = ({ onSubmit, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="mb-4">
       <div className="flex space-x-2">
-        <input
+        <Input
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="Enter city name..."
-          className="flex-1 px-3 py-2 bg-white/20 placeholder-white/70 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="flex-1 bg-white/20 placeholder-white/70 text-white border-white/30 focus:ring-white/50"
           autoFocus
         />
-        <button
+        <Button
           type="submit"
-          className="px-4 py-2 bg-white/30 hover:bg-white/40 text-white rounded-lg font-medium transition-colors"
+          variant="ghost"
+          className="bg-white/30 hover:bg-white/40 text-white border-white/30"
         >
           Search
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
           onClick={onCancel}
-          className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-colors"
+          className="bg-white/20 hover:bg-white/30 text-white border-white/30"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

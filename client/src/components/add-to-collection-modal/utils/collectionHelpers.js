@@ -43,10 +43,11 @@ export const toggleItemInCollection = async (
 ) => {
   try {
     if (isAdding) {
-      const response = await collectionsAPI.addItemToCollection(collectionId, {
-        itemType: itemType,
-        itemId,
-      });
+      const response = await collectionsAPI.addItemToCollection(
+        collectionId,
+        itemType,
+        itemId
+      );
       return {
         success: response.success,
         message: "Item added to collection",

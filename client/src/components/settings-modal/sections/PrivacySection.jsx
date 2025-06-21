@@ -1,3 +1,4 @@
+import { Button } from "../../ui";
 import { SettingsSection } from "../components/SettingsSection";
 import { Toggle } from "../components/Toggle";
 
@@ -31,20 +32,26 @@ export const PrivacySection = ({ settings, updateSetting }) => {
           Data Management
         </h4>
         <div className="space-y-3">
-          <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg"
+          >
             <div className="text-sm font-medium text-gray-900">Export Data</div>
             <div className="text-xs text-gray-500">
               Download all your data in JSON format
             </div>
-          </button>
-          <button className="w-full text-left px-4 py-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg"
+          >
             <div className="text-sm font-medium text-red-700">
               Clear All Data
             </div>
             <div className="text-xs text-red-500">
               Permanently delete all your local data
             </div>
-          </button>
+          </Button>
         </div>
       </div>
     </SettingsSection>

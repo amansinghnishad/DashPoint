@@ -7,7 +7,7 @@ import {
   FileText,
   Folder,
 } from "lucide-react";
-import { useDashboard } from "../../context/DashboardContext";
+import { useDashboard } from "../../../context/DashboardContext";
 
 const getActivityIcon = (type) => {
   switch (type) {

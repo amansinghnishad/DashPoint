@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Edit3, Save, FolderPlus } from "lucide-react";
+import { Button, Input, Textarea } from "../../ui";
 import { formatDateTime } from "../../../utils/dateUtils";
 import { ColorPicker } from "./ColorPicker";
 
@@ -92,18 +93,23 @@ export const StickyNote = ({
       }}
       onMouseDown={onMouseDown}
     >
+      {" "}
       {/* Header */}
       <div className="flex justify-between items-start mb-2">
         <div className="flex space-x-2">
-          <button
+          <Button
             onClick={handleEdit}
+            variant="ghost"
+            size="sm"
             className="text-gray-600 hover:text-gray-800 p-1 rounded"
             title="Edit"
           >
             <Edit3 size={14} />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleColorPicker}
+            variant="ghost"
+            size="sm"
             className="text-gray-600 hover:text-gray-800 p-1 rounded"
             title="Change Color"
           >
@@ -111,24 +117,27 @@ export const StickyNote = ({
               className="w-4 h-4 rounded border border-gray-400"
               style={{ backgroundColor: color }}
             />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => onAddToCollection(note)}
+            variant="ghost"
+            size="sm"
             className="text-gray-600 hover:text-blue-600 p-1 rounded"
             title="Add to Collection"
           >
             <FolderPlus size={14} />
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           onClick={handleDelete}
+          variant="ghost"
+          size="sm"
           className="text-red-500 hover:text-red-700 p-1 rounded"
           title="Delete"
         >
           <X size={14} />
-        </button>
+        </Button>
       </div>
-
       {/* Color Picker */}
       {showColorPicker && (
         <ColorPicker
@@ -136,48 +145,50 @@ export const StickyNote = ({
           onColorChange={handleColorChange}
           onClose={() => setShowColorPicker(false)}
         />
-      )}
-
+      )}{" "}
       {/* Content */}
       {isEditing ? (
         <div className="space-y-2">
-          <input
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title..."
-            className="w-full p-2 text-sm font-semibold bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-600"
+            className="w-full text-sm font-semibold bg-transparent border-b border-gray-400 focus:outline-none focus:border-gray-600"
             onKeyDown={handleKeyDown}
           />
-          <textarea
+          <Textarea
             ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write your note here..."
-            className="w-full p-2 text-sm bg-transparent resize-none focus:outline-none min-h-24"
+            className="w-full text-sm bg-transparent resize-none focus:outline-none min-h-24"
             onKeyDown={handleKeyDown}
           />
 
           <div className="flex justify-end space-x-2">
-            <button
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditing(false);
               }}
-              className="px-3 py-1 text-xs bg-gray-300 hover:bg-gray-400 rounded"
+              variant="secondary"
+              size="sm"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
                 handleSave();
               }}
-              className="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded flex items-center space-x-1"
+              variant="primary"
+              size="sm"
+              className="flex items-center space-x-1"
             >
               <Save size={12} />
               <span>Save</span>
-            </button>
+            </Button>
           </div>
         </div>
       ) : (

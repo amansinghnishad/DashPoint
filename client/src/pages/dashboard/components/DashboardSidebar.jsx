@@ -1,4 +1,4 @@
-import { Sidebar } from "../../../components/dashboard";
+import { Sidebar } from "./Sidebar";
 
 export const DashboardSidebar = ({
   isOpen,

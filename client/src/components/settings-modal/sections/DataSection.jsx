@@ -1,3 +1,4 @@
+import { Button } from "../../ui";
 import { SettingsSection } from "../components/SettingsSection";
 
 export const DataSection = ({ settings, updateSetting }) => {
@@ -29,42 +30,54 @@ export const DataSection = ({ settings, updateSetting }) => {
         </div>
 
         <div className="space-y-3">
-          <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg"
+          >
             <div className="text-sm font-medium text-gray-900">Backup Data</div>
             <div className="text-xs text-gray-500">
               Create a backup of all your data
             </div>
-          </button>
+          </Button>
 
-          <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg"
+          >
             <div className="text-sm font-medium text-gray-900">Import Data</div>
             <div className="text-xs text-gray-500">
               Restore data from a backup file
             </div>
-          </button>
+          </Button>
 
-          <button className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg"
+          >
             <div className="text-sm font-medium text-gray-900">
               Sync Settings
             </div>
             <div className="text-xs text-gray-500">
               Synchronize data across devices
             </div>
-          </button>
+          </Button>
         </div>
 
         <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
           <h4 className="text-sm font-medium text-yellow-900 mb-2">
             ⚠️ Danger Zone
           </h4>
-          <button className="w-full text-left px-4 py-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-red-200">
+          <Button
+            variant="ghost"
+            className="w-full text-left px-4 py-3 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200"
+          >
             <div className="text-sm font-medium text-red-700">
               Reset All Settings
             </div>
             <div className="text-xs text-red-500">
               Restore all settings to default values
             </div>
-          </button>
+          </Button>
         </div>
       </div>
     </SettingsSection>

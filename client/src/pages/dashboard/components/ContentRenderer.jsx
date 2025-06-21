@@ -5,7 +5,7 @@ import { ContentExtractor } from "../../../components/content-extractor";
 import { Weather } from "../../../components/weather";
 import { Clock } from "../../../components/clock";
 import { Collections } from "../../../components/collections/index";
-import { OverviewTab, FileManagerTab } from "../../../components/dashboard";
+import { OverviewTab, FileManagerTab } from "./";
 
 export const ContentRenderer = ({ activeTab }) => {
   const renderContent = () => {
