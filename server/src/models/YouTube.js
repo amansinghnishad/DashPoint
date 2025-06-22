@@ -50,6 +50,19 @@ const youtubeSchema = new mongoose.Schema({
   isFavorite: {
     type: Boolean,
     default: false
+  },  // AI summarization fields
+  aiSummary: {
+    type: String,
+    maxlength: 5000 // Increased from 2000 to 5000 characters
+  },
+  summaryGenerated: {
+    type: Boolean,
+    default: false
+  },
+  summaryLength: {
+    type: String,
+    enum: ['short', 'medium', 'long'],
+    default: 'medium'
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,

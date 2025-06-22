@@ -65,7 +65,8 @@ const PublicRoute = ({ children }) => {
   if (
     isAuthenticated &&
     (window.location.pathname === "/login" ||
-      window.location.pathname === "/register")
+      window.location.pathname === "/register" ||
+      window.location.pathname === "/")
   ) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -81,7 +82,14 @@ function AppContent() {
       <div className="App">
         {" "}
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route
+            path="/"
+            element={
+              <PublicRoute>
+                <Landing />
+              </PublicRoute>
+            }
+          />
           <Route
             path="/login"
             element={
@@ -108,7 +116,9 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />        </Routes>        <ToastContainer toasts={toasts} removeToast={removeToast} />
+          <Route path="*" element={<Navigate to="/" replace />} />{" "}
+        </Routes>
+        <ToastContainer toasts={toasts} removeToast={removeToast} />
         <SessionWarning />
         <UpdateNotification />
         <OfflineIndicator />

@@ -1,0 +1,1 @@
+export { WidgetsDialog } from './WidgetsDialog';

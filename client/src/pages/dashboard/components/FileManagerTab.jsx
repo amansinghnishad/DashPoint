@@ -9,9 +9,7 @@ import {
   Grid,
   List,
   Plus,
-  FolderPlus,
 } from "lucide-react";
-import { Button } from "../../../components/ui";
 import fileService from "../../../services/fileService";
 import { useToast } from "../../../hooks/useToast";
 import { AddToCollectionModal } from "../../../components/add-to-collection-modal/AddToCollectionModal";
@@ -48,10 +46,9 @@ export const FileManagerTab = () => {
       setLoading(false);
     }
   };
-
   const loadStats = async () => {
     try {
-      const result = await fileService.getStats();
+      const result = await fileService.getStorageStats();
       if (result.success) {
         setStats(result.data);
       }
@@ -59,19 +56,13 @@ export const FileManagerTab = () => {
       console.error("Failed to load file stats:", err);
     }
   };
-
   const handleFileUpload = async (event) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      Array.from(files).forEach((file) => {
-        formData.append("files", file);
-      });
-
-      const result = await fileService.uploadFiles(formData);
+      const result = await fileService.uploadFiles(files);
       if (result.success) {
         success(`${files.length} file(s) uploaded successfully`);
         loadFiles();
@@ -85,24 +76,10 @@ export const FileManagerTab = () => {
       setUploading(false);
     }
   };
-
   const handleDownload = async (file) => {
     try {
-      const result = await fileService.downloadFile(file._id);
-      if (result.success) {
-        // Create download link
-        const url = window.URL.createObjectURL(new Blob([result.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = file.originalName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        success("File downloaded successfully");
-      } else {
-        error(result.error || "Failed to download file");
-      }
+      await fileService.downloadFile(file._id, file.originalName);
+      success("File downloaded successfully");
     } catch (err) {
       error("Failed to download file");
     }
@@ -135,24 +112,44 @@ export const FileManagerTab = () => {
   const filteredFiles = files.filter((file) =>
     file.originalName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
-  const getFileIcon = (mimetype) => {
-    if (mimetype.startsWith("image/")) return "🖼️";
-    if (mimetype.startsWith("video/")) return "🎥";
-    if (mimetype.startsWith("audio/")) return "🎵";
-    if (mimetype.includes("pdf")) return "📄";
-    if (mimetype.includes("document")) return "📝";
-    if (mimetype.includes("spreadsheet")) return "📊";
-    return "📁";
-  };
+  // Create a reusable component for file action buttons
+  const FileActionButtons = ({ file, isListView = false }) => (
+    <div className={`flex gap-${isListView ? "2" : "1"}`}>
+      <button
+        onClick={() => handleAddToCollection(file)}
+        className={`p-1 transition-colors ${
+          isListView
+            ? "text-blue-600 hover:text-blue-900"
+            : "text-gray-400 hover:text-blue-600"
+        }`}
+        title="Add to Collection"
+      >
+        <Plus size={16} />
+      </button>
+      <button
+        onClick={() => handleDownload(file)}
+        className={`p-1 transition-colors ${
+          isListView
+            ? "text-green-600 hover:text-green-900"
+            : "text-gray-400 hover:text-green-600"
+        }`}
+        title="Download"
+      >
+        <Download size={16} />
+      </button>
+      <button
+        onClick={() => handleDelete(file._id)}
+        className={`p-1 transition-colors ${
+          isListView
+            ? "text-red-600 hover:text-red-900"
+            : "text-gray-400 hover:text-red-600"
+        }`}
+        title="Delete"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -163,7 +160,7 @@ export const FileManagerTab = () => {
           <p className="text-gray-600">
             Manage and organize your uploaded files
           </p>
-        </div>
+        </div>{" "}
         <div className="flex gap-2">
           <label className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors">
             <Upload size={20} className="mr-2" />
@@ -174,11 +171,7 @@ export const FileManagerTab = () => {
               onChange={handleFileUpload}
               className="hidden"
             />
-          </label>{" "}
-          <Button className="inline-flex items-center bg-green-600 hover:bg-green-700">
-            <FolderPlus size={20} className="mr-2" />
-            Create Folder
-          </Button>
+          </label>
         </div>
       </div>
 
@@ -199,9 +192,9 @@ export const FileManagerTab = () => {
           <div className="flex items-center">
             <Upload className="h-8 w-8 text-green-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Size</p>
+              <p className="text-sm font-medium text-gray-600">Total Size</p>{" "}
               <p className="text-2xl font-bold text-gray-900">
-                {formatFileSize(stats.totalSize || 0)}
+                {fileService.formatFileSize(stats.totalSize || 0)}
               </p>
             </div>
           </div>
@@ -283,39 +276,18 @@ export const FileManagerTab = () => {
                   key={file._id}
                   className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
                 >
+                  {" "}
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-2xl">
-                      {getFileIcon(file.mimetype)}
+                      {fileService.getFileIcon(file.mimetype)}
                     </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleAddToCollection(file)}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Add to Collection"
-                      >
-                        <Plus size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(file)}
-                        className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                        title="Download"
-                      >
-                        <Download size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(file._id)}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    <FileActionButtons file={file} />
                   </div>
                   <h3 className="font-medium text-gray-900 mb-1 truncate">
                     {file.originalName}
-                  </h3>
+                  </h3>{" "}
                   <p className="text-sm text-gray-500 mb-2">
-                    {formatFileSize(file.size)}
+                    {fileService.formatFileSize(file.size)}
                   </p>
                   <p className="text-xs text-gray-400">
                     {new Date(file.uploadDate).toLocaleDateString()}
@@ -348,10 +320,11 @@ export const FileManagerTab = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredFiles.map((file) => (
                     <tr key={file._id} className="hover:bg-gray-50">
+                      {" "}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <span className="text-xl mr-3">
-                            {getFileIcon(file.mimetype)}
+                            {fileService.getFileIcon(file.mimetype)}
                           </span>
                           <span className="text-sm font-medium text-gray-900">
                             {file.originalName}
@@ -359,38 +332,16 @@ export const FileManagerTab = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatFileSize(file.size)}
+                        {fileService.formatFileSize(file.size)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {file.mimetype}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(file.uploadDate).toLocaleDateString()}
-                      </td>
+                      </td>{" "}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleAddToCollection(file)}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Add to Collection"
-                          >
-                            <Plus size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDownload(file)}
-                            className="text-green-600 hover:text-green-900"
-                            title="Download"
-                          >
-                            <Download size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(file._id)}
-                            className="text-red-600 hover:text-red-900"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                        <FileActionButtons file={file} isListView={true} />
                       </td>
                     </tr>
                   ))}

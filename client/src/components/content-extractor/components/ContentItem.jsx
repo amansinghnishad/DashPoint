@@ -8,6 +8,7 @@ import {
   Trash2,
   FolderPlus,
   Check,
+  Sparkles,
 } from "lucide-react";
 import { getDomainFromUrl } from "../../../utils/urlUtils";
 import { copyToClipboard, truncateText } from "../../../utils/helpers";
@@ -22,7 +23,6 @@ export const ContentItem = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  // handleCopy function
   const handleCopy = async (text) => {
     const success = await copyToClipboard(text);
     if (success) {
@@ -31,7 +31,6 @@ export const ContentItem = ({
     }
   };
 
-  // handleDelete function
   const handleDelete = (e) => {
     e.stopPropagation();
     if (
@@ -41,22 +40,19 @@ export const ContentItem = ({
     }
   };
 
-  // handleAddToCollection function
   const handleAddToCollection = (e) => {
     e.stopPropagation();
     onAddToCollection(content);
   };
-
   return (
     <div
       className={`group relative bg-white rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-lg ${
         isSelected
-          ? "border-blue-400 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50 transform scale-[1.02]"
+          ? "border-blue-400 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50"
           : "border-gray-200 hover:border-gray-300 shadow-sm"
       }`}
       onClick={() => onSelect(content)}
     >
-      {/* Selection Indicator */}
       {isSelected && (
         <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
           <Check size={12} className="text-white" />
@@ -78,8 +74,7 @@ export const ContentItem = ({
                 {formatDateTime(content.extractedAt)}
               </div>
             </div>
-          </div>
-
+          </div>{" "}
           {/* Action Buttons */}
           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
@@ -121,19 +116,16 @@ export const ContentItem = ({
               <Trash2 size={14} />
             </button>
           </div>
-        </div>
-
+        </div>{" "}
         {/* Title */}
         <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm leading-tight">
           {content.title || "Untitled"}
         </h3>
-
         {/* Content Preview */}
         <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed mb-3">
           {truncateText(content.text, 150)}
         </p>
-
-        {/* Stats */}
+        {/* Stats and AI Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className="flex items-center space-x-1 text-xs text-gray-500">
@@ -144,6 +136,12 @@ export const ContentItem = ({
               <Clock size={12} />
               <span>{Math.ceil(content.wordCount / 200)} min</span>
             </span>
+            {(content.aiEnhanced || content.summary) && (
+              <div className="flex items-center space-x-1 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 px-2 py-1 rounded-full">
+                <Sparkles size={10} />
+                <span className="text-xs font-medium">AI Enhanced</span>
+              </div>
+            )}
           </div>
 
           {/* Reading Progress Indicator */}
@@ -151,10 +149,9 @@ export const ContentItem = ({
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
               style={{ width: isSelected ? "100%" : "0%" }}
-            ></div>
+            />
           </div>
         </div>
-
         {/* Copy Success Message */}
         {copied && (
           <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">

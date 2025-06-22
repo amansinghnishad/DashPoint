@@ -1,9 +1,5 @@
-import { StickyNotesContainer as StickyNotes } from "../../../components/sticky-notes";
-import { TodoList } from "../../../components/todo/index";
 import { YouTubePlayer } from "../../../components/youtube-player";
 import { ContentExtractor } from "../../../components/content-extractor";
-import { Weather } from "../../../components/weather";
-import { Clock } from "../../../components/clock";
 import { Collections } from "../../../components/collections/index";
 import { OverviewTab, FileManagerTab } from "./";
 
@@ -14,18 +10,10 @@ export const ContentRenderer = ({ activeTab }) => {
         return <OverviewTab />;
       case "collections":
         return <Collections />;
-      case "sticky-notes":
-        return <StickyNotes />;
-      case "todos":
-        return <TodoList />;
       case "youtube":
         return <YouTubePlayer />;
       case "content":
         return <ContentExtractor />;
-      case "weather":
-        return <Weather />;
-      case "clock":
-        return <Clock />;
       case "files":
         return <FileManagerTab />;
       default:

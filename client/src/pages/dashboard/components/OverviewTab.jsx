@@ -62,7 +62,6 @@ export const OverviewTab = () => {
           <button
             onClick={() => {
               loadStats();
-              console.log("Refreshing stats...");
             }}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
             disabled={loading.stats}
@@ -114,12 +113,12 @@ export const OverviewTab = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Collections</p>
+                <p className="text-sm text-gray-600">Collections</p>{" "}
                 <div className="text-2xl font-bold text-gray-900">
                   {loading.stats ? (
                     <div className="h-8 w-12 bg-gray-200 animate-pulse rounded"></div>
                   ) : (
-                    stats.collections
+                    stats.collections || 0
                   )}
                 </div>
                 <p className="text-sm text-purple-600">Organize your content</p>
@@ -130,12 +129,12 @@ export const OverviewTab = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Saved Content</p>
+                <p className="text-sm text-gray-600">Saved Content</p>{" "}
                 <div className="text-2xl font-bold text-gray-900">
                   {loading.stats ? (
                     <div className="h-8 w-12 bg-gray-200 animate-pulse rounded"></div>
                   ) : (
-                    stats.content + stats.videos
+                    (stats.content || 0) + (stats.videos || 0)
                   )}
                 </div>
                 <p className="text-sm text-indigo-600">Articles & videos</p>

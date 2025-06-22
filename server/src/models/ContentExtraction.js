@@ -37,6 +37,21 @@ const contentExtractionSchema = new mongoose.Schema({
     lowercase: true,
     index: true
   },
+  // AI summarization fields
+  aiSummary: {
+    type: String,
+    maxlength: [3000, 'AI summary cannot exceed 3000 characters'],
+    default: ''
+  },
+  summaryGenerated: {
+    type: Boolean,
+    default: false
+  },
+  summaryLength: {
+    type: String,
+    enum: ['short', 'medium', 'long'],
+    default: 'medium'
+  },
   images: [{
     src: {
       type: String,

@@ -1,4 +1,4 @@
-import { youtubeAPI } from "../../../services/api";
+import { youtubeAPI, universalAIAPI, enhancedYouTubeAPI } from "../../../services/api";
 import {
   extractYouTubeId,
   validateYouTubeUrl
@@ -44,13 +44,15 @@ export const createVideoObject = (videoData) => {
     duration: videoData.duration,
     channelTitle: videoData.channelTitle,
     viewCount: videoData.viewCount,
+    aiSummary: videoData.aiSummary,
+    summaryGenerated: videoData.summaryGenerated
   };
 };
 
 /**
- * Add video to playlist
+ * Add video to playlist with optional AI summarization
  */
-export const addVideoToPlaylist = async (videoUrl, savedVideos) => {
+export const addVideoToPlaylist = async (videoUrl, savedVideos, generateSummary = false, summaryLength = 'medium') => {
   // Validate URL and extract video ID
   const videoId = processYouTubeUrl(videoUrl);
 
@@ -59,8 +61,8 @@ export const addVideoToPlaylist = async (videoUrl, savedVideos) => {
     throw new Error("This video is already in your playlist");
   }
 
-  // Fetch video details from YouTube API
-  const response = await youtubeAPI.getVideoDetails(videoId);
+  // Fetch video details with optional AI summary
+  const response = await enhancedYouTubeAPI.getVideoDetailsWithSummary(videoId, generateSummary, summaryLength);
   if (!response.success) {
     throw new Error(response.message || "Failed to fetch video details");
   }
@@ -68,13 +70,28 @@ export const addVideoToPlaylist = async (videoUrl, savedVideos) => {
   // Create video object
   const newVideo = createVideoObject(response.data);
 
-  // Save to database
-  const saveResponse = await youtubeAPI.create(newVideo);
+  // Save to database with AI summary if generated
+  const saveResponse = await enhancedYouTubeAPI.createWithSummary(newVideo, generateSummary, summaryLength);
   if (!saveResponse.success) {
     throw new Error("Failed to save video to playlist");
   }
 
   return saveResponse.data;
+};
+
+/**
+ * Generate AI summary for existing video
+ */
+export const generateVideoSummary = async (videoUrl, summaryLength = 'medium') => {
+  try {
+    const response = await universalAIAPI.summarizeYouTube(videoUrl, summaryLength);
+    if (!response.success) {
+      throw new Error(response.message || "Failed to generate video summary");
+    }
+    return response.data.summary;
+  } catch (error) {
+    throw new Error(`Failed to generate AI summary: ${error.message}`);
+  }
 };
 
 /**

@@ -1,11 +1,7 @@
 import {
   Home,
-  StickyNote,
-  CheckSquare,
   Youtube,
   FileText,
-  Cloud,
-  Clock as ClockIcon,
   X,
   User,
   Settings,
@@ -15,8 +11,11 @@ import {
   Sun,
   Moon,
   Keyboard,
+  Grid3X3,
 } from "lucide-react";
+import { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { WidgetsDialog } from "../../../components/widgets-dialog";
 
 export const Sidebar = ({
   activeTab,
@@ -27,17 +26,15 @@ export const Sidebar = ({
   toggleTheme,
   onSettingsOpen,
   onShortcutsOpen,
+  onWidgetsOpen,
 }) => {
   const { user, logoutUser } = useAuth();
+  const [widgetsDialogOpen, setWidgetsDialogOpen] = useState(false);
   const menuItems = [
     { id: "overview", label: "Overview", icon: Home },
     { id: "collections", label: "Collections", icon: Folder },
-    { id: "sticky-notes", label: "Sticky Notes", icon: StickyNote },
-    { id: "todos", label: "Todo List", icon: CheckSquare },
     { id: "youtube", label: "YouTube", icon: Youtube },
     { id: "content", label: "Content Extractor", icon: FileText },
-    { id: "weather", label: "Weather", icon: Cloud },
-    { id: "clock", label: "Clock", icon: ClockIcon },
     { id: "files", label: "File Manager", icon: Upload },
   ];
   return (
@@ -127,14 +124,32 @@ export const Sidebar = ({
                   </li>
                 );
               })}
-            </ul>
-
+            </ul>{" "}
             {/* Help Section */}
             <div
               className={`mt-6 pt-4 border-t transition-colors duration-200 ${
                 isDark ? "border-gray-700" : "border-gray-200"
               }`}
             >
+              {" "}
+              <button
+                onClick={() => {
+                  if (onWidgetsOpen) {
+                    onWidgetsOpen();
+                  } else {
+                    setWidgetsDialogOpen(true);
+                  }
+                  onClose();
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2 ${
+                  isDark
+                    ? "text-gray-300 hover:bg-gray-700/80 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                <Grid3X3 size={20} />
+                <span className="font-medium">Widgets</span>
+              </button>
               <button
                 onClick={() => {
                   onShortcutsOpen();
@@ -187,7 +202,6 @@ export const Sidebar = ({
                 </p>
               </div>
             </div>
-
             {/* Action Buttons */}
             <div className="space-y-2">
               <div className="flex space-x-2">
@@ -231,10 +245,17 @@ export const Sidebar = ({
                 <LogOut size={16} />
                 <span className="text-sm font-medium">Logout</span>
               </button>
-            </div>
+            </div>{" "}
           </div>
         </div>
       </div>
+
+      {/* Widgets Dialog */}
+      <WidgetsDialog
+        isOpen={widgetsDialogOpen}
+        onClose={() => setWidgetsDialogOpen(false)}
+        isDark={isDark}
+      />
     </>
   );
 };

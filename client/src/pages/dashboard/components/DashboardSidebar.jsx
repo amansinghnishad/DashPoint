@@ -9,6 +9,7 @@ export const DashboardSidebar = ({
   toggleTheme,
   onSettingsOpen,
   onShortcutsOpen,
+  onWidgetsOpen,
 }) => {
   return (
     <Sidebar
@@ -20,6 +21,7 @@ export const DashboardSidebar = ({
       toggleTheme={toggleTheme}
       onSettingsOpen={onSettingsOpen}
       onShortcutsOpen={onShortcutsOpen}
+      onWidgetsOpen={onWidgetsOpen}
     />
   );
 };

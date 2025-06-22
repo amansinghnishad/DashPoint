@@ -1,7 +1,17 @@
 const express = require('express');
 const { body, param, query } = require('express-validator');
 const rateLimit = require('express-rate-limit');
-const youtubeController = require('../controllers/youtubeController');
+const {
+  getAllVideos,
+  createVideo,
+  updateVideo,
+  deleteVideo,
+  getVideoDetails,
+  searchVideos,
+  getChannelDetails,
+  getVideoDetailsWithSummary,
+  createVideoWithSummary
+} = require('../controllers/youtubeController');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -23,7 +33,7 @@ router.use(youtubeRateLimit);
 
 // CRUD routes for saved videos
 // GET /api/youtube/videos - Get all saved videos
-router.get('/videos', auth, youtubeController.getAllVideos);
+router.get('/videos', auth, getAllVideos);
 
 // POST /api/youtube/videos - Save a new video
 router.post('/videos', [
@@ -38,7 +48,7 @@ router.post('/videos', [
   body('tags').optional().isArray(),
   body('category').optional().isString(),
   body('isFavorite').optional().isBoolean()
-], youtubeController.createVideo);
+], createVideo);
 
 // PUT /api/youtube/videos/:id - Update a saved video
 router.put('/videos/:id', [
@@ -48,24 +58,52 @@ router.put('/videos/:id', [
   body('tags').optional().isArray(),
   body('category').optional().isString(),
   body('isFavorite').optional().isBoolean()
-], youtubeController.updateVideo);
+], updateVideo);
 
 // DELETE /api/youtube/videos/:id - Delete a saved video
 router.delete('/videos/:id', [
   auth,
   param('id').isMongoId().withMessage('Invalid video ID')
-], youtubeController.deleteVideo);
+], deleteVideo);
 
 // Get video details by ID
 // GET /api/youtube/video/:videoId
-router.get('/video/:videoId', auth, youtubeController.getVideoDetails);
+router.get('/video/:videoId', auth, getVideoDetails);
 
 // Search videos
 // GET /api/youtube/search?q=query&maxResults=10&order=relevance
-router.get('/search', auth, youtubeController.searchVideos);
+router.get('/search', auth, searchVideos);
 
 // Get channel details
 // GET /api/youtube/channel/:channelId
-router.get('/channel/:channelId', auth, youtubeController.getChannelDetails);
+router.get('/channel/:channelId', auth, getChannelDetails);
+
+// Enhanced video details with AI summarization
+router.get('/video-enhanced/:videoId',
+  auth,
+  [
+    param('videoId').notEmpty().withMessage('Video ID is required'),
+    query('generateSummary').optional().isBoolean().withMessage('generateSummary must be boolean'),
+    query('summaryLength').optional().isString().withMessage('summaryLength must be string')
+  ],
+  getVideoDetailsWithSummary
+);
+
+// Enhanced video creation with AI summarization
+router.post('/videos-enhanced', [
+  auth,
+  body('videoId').notEmpty().withMessage('Video ID is required'),
+  body('title').notEmpty().withMessage('Title is required').isLength({ max: 200 }),
+  body('thumbnail').notEmpty().withMessage('Thumbnail URL is required'),
+  body('embedUrl').notEmpty().withMessage('Embed URL is required'),
+  body('url').notEmpty().withMessage('URL is required'),
+  body('channelTitle').optional().isLength({ max: 100 }),
+  body('description').optional().isLength({ max: 1000 }),
+  body('tags').optional().isArray(),
+  body('category').optional().isString(),
+  body('isFavorite').optional().isBoolean(),
+  body('generateSummary').optional().isBoolean().withMessage('generateSummary must be boolean'),
+  body('summaryLength').optional().isString().withMessage('summaryLength must be string')
+], createVideoWithSummary);
 
 module.exports = router;

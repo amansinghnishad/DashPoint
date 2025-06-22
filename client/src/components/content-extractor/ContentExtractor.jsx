@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
-import { contentAPI } from "../../services/api";
+import { contentAPI, enhancedContentAPI } from "../../services/api";
 import { AddToCollectionModal } from "../add-to-collection-modal/AddToCollectionModal";
 import { useToast } from "../../hooks/useToast";
+import { useDashboard } from "../../context/DashboardContext";
 import { ContentExtractorForm } from "./components/ContentExtractorForm";
 import { ContentList } from "./components/ContentList";
 import { ContentViewer } from "./components/ContentViewer";
 import { UsageTips } from "./components/UsageTips";
+import { AISummaryOptions } from "./components/AISummaryOptions";
 import {
   extractContentFromUrl,
+  extractContentWithSummary,
+  generateContentSummary,
   exportContentAsJson,
 } from "./utils/contentExtractorHelpers";
 import "./content-extractor.css";
@@ -22,12 +26,16 @@ export const ContentExtractor = () => {
   const [contentToAdd, setContentToAdd] = useState(null);
   const [loadingContents, setLoadingContents] = useState(true);
   const [showTips, setShowTips] = useState(true);
+  const [generateAISummary, setGenerateAISummary] = useState(false);
+  const [summaryLength, setSummaryLength] = useState("medium");
+  const [extractImages, setExtractImages] = useState(false);
+  const [extractLinks, setExtractLinks] = useState(false);
+  const [maxContentLength, setMaxContentLength] = useState(10000);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const { success, error: showError } = useToast();
-
-  // Load existing content on component mount
+  const { loadStats } = useDashboard();
   useEffect(() => {
     loadExtractedContents();
-    // Check if tips should be shown
     const savedVisibility = localStorage.getItem("contentExtractorTipsVisible");
     if (savedVisibility !== null) {
       setShowTips(JSON.parse(savedVisibility));
@@ -49,43 +57,95 @@ export const ContentExtractor = () => {
     }
   };
 
-  // extractContent function
   const extractContent = async () => {
     setError("");
     setLoading(true);
 
     try {
-      const result = await extractContentFromUrl(url, extractedContents);
+      let extractedContent;
 
-      if (result.existing) {
-        setSelectedContent(result.content);
+      if (generateAISummary) {
+        // Use enhanced extraction with AI summarization
+        extractedContent = await extractContentWithSummary(url, {
+          extractImages,
+          extractLinks,
+          maxContentLength,
+          generateSummary: generateAISummary,
+          summaryLength,
+        });
       } else {
-        setExtractedContents((prev) => [result.content, ...prev]);
-        setSelectedContent(result.content);
-        success("Content extracted and saved successfully");
+        // Use standard extraction
+        const result = await extractContentFromUrl(url, extractedContents);
+        extractedContent = result.content;
       }
 
+      // Check if content already exists
+      if (extractedContent.existing) {
+        setSelectedContent(extractedContent.content);
+        success("Content already extracted - showing cached version");
+        return;
+      }
+
+      // Add to extracted contents list
+      setExtractedContents((prev) => [extractedContent, ...prev]);
+      setSelectedContent(extractedContent);
       setUrl("");
+
+      const successMessage = generateAISummary
+        ? "Content extracted with AI summary successfully"
+        : "Content extracted successfully";
+      success(successMessage);
+
+      // Refresh dashboard stats
+      loadStats();
     } catch (err) {
       console.error("Content extraction error:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to extract content"
-      );
+      setError(err.message || "Failed to extract content");
     } finally {
       setLoading(false);
     }
   };
 
-  // handleKeyPress function
+  const generateSummary = async (content) => {
+    setLoadingSummary(true);
+    try {
+      const summary = await generateContentSummary(
+        content.content,
+        summaryLength
+      );
+
+      // Update the content in the extractedContents array
+      setExtractedContents((prev) =>
+        prev.map((c) =>
+          c._id === content._id
+            ? { ...c, aiSummary: summary, summaryGenerated: true }
+            : c
+        )
+      );
+
+      // Update selected content if it's the same
+      if (selectedContent?._id === content._id) {
+        setSelectedContent((prev) => ({
+          ...prev,
+          aiSummary: summary,
+          summaryGenerated: true,
+        }));
+      }
+
+      success("AI summary generated successfully");
+    } catch (err) {
+      console.error("Failed to generate summary:", err);
+      showError(err.message || "Failed to generate AI summary");
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       extractContent();
     }
   };
 
-  // deleteContent function
   const deleteContent = async (contentId) => {
     try {
       const response = await contentAPI.delete(contentId);
@@ -100,33 +160,35 @@ export const ContentExtractor = () => {
         }
 
         success("Content deleted successfully");
+        // Refresh dashboard stats
+        loadStats();
+        // Refresh dashboard stats
+        loadStats();
       }
     } catch (err) {
       console.error("Failed to delete content:", err);
       showError("Failed to delete content");
     }
   };
-  // handleAddToCollection function
+
   const handleAddToCollection = (content) => {
     setContentToAdd(content);
     setShowAddToCollection(true);
   };
 
-  // handleShowTips function
   const handleShowTips = () => {
     setShowTips(true);
     localStorage.setItem("contentExtractorTipsVisible", JSON.stringify(true));
-  }; // handleContentUpdate function - saves AI-formatted content
+  };
+
   const handleContentUpdate = async (contentId, newContent) => {
     try {
-      // Update the content on the server
       const response = await contentAPI.update(contentId, {
         content: newContent,
-        text: newContent, // Update both content and text fields
+        text: newContent,
       });
 
       if (response.success) {
-        // Update the local state
         setExtractedContents((prev) =>
           prev.map((content) =>
             content._id === contentId
@@ -135,7 +197,6 @@ export const ContentExtractor = () => {
           )
         );
 
-        // Update selected content if it's the one being edited
         if (selectedContent && selectedContent._id === contentId) {
           setSelectedContent((prev) => ({
             ...prev,
@@ -150,7 +211,6 @@ export const ContentExtractor = () => {
       showError("Failed to save content changes");
     }
   };
-
   return (
     <div className="content-extractor min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -162,23 +222,41 @@ export const ContentExtractor = () => {
           onExtract={extractContent}
           onKeyPress={handleKeyPress}
         />
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-8">
-          <ContentList
-            extractedContents={extractedContents}
-            selectedContent={selectedContent}
-            onSelectContent={setSelectedContent}
-            onDeleteContent={deleteContent}
-            onAddToCollection={handleAddToCollection}
-            loading={loadingContents}
-          />{" "}
-          <ContentViewer
-            selectedContent={selectedContent}
-            onExportContent={exportContentAsJson}
-            onContentUpdate={handleContentUpdate}
-          />
+        <AISummaryOptions
+          generateAISummary={generateAISummary}
+          setGenerateAISummary={setGenerateAISummary}
+          summaryLength={summaryLength}
+          setSummaryLength={setSummaryLength}
+          extractImages={extractImages}
+          setExtractImages={setExtractImages}
+          extractLinks={extractLinks}
+          setExtractLinks={setExtractLinks}
+          maxContentLength={maxContentLength}
+          setMaxContentLength={setMaxContentLength}
+        />
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8 mt-8">
+          {" "}
+          <div className="xl:col-span-8 order-1">
+            <ContentViewer
+              selectedContent={selectedContent}
+              onExportContent={exportContentAsJson}
+              onContentUpdate={handleContentUpdate}
+            />
+          </div>
+          <div className="xl:col-span-4 order-2">
+            <ContentList
+              extractedContents={extractedContents}
+              selectedContent={selectedContent}
+              onSelectContent={setSelectedContent}
+              onDeleteContent={deleteContent}
+              onAddToCollection={handleAddToCollection}
+              loading={loadingContents}
+            />
+          </div>
         </div>
-        <UsageTips isVisible={showTips} onVisibilityChange={setShowTips} />{" "}
-        {/* Show Tips Button - appears when tips are hidden */}
+        <div className="mt-8">
+          <UsageTips isVisible={showTips} onVisibilityChange={setShowTips} />
+        </div>{" "}
         {!showTips && (
           <div className="mt-8 max-w-6xl mx-auto text-center">
             <button
@@ -200,7 +278,6 @@ export const ContentExtractor = () => {
             </button>
           </div>
         )}
-        {/* Add to Collection Modal */}
         {showAddToCollection && contentToAdd && (
           <AddToCollectionModal
             isOpen={showAddToCollection}

@@ -1,4 +1,12 @@
-import { Play, Pause, Volume2, Maximize, X, Youtube } from "lucide-react";
+import {
+  Play,
+  Pause,
+  Volume2,
+  Maximize,
+  X,
+  Youtube,
+  Sparkles,
+} from "lucide-react";
 
 export const VideoPlayer = ({
   currentVideo,
@@ -11,18 +19,22 @@ export const VideoPlayer = ({
 }) => {
   if (!currentVideo) {
     return (
-      <div className="glass-effect rounded-2xl p-8 shadow-xl card-hover">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mb-6 shadow-lg">
-            <Youtube size={40} className="text-white" />
+      <div className="glass-effect rounded-2xl shadow-xl card-hover">
+        <div className="aspect-video flex items-center justify-center p-8">
+          <div className="text-center max-w-md mx-auto">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mb-6 shadow-lg">
+              <Youtube size={40} className="text-white" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Ready to Play
+            </h3>
+            <p className="text-gray-600 mb-2 leading-relaxed">
+              Add a YouTube URL to get started with your playlist
+            </p>
+            <p className="text-sm text-gray-500">
+              Your videos will appear here for seamless playback
+            </p>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Ready to Play
-          </h3>
-          <p className="text-gray-600 mb-2">Add a YouTube URL to get started</p>
-          <p className="text-sm text-gray-500">
-            Your videos will appear here for seamless playback
-          </p>
         </div>
       </div>
     );
@@ -118,6 +130,21 @@ export const VideoPlayer = ({
                     <span>{currentVideo.viewCount.toLocaleString()} views</span>
                   </span>
                 )}
+              </div>
+            )}
+
+            {/* AI Summary Display */}
+            {currentVideo.summaryGenerated && currentVideo.aiSummary && (
+              <div className="mt-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center mb-2">
+                  <Sparkles size={16} className="text-purple-600 mr-2" />
+                  <h4 className="font-semibold text-purple-800">
+                    Universal AI Summary
+                  </h4>
+                </div>
+                <p className="text-sm text-purple-700 leading-relaxed">
+                  {currentVideo.aiSummary}
+                </p>
               </div>
             )}
           </div>

@@ -20,7 +20,22 @@ export const TodoList = () => {
   const [showAddToCollectionModal, setShowAddToCollectionModal] =
     useState(false);
   const [selectedTodo, setSelectedTodo] = useState(null);
+  const [isCreatingTodo, setIsCreatingTodo] = useState(false);
   const { success } = useToast();
+
+  const handleAddTodo = async (todo) => {
+    if (isCreatingTodo) return; // Prevent duplicate creation
+
+    setIsCreatingTodo(true);
+    try {
+      await saveTodo(todo);
+      setShowForm(false);
+    } catch (error) {
+      console.error("Failed to create todo:", error);
+    } finally {
+      setIsCreatingTodo(false);
+    }
+  };
 
   const handleAddToCollection = (todo) => {
     setSelectedTodo(todo);
@@ -52,21 +67,17 @@ export const TodoList = () => {
             completedCount={completedCount}
             totalCount={totalCount}
           />
-        </div>
-
+        </div>{" "}
         {/* Add Todo Form */}
         {showForm && (
           <div className="mb-8 animate-fade-in-up">
             <TodoForm
-              onAdd={(todo) => {
-                saveTodo(todo);
-                setShowForm(false);
-              }}
+              onAdd={handleAddTodo}
               onCancel={() => setShowForm(false)}
+              isCreating={isCreatingTodo}
             />
           </div>
         )}
-
         {/* Todo List */}
         <div className="space-y-4">
           {filteredTodos.length === 0 ? (
@@ -117,7 +128,6 @@ export const TodoList = () => {
             ))
           )}
         </div>
-
         {/* Add to Collection Modal */}
         {showAddToCollectionModal && selectedTodo && (
           <AddToCollectionModal

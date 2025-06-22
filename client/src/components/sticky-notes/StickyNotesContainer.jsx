@@ -16,11 +16,21 @@ export const StickyNotesContainer = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [showAddToCollection, setShowAddToCollection] = useState(false);
   const [noteToAdd, setNoteToAdd] = useState(null);
+  const [isCreatingNote, setIsCreatingNote] = useState(false);
 
-  // Create new note function
-  const handleCreateNewNote = () => {
-    const newNote = createNewNote();
-    saveStickyNote(newNote);
+  // Create new note function with duplicate prevention
+  const handleCreateNewNote = async () => {
+    if (isCreatingNote) return; // Prevent duplicate creation
+
+    setIsCreatingNote(true);
+    try {
+      const newNote = createNewNote();
+      await saveStickyNote(newNote);
+    } catch (error) {
+      console.error("Failed to create note:", error);
+    } finally {
+      setIsCreatingNote(false);
+    }
   };
 
   // Mouse down handler for dragging
@@ -85,15 +95,20 @@ export const StickyNotesContainer = () => {
 
   return (
     <div className="sticky-notes-container relative min-h-screen p-4">
+      {" "}
       <div className="mb-4">
         <button
           onClick={handleCreateNewNote}
-          className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 rounded-lg font-medium shadow-sm"
+          disabled={isCreatingNote}
+          className={`px-4 py-2 rounded-lg font-medium shadow-sm transition-all duration-200 ${
+            isCreatingNote
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-yellow-400 hover:bg-yellow-500 text-gray-800 hover:shadow-md"
+          }`}
         >
-          + Add Sticky Note
+          {isCreatingNote ? "+ Creating..." : "+ Add Sticky Note"}
         </button>
       </div>
-
       <div className="relative">
         {stickyNotes.map((note) => (
           <StickyNote
@@ -109,7 +124,6 @@ export const StickyNotesContainer = () => {
           />
         ))}
       </div>
-
       {showAddToCollection && noteToAdd && (
         <AddToCollectionModal
           isOpen={showAddToCollection}

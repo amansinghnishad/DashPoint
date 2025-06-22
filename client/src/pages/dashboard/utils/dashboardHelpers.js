@@ -5,12 +5,8 @@ export const getPageTitle = (activeTab) => {
   const titles = {
     overview: "Dashboard Overview",
     collections: "Collections",
-    "sticky-notes": "Sticky Notes",
-    todos: "Todo List",
     youtube: "YouTube Player",
     content: "Content Extractor",
-    weather: "Weather",
-    clock: "Clock",
     files: "File Manager",
   };
 
@@ -34,18 +30,18 @@ export const getKeyboardShortcuts = (handlers) => {
     },
     {
       keys: "ctrl+3",
-      action: () => handlers.setActiveTab("sticky-notes"),
-      description: "Go to Sticky Notes"
+      action: () => handlers.setActiveTab("youtube"),
+      description: "Go to YouTube Player"
     },
     {
       keys: "ctrl+4",
-      action: () => handlers.setActiveTab("todos"),
-      description: "Go to Todo List"
+      action: () => handlers.setActiveTab("content"),
+      description: "Go to Content Extractor"
     },
     {
       keys: "ctrl+5",
-      action: () => handlers.setActiveTab("youtube"),
-      description: "Go to YouTube Player"
+      action: () => handlers.setActiveTab("files"),
+      description: "Go to File Manager"
     },
     {
       keys: "ctrl+/",
@@ -66,13 +62,13 @@ export const getKeyboardShortcuts = (handlers) => {
       keys: "ctrl+,",
       action: () => handlers.setSettingsOpen(true),
       description: "Open Settings"
-    },
-    {
+    }, {
       keys: "escape",
       action: () => {
         handlers.setNotificationsOpen(false);
         handlers.setShortcutsOpen(false);
         handlers.setSettingsOpen(false);
+        handlers.setWidgetsOpen(false);
         handlers.setSidebarOpen(false);
       },
       description: "Close Modals/Panels"

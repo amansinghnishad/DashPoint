@@ -7,7 +7,10 @@ const {
   extractKeywords,
   analyzeSentiment,
   enhanceText,
-  answerQuestion
+  answerQuestion,
+  summarizeTextWithUniversalAgent,
+  summarizeYouTubeWithUniversalAgent,
+  chatWithUniversalAgent
 } = require('../controllers/aiServicesController');
 
 const router = express.Router();
@@ -91,6 +94,51 @@ router.post('/answer',
       .withMessage('Context must be between 20 and 2,000 characters')
   ],
   answerQuestion
+);
+
+// Universal AI Agent routes
+router.post('/universal/summarize-text',
+  auth,
+  rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+  [
+    body('text_content')
+      .isString()
+      .isLength({ min: 50, max: 50000 })
+      .withMessage('Text content must be between 50 and 50,000 characters'),
+    body('summary_length')
+      .optional()
+      .isString()
+      .withMessage('Summary length must be a string')
+  ],
+  summarizeTextWithUniversalAgent
+);
+
+router.post('/universal/summarize-youtube',
+  auth,
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 5 }), // 5 requests per 10 minutes
+  [
+    body('youtube_url')
+      .isString()
+      .matches(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/)
+      .withMessage('Must be a valid YouTube URL'),
+    body('summary_length')
+      .optional()
+      .isString()
+      .withMessage('Summary length must be a string')
+  ],
+  summarizeYouTubeWithUniversalAgent
+);
+
+router.post('/universal/chat',
+  auth,
+  rateLimit({ windowMs: 5 * 60 * 1000, max: 15 }), // 15 requests per 5 minutes
+  [
+    body('prompt')
+      .isString()
+      .isLength({ min: 5, max: 2000 })
+      .withMessage('Prompt must be between 5 and 2000 characters')
+  ],
+  chatWithUniversalAgent
 );
 
 module.exports = router;

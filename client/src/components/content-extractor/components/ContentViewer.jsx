@@ -13,7 +13,7 @@ import {
   Brain,
   Settings,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { copyToClipboard } from "../../../utils/helpers";
 import { formatDateTime } from "../../../utils/dateUtils";
 import { FormattedContent } from "./FormattedContent";
@@ -26,21 +26,29 @@ export const ContentViewer = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
-  const [currentContent, setCurrentContent] = useState(
-    selectedContent?.content || selectedContent?.text
-  );
+  const [currentContent, setCurrentContent] = useState("");
+  // Update currentContent when selectedContent changes
+  useEffect(() => {
+    if (selectedContent) {
+      setCurrentContent(selectedContent.content || selectedContent.text || "");
+    } else {
+      setCurrentContent("");
+    }
+  }, [selectedContent]);
+
   const handleCopy = async () => {
     const success = await copyToClipboard(
-      currentContent || selectedContent.text || selectedContent.content
+      currentContent || selectedContent?.text || selectedContent?.content || ""
     );
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
   const handleContentUpdate = (newContent) => {
     setCurrentContent(newContent);
-    if (onContentUpdate) {
+    if (onContentUpdate && selectedContent) {
       onContentUpdate(selectedContent._id, newContent);
     }
   };

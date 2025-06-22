@@ -1,9 +1,11 @@
 const axios = require('axios');
 const { validationResult } = require('express-validator');
 const YouTube = require('../models/YouTube');
+const { validateAISummary } = require('../utils/aiSummaryUtils');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
+const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // CRUD Operations for saved YouTube videos
 // Get all saved videos for the authenticated user
@@ -302,6 +304,148 @@ exports.getChannelDetails = async (req, res, next) => {
     });
   } catch (error) {
     console.error('YouTube channel error:', error.response?.data || error.message);
+    next(error);
+  }
+};
+
+// Enhanced video details with AI summarization
+exports.getVideoDetailsWithSummary = async (req, res, next) => {
+  try {
+    const { videoId } = req.params;
+    const { generateSummary = false, summaryLength = 'medium' } = req.query;
+
+    if (!videoId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Video ID is required'
+      });
+    }
+
+    const response = await axios.get(`${YOUTUBE_API_BASE_URL}/videos`, {
+      params: {
+        part: 'snippet,contentDetails,statistics',
+        id: videoId,
+        key: YOUTUBE_API_KEY
+      }
+    });
+
+    if (!response.data.items || response.data.items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    const video = response.data.items[0];
+    const duration = parseDuration(video.contentDetails.duration);
+
+    let aiSummary = null;
+    if (generateSummary === 'true') {
+      try {
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+          youtube_url: videoUrl,
+          summary_length: summaryLength
+        }, {
+          timeout: 120000,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        aiSummary = validateAISummary(summaryResponse.data.summary);
+      } catch (summaryError) {
+        console.error('AI summarization failed for video:', summaryError);
+        // Continue without summary rather than failing the entire request
+      }
+    }
+
+    const videoData = {
+      id: video.id,
+      title: video.snippet.title,
+      description: video.snippet.description,
+      thumbnail: {
+        default: video.snippet.thumbnails.default?.url,
+        medium: video.snippet.thumbnails.medium?.url,
+        high: video.snippet.thumbnails.high?.url,
+        standard: video.snippet.thumbnails.standard?.url,
+        maxres: video.snippet.thumbnails.maxres?.url
+      },
+      channelTitle: video.snippet.channelTitle,
+      publishedAt: video.snippet.publishedAt,
+      duration: duration,
+      viewCount: parseInt(video.statistics.viewCount || 0),
+      likeCount: parseInt(video.statistics.likeCount || 0),
+      url: `https://www.youtube.com/watch?v=${video.id}`,
+      embedUrl: `https://www.youtube.com/embed/${video.id}`,
+      aiSummary: aiSummary,
+      summaryGenerated: !!aiSummary
+    };
+
+    res.status(200).json({
+      success: true,
+      data: videoData
+    });
+
+  } catch (error) {
+    console.error('YouTube API error:', error.response?.data || error.message);
+    next(error);
+  }
+};
+
+// Create video with AI summary option
+exports.createVideoWithSummary = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { generateSummary = false, summaryLength = 'medium', ...videoData } = req.body;
+
+    let aiSummary = null;
+    if (generateSummary && videoData.url) {
+      try {
+        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+          youtube_url: videoData.url,
+          summary_length: summaryLength
+        }, {
+          timeout: 120000,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        aiSummary = validateAISummary(summaryResponse.data.summary);
+      } catch (summaryError) {
+        console.error('AI summarization failed during video creation:', summaryError);
+        // Continue without summary
+      }
+    }
+
+    const video = new YouTube({
+      ...videoData,
+      userId: req.user._id,
+      aiSummary: aiSummary,
+      summaryGenerated: !!aiSummary
+    });
+
+    await video.save();
+
+    res.status(201).json({
+      success: true,
+      data: video,
+      message: 'Video saved successfully' + (aiSummary ? ' with AI summary' : '')
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'This video is already saved'
+      });
+    }
     next(error);
   }
 };

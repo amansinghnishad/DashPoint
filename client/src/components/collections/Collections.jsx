@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Plus, FolderOpen } from "lucide-react";
 import { collectionsAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
+import { useDashboard } from "../../context/DashboardContext";
 import { CollectionView } from "../collection/index";
 import { CollectionCard } from "./components/CollectionCard";
 import { CollectionForm } from "./modals/CollectionForm";
@@ -15,6 +16,7 @@ export const Collections = () => {
   const [editingCollection, setEditingCollection] = useState(null);
   const [selectedCollectionId, setSelectedCollectionId] = useState(null);
   const { success, error, info } = useToast();
+  const { loadStats } = useDashboard();
 
   useEffect(() => {
     loadCollections();
@@ -65,6 +67,10 @@ export const Collections = () => {
         setShowForm(false);
         setEditingCollection(null);
         loadCollections();
+        // Refresh dashboard stats if creating a new collection
+        if (!editingCollection) {
+          loadStats();
+        }
       }
     } catch (err) {
       console.error("Error saving collection:", err);
@@ -88,6 +94,8 @@ export const Collections = () => {
       if (response.success) {
         success("Collection deleted successfully");
         loadCollections();
+        // Refresh dashboard stats
+        loadStats();
       }
     } catch (err) {
       console.error("Error deleting collection:", err);

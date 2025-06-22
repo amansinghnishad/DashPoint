@@ -5,6 +5,7 @@ import {
   useKeyboardShortcuts,
 } from "../../components/keyboard-shortcuts/index";
 import { SettingsModal } from "../../components/settings-modal/index";
+import { WidgetsDialog } from "../../components/widgets-dialog";
 import { useToast } from "../../hooks/useToast";
 import { useNotifications } from "../../hooks/useNotifications";
 import { ToastContainer } from "../../components/toast/index";
@@ -29,6 +30,7 @@ export const Dashboard = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [widgetsOpen, setWidgetsOpen] = useState(false);
 
   // Toast functionality
   const { toasts, removeToast, showToast } = useToast();
@@ -43,7 +45,6 @@ export const Dashboard = () => {
     removeNotification,
     clearAllNotifications,
   } = useNotifications();
-
   // Keyboard shortcuts handlers
   const shortcutHandlers = {
     setActiveTab,
@@ -54,6 +55,7 @@ export const Dashboard = () => {
     isDark,
     setSettingsOpen,
     setNotificationsOpen,
+    setWidgetsOpen,
   };
   const shortcuts = getKeyboardShortcuts(shortcutHandlers);
   useKeyboardShortcuts(shortcuts);
@@ -94,6 +96,7 @@ export const Dashboard = () => {
     >
       {" "}
       <div className="flex h-screen">
+        {" "}
         <DashboardSidebar
           isOpen={sidebarOpen}
           activeTab={activeTab}
@@ -103,8 +106,8 @@ export const Dashboard = () => {
           toggleTheme={() => setIsDark(!isDark)}
           onSettingsOpen={() => setSettingsOpen(true)}
           onShortcutsOpen={() => setShortcutsOpen(true)}
+          onWidgetsOpen={() => setWidgetsOpen(true)}
         />
-
         {/* Main content area - add left margin for sidebar on large screens */}
         <div className="flex-1 flex flex-col overflow-auto scrollable-area lg:ml-64">
           {/* Header */}
@@ -155,6 +158,13 @@ export const Dashboard = () => {
         onAddTodo={handleAddTodo}
         onUploadFile={handleUploadFile}
         onBookmark={handleBookmark}
+        onOpenWidgets={() => setWidgetsOpen(true)}
+      />
+      {/* Widgets Dialog */}
+      <WidgetsDialog
+        isOpen={widgetsOpen}
+        onClose={() => setWidgetsOpen(false)}
+        isDark={isDark}
       />
     </div>
   );

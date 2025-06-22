@@ -32,10 +32,9 @@ export const ContentList = ({
               {extractedContents.length}
             </span>
           </div>
-        </div>
-
+        </div>{" "}
         {/* Content List */}
-        <div className="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
+        <div className="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-1">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">

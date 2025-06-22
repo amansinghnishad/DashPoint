@@ -111,7 +111,6 @@ export const DashboardProvider = ({ children }) => {
         type: "SET_LOADING",
         payload: { key: "stats", value: true },
       });
-
       const [collectionsRes, contentRes, videosRes] = await Promise.all([
         collectionsAPI.getCollections(1, 1),
         contentAPI.getAll(1, 1),
@@ -120,7 +119,7 @@ export const DashboardProvider = ({ children }) => {
 
       const stats = {
         collections: collectionsRes.success
-          ? collectionsRes.pagination?.total || 0
+          ? collectionsRes.data?.pagination?.total || 0
           : 0,
         content: contentRes.success ? contentRes.pagination?.total || 0 : 0,
         videos: videosRes.success ? videosRes.pagination?.total || 0 : 0,

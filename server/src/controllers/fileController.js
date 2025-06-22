@@ -67,10 +67,9 @@ const getFiles = async (req, res) => {
       ...file,
       formattedSize: formatFileSize(file.size),
       category: getFileCategory(file.mimetype)
-    }));
-
-    res.json({
-      files: filesWithMeta,
+    })); res.json({
+      success: true,
+      data: filesWithMeta,
       pagination: {
         current: parseInt(page),
         total: Math.ceil(total / limit),
@@ -113,11 +112,10 @@ const uploadFiles = async (req, res) => {
         formattedSize: newFile.getFormattedSize(),
         category: getFileCategory(newFile.mimetype)
       });
-    }
-
-    res.status(201).json({
+    } res.status(201).json({
+      success: true,
       message: `${uploadedFiles.length} file(s) uploaded successfully`,
-      files: uploadedFiles
+      data: uploadedFiles
     });
   } catch (error) {
     console.error('Error uploading files:', error);
@@ -135,12 +133,13 @@ const getFileById = async (req, res) => {
 
     if (!file) {
       return res.status(404).json({ error: 'File not found' });
-    }
-
-    res.json({
-      ...file.toObject(),
-      formattedSize: file.getFormattedSize(),
-      category: getFileCategory(file.mimetype)
+    } res.json({
+      success: true,
+      data: {
+        ...file.toObject(),
+        formattedSize: file.getFormattedSize(),
+        category: getFileCategory(file.mimetype)
+      }
     });
   } catch (error) {
     console.error('Error getting file:', error);
@@ -204,7 +203,10 @@ const deleteFile = async (req, res) => {
     // Delete from database
     await File.findByIdAndDelete(file._id);
 
-    res.json({ message: 'File deleted successfully' });
+    res.json({
+      success: true,
+      message: 'File deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting file:', error);
     res.status(500).json({ error: 'Failed to delete file' });
@@ -224,11 +226,12 @@ const toggleStar = async (req, res) => {
     }
 
     file.isStarred = !file.isStarred;
-    await file.save();
-
-    res.json({
+    await file.save(); res.json({
+      success: true,
       message: `File ${file.isStarred ? 'starred' : 'unstarred'} successfully`,
-      isStarred: file.isStarred
+      data: {
+        isStarred: file.isStarred
+      }
     });
   } catch (error) {
     console.error('Error toggling star:', error);
@@ -255,11 +258,10 @@ const updateFile = async (req, res) => {
     if (tags) file.tags = tags.split(',').map(tag => tag.trim());
     if (description !== undefined) file.description = description;
 
-    await file.save();
-
-    res.json({
+    await file.save(); res.json({
+      success: true,
       message: 'File updated successfully',
-      file: {
+      data: {
         ...file.toObject(),
         formattedSize: file.getFormattedSize(),
         category: getFileCategory(file.mimetype)
@@ -342,7 +344,10 @@ const getStorageStats = async (req, res) => {
       }))
     };
 
-    res.json(result);
+    res.json({
+      success: true,
+      data: result
+    });
   } catch (error) {
     console.error('Error getting storage stats:', error);
     res.status(500).json({ error: 'Failed to get storage statistics' });

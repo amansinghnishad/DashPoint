@@ -283,3 +283,74 @@ export const collectionsAPI = {
     return response.data;
   }
 };
+
+// Universal AI Agent API
+export const universalAIAPI = {  // Summarize text using Universal AI Agent
+  summarizeText: async (textContent, summaryLength = 'medium') => {
+    const response = await apiClient.post('/ai/universal/summarize-text', {
+      text_content: textContent,
+      summary_length: summaryLength
+    });
+    return response.data;
+  },
+
+  // Summarize YouTube video using Universal AI Agent
+  summarizeYouTube: async (youtubeUrl, summaryLength = 'medium') => {
+    const response = await apiClient.post('/ai/universal/summarize-youtube', {
+      youtube_url: youtubeUrl,
+      summary_length: summaryLength
+    });
+    return response.data;
+  },
+
+  // Chat with Universal AI Agent
+  chat: async (prompt) => {
+    const response = await apiClient.post('/ai/universal/chat', {
+      prompt
+    });
+    return response.data;
+  }
+};
+
+// Enhanced YouTube API with AI summarization
+export const enhancedYouTubeAPI = {
+  // Get video details with optional AI summary
+  getVideoDetailsWithSummary: async (videoId, generateSummary = false, summaryLength = 'medium') => {
+    const response = await apiClient.get(`/youtube/video-enhanced/${videoId}?generateSummary=${generateSummary}&summaryLength=${summaryLength}`);
+    return response.data;
+  },
+
+  // Create video with optional AI summary
+  createWithSummary: async (videoData, generateSummary = false, summaryLength = 'medium') => {
+    const response = await apiClient.post('/youtube/videos-enhanced', {
+      ...videoData,
+      generateSummary,
+      summaryLength
+    });
+    return response.data;
+  }
+};
+
+// Enhanced Content API with AI summarization
+export const enhancedContentAPI = {
+  // Extract content with AI summarization
+  extractWithSummary: async (url, options = {}) => {
+    const {
+      extractImages = false,
+      extractLinks = false,
+      maxContentLength = 10000,
+      generateSummary = false,
+      summaryLength = 'medium'
+    } = options;
+
+    const response = await apiClient.post('/content-extraction/extract-enhanced', {
+      url,
+      extractImages,
+      extractLinks,
+      maxContentLength,
+      generateSummary,
+      summaryLength
+    });
+    return response.data;
+  }
+};

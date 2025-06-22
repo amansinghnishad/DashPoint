@@ -2,16 +2,16 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Input, Button, Textarea, Select } from "../../ui";
 
-export const TodoForm = ({ onAdd, onCancel }) => {
+export const TodoForm = ({ onAdd, onCancel, isCreating = false }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState("medium");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (title.trim()) {
-      onAdd({
+    if (title.trim() && !isCreating) {
+      await onAdd({
         title: title.trim(),
         description: description.trim(),
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
@@ -20,10 +20,13 @@ export const TodoForm = ({ onAdd, onCancel }) => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
-      setTitle("");
-      setDescription("");
-      setDueDate("");
-      setPriority("medium");
+      // Only reset form if not creating (success case)
+      if (!isCreating) {
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+        setPriority("medium");
+      }
     }
   };
 
@@ -80,18 +83,25 @@ export const TodoForm = ({ onAdd, onCancel }) => {
               ]}
             />
           </div>
-        </div>
+        </div>{" "}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200/50">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isCreating}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
             variant="primary"
             className="flex items-center space-x-2"
+            disabled={isCreating || !title.trim()}
+            loading={isCreating}
           >
             <Plus size={18} />
-            <span>Add Todo</span>
+            <span>{isCreating ? "Creating..." : "Add Todo"}</span>
           </Button>
         </div>
       </form>

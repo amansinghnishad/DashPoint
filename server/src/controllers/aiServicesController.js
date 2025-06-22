@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 
 const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const TEXTRAZOR_API_KEY = process.env.TEXTRAZOR_API_KEY;
+const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // Hugging Face API endpoints
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models';
@@ -295,6 +296,146 @@ exports.answerQuestion = async (req, res, next) => {
       success: false,
       message: 'Failed to answer question',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Universal AI Agent integration endpoints
+exports.summarizeTextWithUniversalAgent = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { text_content, summary_length = 'medium' } = req.body;
+
+    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-text`, {
+      text_content,
+      summary_length
+    }, {
+      timeout: 60000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        summary: response.data.summary,
+        originalLength: response.data.input_length,
+        summaryLength: response.data.summary_length,
+        service: 'universal-ai-agent'
+      }
+    });
+
+  } catch (error) {
+    console.error('Universal AI Agent text summarization error:', error);
+    // Fallback to original Hugging Face implementation
+    try {
+      const fallbackResult = await makeHuggingFaceRequest(MODELS.summarization, req.body.text_content, {
+        max_length: 150,
+        min_length: 30,
+        do_sample: false
+      });
+
+      res.json({
+        success: true,
+        data: {
+          summary: fallbackResult[0]?.summary_text || '',
+          originalLength: req.body.text_content.length,
+          summaryLength: fallbackResult[0]?.summary_text?.length || 0,
+          service: 'hugging-face-fallback'
+        }
+      });
+    } catch (fallbackError) {
+      next(error);
+    }
+  }
+};
+
+exports.summarizeYouTubeWithUniversalAgent = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { youtube_url, summary_length = 'medium' } = req.body;
+
+    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+      youtube_url,
+      summary_length
+    }, {
+      timeout: 120000, // YouTube videos might take longer
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        summary: response.data.summary,
+        video_url: response.data.video_url,
+        summaryLength: response.data.summary_length,
+        service: 'universal-ai-agent'
+      }
+    });
+
+  } catch (error) {
+    console.error('Universal AI Agent YouTube summarization error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to summarize YouTube video',
+      error: error.message
+    });
+  }
+};
+
+exports.chatWithUniversalAgent = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { prompt } = req.body;
+
+    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/chat`, {
+      prompt
+    }, {
+      timeout: 120000,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: response.data.response,
+      service: 'universal-ai-agent'
+    });
+
+  } catch (error) {
+    console.error('Universal AI Agent chat error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process chat request',
+      error: error.message
     });
   }
 };

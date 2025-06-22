@@ -7,6 +7,7 @@ export const QuickActions = ({
   onUploadFile,
   onBookmark,
   onNavigate,
+  onOpenWidgets, // New prop to open widgets dialog
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeAction, setActiveAction] = useState(null);
@@ -20,12 +21,11 @@ export const QuickActions = ({
       return;
     }
   };
-
   const handleAddNote = () => {
     setActiveAction("note");
     // Add a slight delay to allow visual feedback before collapsing
     setTimeout(() => setIsExpanded(false), 200);
-    onNavigate("sticky-notes");
+    if (onOpenWidgets) onOpenWidgets(); // Open widgets dialog instead
     if (onAddNote) onAddNote();
     setTimeout(() => setActiveAction(null), 1000);
   };
@@ -34,7 +34,7 @@ export const QuickActions = ({
     setActiveAction("todo");
     // Add a slight delay to allow visual feedback before collapsing
     setTimeout(() => setIsExpanded(false), 200);
-    onNavigate("todos");
+    if (onOpenWidgets) onOpenWidgets(); // Open widgets dialog instead
     if (onAddTodo) onAddTodo();
     setTimeout(() => setActiveAction(null), 1000);
   };

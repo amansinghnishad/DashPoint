@@ -1,6 +1,10 @@
 const { validationResult } = require('express-validator');
 const ContentExtraction = require('../models/ContentExtraction');
 const contentExtractorService = require('../services/contentExtractorService');
+const axios = require('axios');
+const { validateAISummary } = require('../utils/aiSummaryUtils');
+
+const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // Extract content from URL
 exports.extractContent = async (req, res, next) => {
@@ -374,6 +378,106 @@ exports.delete = async (req, res, next) => {
       message: 'Content deleted successfully'
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// Enhanced content extraction with AI summarization
+exports.extractContentWithSummary = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const {
+      url,
+      extractImages = false,
+      extractLinks = false,
+      maxContentLength = 10000,
+      generateSummary = false,
+      summaryLength = 'medium'
+    } = req.body;
+    const userId = req.user.id;
+
+    // Check if extraction already exists for this URL and user
+    const existingExtraction = await ContentExtraction.findOne({
+      userId,
+      url,
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // within last 24 hours
+    });
+
+    if (existingExtraction) {
+      return res.status(200).json({
+        success: true,
+        message: 'Content extraction found (cached)',
+        data: existingExtraction
+      });
+    }
+
+    // Extract content using the service
+    const extractedData = await contentExtractorService.extractContent(url, {
+      extractImages,
+      extractLinks,
+      maxContentLength
+    });
+
+    let aiSummary = null;
+    if (generateSummary && extractedData.content && extractedData.content.length > 100) {
+      try {
+        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-text`, {
+          text_content: extractedData.content,
+          summary_length: summaryLength
+        }, {
+          timeout: 60000,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        aiSummary = validateAISummary(summaryResponse.data.summary, 3000); // Content has 3000 char limit
+      } catch (summaryError) {
+        console.error('AI summarization failed:', summaryError);
+        // Continue without summary rather than failing the entire extraction
+      }
+    }
+
+    // Save extraction to database with AI summary
+    const extraction = new ContentExtraction({
+      userId,
+      url,
+      title: extractedData.title,
+      content: extractedData.content,
+      description: extractedData.description,
+      images: extractImages ? extractedData.images : [],
+      links: extractLinks ? extractedData.links : [],
+      metadata: {
+        ...extractedData.metadata,
+        extractionOptions: {
+          extractImages,
+          extractLinks,
+          maxContentLength,
+          generateSummary,
+          summaryLength
+        },
+        aiSummary: aiSummary,
+        summaryGenerated: !!aiSummary
+      }
+    });
+
+    await extraction.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Content extracted and saved successfully',
+      data: extraction
+    });
+
+  } catch (error) {
+    console.error('Content extraction with summary error:', error);
     next(error);
   }
 };
