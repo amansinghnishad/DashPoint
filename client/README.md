@@ -10,6 +10,11 @@ A comprehensive MERN stack dashboard application with multiple productivity feat
 - **Content Extractor**: Extract readable content from any website URL
 - **Weather Widget**: Display current weather and 3-day forecast with location support
 - **World Clock**: Multi-timezone clock with calendar integration
+- **Collections**: Organize and manage your content in collections
+- **Keyboard Shortcuts**: Enhance productivity with keyboard navigation
+- **Notification Center**: Stay updated with important notifications
+- **PWA Support**: Install as a native-like app on supported devices
+- **Offline Mode**: Access core features without internet connection
 - **Authentication**: Login/logout with persistent sessions
 - **Responsive Design**: Mobile-friendly interface
 
@@ -28,29 +33,53 @@ A comprehensive MERN stack dashboard application with multiple productivity feat
 ```
 src/
 ├── components/          # Reusable UI components
-│   ├── StickyNotes.jsx
-│   ├── TodoList.jsx
-│   ├── YouTubePlayer.jsx
-│   ├── ContentExtractor.jsx
-│   ├── Weather.jsx
-│   └── Clock.jsx
+│   ├── add-to-collection-modal/  # Collection management modal
+│   ├── clock/                    # World clock widget
+│   ├── collection/               # Individual collection component
+│   ├── collections/              # Collections management
+│   ├── content-extractor/        # Web content extraction
+│   ├── install-button/           # PWA installation button
+│   ├── keyboard-shortcuts/       # Keyboard navigation support
+│   ├── notification-center/      # Notifications management
+│   ├── offline-indicator/        # Offline mode indicator
+│   ├── pwa-status/               # PWA status indicators
+│   ├── session-warning/          # Session expiration warnings
+│   ├── settings-modal/           # User settings
+│   ├── sticky-notes/             # Sticky notes widget
+│   ├── toast/                    # Toast notifications
+│   ├── todo/                     # Todo list management
+│   ├── ui/                       # Shared UI components
+│   ├── update-notification/      # App update notifications
+│   ├── weather/                  # Weather widget
+│   ├── widgets-dialog/           # Widget management
+│   └── youtube-player/           # YouTube player widget
 ├── pages/              # Page components
-│   ├── Dashboard.jsx
-│   └── Login.jsx
+│   ├── dashboard/      # Main dashboard
+│   ├── landing/        # Landing page
+│   ├── login/          # Login page
+│   └── register/       # Registration page
 ├── context/            # Context providers
 │   ├── AuthContext.jsx
 │   └── DashboardContext.jsx
 ├── hooks/              # Custom hooks
+│   ├── useActivity.js
 │   ├── useCommon.js
+│   ├── useNotifications.js
+│   ├── usePWA.js
+│   ├── usePWAUpdates.js
+│   ├── useToast.js
 │   └── useWeather.js
 ├── services/           # API services
-│   └── api.js
+│   ├── api.js
+│   ├── fileService.js
+│   └── secureAIService.js
 ├── utils/              # Utility functions
 │   ├── dateUtils.js
-│   ├── urlUtils.js
-│   └── helpers.js
-└── data/               # Mock data
-    └── mockData.json
+│   ├── helpers.js
+│   ├── textFormatter.js
+│   └── urlUtils.js
+└── styles/             # Global styles
+    └── shared.css
 ```
 
 ## Installation
@@ -126,6 +155,34 @@ npm run dev
 - World time comparison
 - Real-time updates
 
+### Collections
+- Create and manage content collections
+- Add extracted content, notes, and links
+- Organize collections by categories
+- Search within collections
+- Share collections (coming soon)
+
+### Keyboard Shortcuts
+- Navigate between widgets with keyboard
+- Quick actions for common tasks
+- Customizable shortcuts
+- Keyboard navigation guide
+- Accessibility support
+
+### Notification Center
+- Centralized notifications system
+- Priority-based notifications
+- Action buttons within notifications
+- Clear all or individual notifications
+- Notification history
+
+### PWA Features
+- Install as desktop/mobile application
+- Offline functionality
+- Background synchronization
+- Push notifications support
+- Automatic updates
+
 ## Authentication
 
 Currently uses mock authentication for frontend development. Features include:
@@ -162,17 +219,36 @@ Currently using localStorage for data persistence. The architecture is designed 
 
 All functions are commented with 3-4 word descriptions as requested. The code is structured to be easily scalable and maintainable. Each component is self-contained with proper error handling and loading states.
 
+## Development with Vite
+
+This project is built with Vite for fast development and optimized builds.
+
+- Hot Module Replacement (HMR) for quick feedback
+- Optimized production builds
+- ESLint integration for code quality
+
+## Build and Deployment
+
+The application can be built for production using:
+
+```bash
+npm run build
+```
+
+The build output in the `dist` folder can be deployed to any static hosting service.
+
 ## License
 
-MIT License+ Vite
+MIT License
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Copyright (c) 2025 DashPoint
 
-Currently, two official plugins are available:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
