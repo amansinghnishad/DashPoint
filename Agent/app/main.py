@@ -288,10 +288,20 @@ async def health_check():
 # Run the server when executed directly
 if __name__ == "__main__":
     import uvicorn
+    
+    # Get configuration from environment variables
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+    debug = os.getenv("DEBUG", "False").lower() == "true"
+    log_level = os.getenv("LOG_LEVEL", "info").lower()
+    
     logger.info("Starting DashPoint AI Agent...")
+    logger.info(f"Host: {host}, Port: {port}, Debug: {debug}")
+    
     uvicorn.run(
         app, 
-        host="0.0.0.0", 
-        port=8000,
-        log_level="info"
+        host=host, 
+        port=port,
+        log_level=log_level,
+        reload=debug
     )
