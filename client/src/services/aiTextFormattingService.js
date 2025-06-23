@@ -1,11 +1,11 @@
 /**
  * AI Text Formatting Service
  * 
- * @deprecated This service is deprecated. Use universalAIAPI from services/api.js instead.
- * The Universal AI Agent provides superior text processing capabilities.
+ * @deprecated This service is deprecated. Use dashPointAIAPI from services/api.js instead.
+ * The DashPoint AI Agent provides superior text processing capabilities.
  * 
  * This file is kept minimal for backward compatibility and fallback support only.
- * All complex functionality has been removed. Use Universal AI Agent for new features.
+ * All complex functionality has been removed. Use DashPoint AI Agent for new features.
  */
 
 import secureAIService from './secureAIService.js';
@@ -16,17 +16,16 @@ class AITextFormattingService {
 
     // Deprecation warning
     if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 DEPRECATED: aiTextFormattingService.js is deprecated. Use universalAIAPI.summarizeText() for better text processing.');
+      console.warn('🚨 DEPRECATED: aiTextFormattingService.js is deprecated. Use dashPointAIAPI.summarizeText() for better text processing.');
     }
   }
-
   /**
    * Format text using comprehensive AI services (server-side)
-   * @deprecated Use universalAIAPI.summarizeText() instead
+   * @deprecated Use dashPointAIAPI.summarizeText() instead
    */
   async formatText(text, options = {}) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ formatText() is deprecated. Use universalAIAPI.summarizeText() for better formatting.');
+      console.warn('⚠️ formatText() is deprecated. Use dashPointAIAPI.summarizeText() for better formatting.');
     }
 
     try {
@@ -48,7 +47,7 @@ class AITextFormattingService {
    */
   isConfigured() {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ isConfigured() is deprecated. Universal AI Agent handles configuration automatically.');
+      console.warn('⚠️ isConfigured() is deprecated. DashPoint AI Agent handles configuration automatically.');
     }
     return true; // Always true since handled server-side
   }

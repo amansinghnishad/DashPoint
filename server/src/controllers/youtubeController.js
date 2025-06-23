@@ -342,8 +342,7 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
     let aiSummary = null;
     if (generateSummary === 'true') {
       try {
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`; const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
           youtube_url: videoUrl,
           summary_length: summaryLength
         }, {
@@ -409,7 +408,7 @@ exports.createVideoWithSummary = async (req, res, next) => {
     let aiSummary = null;
     if (generateSummary && videoData.url) {
       try {
-        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
           youtube_url: videoData.url,
           summary_length: summaryLength
         }, {

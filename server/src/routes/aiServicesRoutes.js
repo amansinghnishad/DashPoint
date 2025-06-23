@@ -8,9 +8,9 @@ const {
   analyzeSentiment,
   enhanceText,
   answerQuestion,
-  summarizeTextWithUniversalAgent,
-  summarizeYouTubeWithUniversalAgent,
-  chatWithUniversalAgent
+  summarizeTextWithDashPointAgent,
+  summarizeYouTubeWithDashPointAgent,
+  chatWithDashPointAgent
 } = require('../controllers/aiServicesController');
 
 const router = express.Router();
@@ -96,8 +96,8 @@ router.post('/answer',
   answerQuestion
 );
 
-// Universal AI Agent routes
-router.post('/universal/summarize-text',
+// DashPoint AI Agent routes
+router.post('/dashpoint/summarize-text',
   auth,
   rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
   [
@@ -110,10 +110,10 @@ router.post('/universal/summarize-text',
       .isString()
       .withMessage('Summary length must be a string')
   ],
-  summarizeTextWithUniversalAgent
+  summarizeTextWithDashPointAgent
 );
 
-router.post('/universal/summarize-youtube',
+router.post('/dashpoint/summarize-youtube',
   auth,
   rateLimit({ windowMs: 10 * 60 * 1000, max: 5 }), // 5 requests per 10 minutes
   [
@@ -126,10 +126,10 @@ router.post('/universal/summarize-youtube',
       .isString()
       .withMessage('Summary length must be a string')
   ],
-  summarizeYouTubeWithUniversalAgent
+  summarizeYouTubeWithDashPointAgent
 );
 
-router.post('/universal/chat',
+router.post('/dashpoint/chat',
   auth,
   rateLimit({ windowMs: 5 * 60 * 1000, max: 15 }), // 15 requests per 5 minutes
   [
@@ -138,7 +138,7 @@ router.post('/universal/chat',
       .isLength({ min: 5, max: 2000 })
       .withMessage('Prompt must be between 5 and 2000 characters')
   ],
-  chatWithUniversalAgent
+  chatWithDashPointAgent
 );
 
 module.exports = router;

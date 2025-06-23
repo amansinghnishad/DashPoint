@@ -27,7 +27,7 @@ export const ContentExtractorForm = ({
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
             <span className="text-sm font-medium text-green-800">
-              Universal AI Agent Active
+              DashPoint AI Agent Active
             </span>
           </div>
         </div>

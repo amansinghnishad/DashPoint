@@ -1,5 +1,5 @@
 import { validateUrl, cleanUrl, getDomainFromUrl } from "../../../utils/urlUtils";
-import { contentAPI, universalAIAPI, enhancedContentAPI } from "../../../services/api";
+import { contentAPI, dashPointAIAPI, enhancedContentAPI } from "../../../services/api";
 import TextFormatter from "../../../utils/textFormatter";
 
 // Legacy services - deprecated, kept for fallback only
@@ -28,33 +28,31 @@ export const extractContentFromUrl = async (url, existingContents) => {
 
   // Call the backend API for content extraction
   const response = await contentAPI.extractContent(cleanedUrl);
-  const extractedContent = response.data;  // Enhanced content processing with Universal AI Agent first, legacy services as fallback
+  const extractedContent = response.data;  // Enhanced content processing with DashPoint AI Agent first, legacy services as fallback
   let rawContent = extractedContent.text || extractedContent.content;
 
   // Step 1: Basic formatting using TextFormatter
   let formattedContent = TextFormatter.formatContent(rawContent);
   const textStats = TextFormatter.getTextStats(formattedContent);
-
-  // Step 2: Enhanced AI-powered formatting using Universal AI Agent
+  // Step 2: Enhanced AI-powered formatting using DashPoint AI Agent
   let aiFormattingResult = null;
   let aiEnhancementResult = null;
 
   if (formattedContent && formattedContent.length > 100) {
     try {
-      // Try Universal AI Agent first for superior text processing
+      // Try DashPoint AI Agent first for superior text processing
       try {
-        const universalResult = await universalAIAPI.summarizeText(formattedContent, 'medium');
-        if (universalResult.success && universalResult.data?.summary) {
+        const dashPointResult = await dashPointAIAPI.summarizeText(formattedContent, 'medium');
+        if (dashPointResult.success && dashPointResult.data?.summary) {
           aiFormattingResult = {
-            formatted: universalResult.data.summary,
-            confidence: 85, // Universal AI Agent provides high-quality results
-            enhancements: ['Universal AI text processing', 'Advanced formatting'],
-            method: 'Universal AI Agent'
+            formatted: dashPointResult.data.summary,
+            confidence: 85, // DashPoint AI Agent provides high-quality results            enhancements: ['DashPoint AI text processing', 'Advanced formatting'],
+            method: 'DashPoint AI Agent'
           };
-          formattedContent = universalResult.data.summary;
+          formattedContent = dashPointResult.data.summary;
         }
-      } catch (universalError) {
-        console.warn('Universal AI Agent formatting failed, trying legacy services:', universalError);
+      } catch (dashPointError) {
+        console.warn('DashPoint AI Agent formatting failed, trying legacy services:', dashPointError);
 
         // Fallback to legacy AI formatting services
         if (aiTextFormattingService.isConfigured()) {
@@ -112,11 +110,10 @@ export const extractContentFromUrl = async (url, existingContents) => {
     domain: getDomainFromUrl(cleanedUrl),
     category: extractedContent.category || "general",
     formatted: true,
-    qualityScore: finalStats.readingTime || 0.7, // Use reading time as quality indicator
-    // Add formatting metadata
+    qualityScore: finalStats.readingTime || 0.7, // Use reading time as quality indicator    // Add formatting metadata
     formattingApplied: {
       basic: true,
-      universalAI: aiFormattingResult?.method === 'Universal AI Agent',
+      dashPointAI: aiFormattingResult?.method === 'DashPoint AI Agent',
       aiAdvanced: aiFormattingResult?.confidence > 70,
       aiEnhanced: aiEnhancementResult?.confidence > 60,
       improvements: [
@@ -125,26 +122,25 @@ export const extractContentFromUrl = async (url, existingContents) => {
       ]
     }
   };
-
-  // Add AI-powered enhancements using Universal AI Agent first
+  // Add AI-powered enhancements using DashPoint AI Agent first
   if (processedContent.content && processedContent.content.length > 100) {
     try {
-      // Try Universal AI Agent for content analysis and enhancement
-      const universalEnhancements = await universalAIAPI.summarizeText(
+      // Try DashPoint AI Agent for content analysis and enhancement
+      const dashPointEnhancements = await dashPointAIAPI.summarizeText(
         processedContent.content,
         'short' // Get a concise summary for metadata
       );
 
-      if (universalEnhancements.success && universalEnhancements.data) {
+      if (dashPointEnhancements.success && dashPointEnhancements.data) {
         processedContent = {
           ...processedContent,
-          summary: universalEnhancements.data.summary || '',
-          keywords: [], // Universal AI Agent doesn't extract keywords separately yet
+          summary: dashPointEnhancements.data.summary || '',
+          keywords: [], // DashPoint AI Agent doesn't extract keywords separately yet
           sentiment: 'neutral', // Could be enhanced in future
           sentimentConfidence: 0.7,
           aiEnhanced: true,
-          aiProvider: 'Universal AI Agent',
-          extractionMethod: 'Universal AI-powered'
+          aiProvider: 'DashPoint AI Agent',
+          extractionMethod: 'DashPoint AI-powered'
         };
       } else {
         // Fallback to legacy Hugging Face service
@@ -205,7 +201,7 @@ export const exportContentAsJson = (content) => {
 };
 
 /**
- * Extract content with AI summarization using Universal AI Agent
+ * Extract content with AI summarization using DashPoint AI Agent
  */
 export const extractContentWithSummary = async (url, options = {}) => {
   if (!url.trim()) {
@@ -268,7 +264,7 @@ export const generateContentSummary = async (content, summaryLength = 'medium') 
   }
 
   try {
-    const response = await universalAIAPI.summarizeText(content, summaryLength);
+    const response = await dashPointAIAPI.summarizeText(content, summaryLength);
     if (!response.success) {
       throw new Error(response.message || "Failed to generate summary");
     }

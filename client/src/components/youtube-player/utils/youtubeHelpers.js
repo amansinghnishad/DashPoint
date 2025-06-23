@@ -1,4 +1,4 @@
-import { youtubeAPI, universalAIAPI, enhancedYouTubeAPI } from "../../../services/api";
+import { youtubeAPI, dashPointAIAPI, enhancedYouTubeAPI } from "../../../services/api";
 import {
   extractYouTubeId,
   validateYouTubeUrl,
@@ -90,7 +90,7 @@ export const generateVideoSummary = async (videoUrl, summaryLength = 'medium') =
       throw new Error('Please enter a valid YouTube URL');
     }
 
-    const response = await universalAIAPI.summarizeYouTube(videoUrl, summaryLength);
+    const response = await dashPointAIAPI.summarizeYouTube(videoUrl, summaryLength);
     if (!response.success) {
       throw new Error(response.message || "Failed to generate video summary");
     }

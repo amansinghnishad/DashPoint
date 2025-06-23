@@ -20,7 +20,7 @@ export const AISummaryOptions = ({
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">
-            Universal AI Options
+            DashPoint AI Options
           </h3>
           <p className="text-sm text-gray-600">
             Enhance content extraction with AI-powered features
@@ -45,7 +45,7 @@ export const AISummaryOptions = ({
                 className="flex items-center text-sm font-medium text-gray-700"
               >
                 <Sparkles size={16} className="mr-2 text-purple-600" />
-                Generate Universal AI Summary
+                Generate DashPoint AI Summary
               </label>
             </div>
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
@@ -73,7 +73,7 @@ export const AISummaryOptions = ({
               <div className="bg-purple-100 border border-purple-200 rounded-lg p-3">
                 <p className="text-sm text-purple-800 flex items-center mb-2">
                   <Sparkles size={14} className="mr-2" />
-                  <strong>Universal AI Features:</strong>
+                  <strong>DashPoint AI Features:</strong>
                 </p>
                 <ul className="text-xs text-purple-700 space-y-1 ml-4">
                   <li>• Advanced content analysis and key points extraction</li>

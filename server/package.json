@@ -8,9 +8,9 @@
     "start": "NODE_ENV=production node src/server.js",
     "dev": "nodemon src/server.js",
     "prod": "NODE_ENV=production node src/server.js",
-    "start-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-universal-agent.ps1 && npm start",
-    "dev-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-universal-agent.ps1 && npm run dev",
-    "start-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-universal-agent.ps1",
+    "start-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1 && npm start",
+    "dev-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1 && npm run dev",
+    "start-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

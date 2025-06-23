@@ -1,8 +1,8 @@
 /**
  * Free AI Services Integration
  * 
- * @deprecated This service is deprecated. Use universalAIAPI from services/api.js instead.
- * The Universal AI Agent provides better performance and capabilities.
+ * @deprecated This service is deprecated. Use dashPointAIAPI from services/api.js instead.
+ * The DashPoint AI Agent provides better performance and capabilities.
  * 
  * This file is kept minimal for backward compatibility and fallback support only.
  */
@@ -15,23 +15,24 @@ class FreeAIServices {
 
     // Deprecation warning
     if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 DEPRECATED: freeAIServices.js is deprecated. Use universalAIAPI from services/api.js instead for better AI capabilities.');
+      console.warn('🚨 DEPRECATED: freeAIServices.js is deprecated. Use dashPointAIAPI from services/api.js instead for better AI capabilities.');
     }
   }
 
   /**
    * Enhanced text formatting using multiple AI services (now server-side)
-   * @deprecated Use universalAIAPI.summarizeText() instead
+   * @deprecated Use dashPointAIAPI.summarizeText() instead
    */
   async enhanceText(text, options = {}) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ enhanceText() is deprecated. Use universalAIAPI.summarizeText() for better results.');
+      console.warn('⚠️ enhanceText() is deprecated. Use dashPointAIAPI.summarizeText() for better results.');
     }
 
     try {
       return await this.secureService.enhanceText(text, options);
     } catch (error) {
-      console.error('Text enhancement error:', error); return {
+      console.error('Text enhancement error:', error);
+      return {
         success: false,
         data: {
           original: text,

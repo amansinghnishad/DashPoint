@@ -7,7 +7,7 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
-import { universalAIAPI } from "../../../services/api";
+import { dashPointAIAPI } from "../../../services/api";
 import secureAIService from "../../../services/secureAIService";
 
 // Legacy services - deprecated, kept for fallback only
@@ -38,17 +38,17 @@ export const AIFormattingPanel = ({
   }, [content]);
   const loadFormattingSuggestions = async () => {
     try {
-      // Try Universal AI Agent first for content analysis
+      // Try DashPoint AI Agent first for content analysis
       try {
-        const result = await universalAIAPI.summarizeText(content, "short");
+        const result = await dashPointAIAPI.summarizeText(content, "short");
         if (result.success && result.data?.summary) {
           const suggestions = [];
 
-          // Add AI-powered suggestions based on Universal AI analysis
+          // Add AI-powered suggestions based on DashPoint AI analysis
           if (result.data.summary.length > 0) {
             suggestions.push({
               type: "ai_analysis",
-              message: "Universal AI Agent can enhance this content",
+              message: "DashPoint AI Agent can enhance this content",
               confidence: 0.9,
               priority: "high",
             });
@@ -67,10 +67,10 @@ export const AIFormattingPanel = ({
           setSuggestions(suggestions);
           return;
         }
-      } catch (universalError) {
+      } catch (dashPointError) {
         console.warn(
-          "Universal AI suggestions failed, trying legacy services:",
-          universalError
+          "DashPoint AI suggestions failed, trying legacy services:",
+          dashPointError
         );
       }
 
@@ -124,36 +124,34 @@ export const AIFormattingPanel = ({
     setIsProcessing(true);
 
     try {
-      let result;
-
-      // Try Universal AI Agent first for superior text processing
+      let result; // Try DashPoint AI Agent first for superior text processing
       try {
         const summaryLength = useAdvanced ? "long" : "medium";
-        const universalResult = await universalAIAPI.summarizeText(
+        const dashPointResult = await dashPointAIAPI.summarizeText(
           content,
           summaryLength
         );
 
-        if (universalResult.success && universalResult.data?.summary) {
+        if (dashPointResult.success && dashPointResult.data?.summary) {
           result = {
             success: true,
-            confidence: 88, // Universal AI Agent provides high-quality results
-            enhanced: universalResult.data.summary,
-            formatted: universalResult.data.summary,
+            confidence: 88, // DashPoint AI Agent provides high-quality results
+            enhanced: dashPointResult.data.summary,
+            formatted: dashPointResult.data.summary,
             improvements: [
-              "Universal AI text processing",
+              "DashPoint AI text processing",
               "Advanced summarization",
             ],
             processingTime: Date.now() % 1000, // Simulated processing time
-            provider: "Universal AI Agent",
+            provider: "DashPoint AI Agent",
           };
         } else {
-          throw new Error("Universal AI Agent failed to process content");
+          throw new Error("DashPoint AI Agent failed to process content");
         }
-      } catch (universalError) {
+      } catch (dashPointError) {
         console.warn(
-          "Universal AI Agent failed, trying legacy services:",
-          universalError
+          "DashPoint AI Agent failed, trying legacy services:",
+          dashPointError
         );
 
         // Fallback to secure AI service
@@ -337,7 +335,7 @@ export const AIFormattingPanel = ({
           ) : (
             <>
               <Zap size={16} />
-              <span>Universal AI Enhancement</span>
+              <span>DashPoint AI Enhancement</span>
             </>
           )}
         </button>

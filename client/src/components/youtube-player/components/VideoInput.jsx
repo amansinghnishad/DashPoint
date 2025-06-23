@@ -28,14 +28,14 @@ export const VideoInput = ({
           YouTube Player
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Build your personal YouTube playlist with Universal AI-powered
+          Build your personal YouTube playlist with DashPoint AI-powered
           summarization and seamless video management
         </p>
         <div className="flex justify-center mt-4">
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
             <span className="text-sm font-medium text-green-800">
-              Universal AI Agent Active
+              DashPoint AI Agent Active
             </span>
           </div>
         </div>
@@ -96,7 +96,7 @@ export const VideoInput = ({
                     className="flex items-center text-sm font-medium text-gray-700"
                   >
                     <Sparkles size={16} className="mr-2 text-purple-600" />
-                    Generate Universal AI Summary
+                    Generate DashPoint AI Summary
                   </label>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800 ml-2">
                     Enhanced
@@ -123,9 +123,10 @@ export const VideoInput = ({
 
               {generateAISummary && (
                 <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 mt-4">
+                  {" "}
                   <p className="text-sm text-purple-800 flex items-center mb-2">
                     <Sparkles size={14} className="mr-2" />
-                    <strong>Universal AI Agent Features:</strong>
+                    <strong>DashPoint AI Agent Features:</strong>
                   </p>
                   <ul className="text-xs text-purple-700 space-y-1 ml-4">
                     <li>• Advanced video transcript analysis</li>

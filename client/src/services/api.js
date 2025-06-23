@@ -284,28 +284,28 @@ export const collectionsAPI = {
   }
 };
 
-// Universal AI Agent API
-export const universalAIAPI = {  // Summarize text using Universal AI Agent
+// DashPoint AI Agent API
+export const dashPointAIAPI = {  // Summarize text using DashPoint AI Agent
   summarizeText: async (textContent, summaryLength = 'medium') => {
-    const response = await apiClient.post('/ai/universal/summarize-text', {
+    const response = await apiClient.post('/ai/dashpoint/summarize-text', {
       text_content: textContent,
       summary_length: summaryLength
     });
     return response.data;
   },
 
-  // Summarize YouTube video using Universal AI Agent
+  // Summarize YouTube video using DashPoint AI Agent
   summarizeYouTube: async (youtubeUrl, summaryLength = 'medium') => {
-    const response = await apiClient.post('/ai/universal/summarize-youtube', {
+    const response = await apiClient.post('/ai/dashpoint/summarize-youtube', {
       youtube_url: youtubeUrl,
       summary_length: summaryLength
     });
     return response.data;
   },
 
-  // Chat with Universal AI Agent
+  // Chat with DashPoint AI Agent
   chat: async (prompt) => {
-    const response = await apiClient.post('/ai/universal/chat', {
+    const response = await apiClient.post('/ai/dashpoint/chat', {
       prompt
     });
     return response.data;

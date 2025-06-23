@@ -8,7 +8,7 @@ class HuggingFaceService {
 
     // Deprecation warning
     if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 DEPRECATED: huggingFaceService.js is deprecated. Use universalAIAPI from services/api.js for superior AI capabilities.');
+      console.warn('🚨 DEPRECATED: huggingFaceService.js is deprecated. Use dashPointAIAPI from services/api.js for superior AI capabilities.');
     }
   }
 
@@ -18,18 +18,17 @@ class HuggingFaceService {
    */
   isConfigured() {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ isConfigured() is deprecated. Universal AI Agent handles configuration automatically.');
+      console.warn('⚠️ isConfigured() is deprecated. DashPoint AI Agent handles configuration automatically.');
     }
     return true; // Always true since handled server-side
   }
-
   /**
    * Extract content with AI enhancements (legacy fallback)
-   * @deprecated Use universalAIAPI.summarizeText() instead
+   * @deprecated Use dashPointAIAPI.summarizeText() instead
    */
   async extractContent(text, options = {}) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ extractContent() is deprecated. Use universalAIAPI.summarizeText() for better results.');
+      console.warn('⚠️ extractContent() is deprecated. Use dashPointAIAPI.summarizeText() for better results.');
     }
 
     try {

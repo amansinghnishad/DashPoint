@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# DashPoint Universal AI Agent - Complete Setup Script
-# This script sets up and starts the Universal AI Agent integration
+# DashPoint AI Agent - Complete Setup Script
+# This script sets up and starts the DashPoint AI Agent integration
 
-echo "🚀 DashPoint Universal AI Agent Setup"
-echo "======================================"
+echo "🚀 DashPoint AI Agent Setup"
+echo "=============================="
 
 # Colors for output
 RED='\033[0;31m'
@@ -36,13 +36,13 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# Check if Universal AI Agent directory exists
-if [ ! -d "../universalAgent" ]; then
-    print_error "Universal AI Agent directory not found at ../universalAgent"
+# Check if DashPoint AI Agent directory exists
+if [ ! -d "../Agent" ]; then
+    print_error "DashPoint AI Agent directory not found at ../Agent"
     exit 1
 fi
 
-print_info "Starting Universal AI Agent integration setup..."
+print_info "Starting DashPoint AI Agent integration setup..."
 
 # Step 1: Check environment variables
 print_info "Checking environment configuration..."
@@ -52,12 +52,12 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
 fi
 
-# Check if UNIVERSAL_AI_AGENT_URL is configured
-if ! grep -q "UNIVERSAL_AI_AGENT_URL" .env; then
-    print_warning "Adding UNIVERSAL_AI_AGENT_URL to .env file"
+# Check if DASHPOINT_AI_AGENT_URL is configured
+if ! grep -q "DASHPOINT_AI_AGENT_URL" .env; then
+    print_warning "Adding DASHPOINT_AI_AGENT_URL to .env file"
     echo "" >> .env
-    echo "# Universal AI Agent Configuration" >> .env
-    echo "UNIVERSAL_AI_AGENT_URL=http://localhost:8000" >> .env
+    echo "# DashPoint AI Agent Configuration" >> .env
+    echo "DASHPOINT_AI_AGENT_URL=http://localhost:8000" >> .env
 fi
 
 print_status "Environment configuration checked"
@@ -72,13 +72,13 @@ fi
 
 print_status "Dependencies checked"
 
-# Step 3: Check Universal AI Agent
-print_info "Checking Universal AI Agent..."
+# Step 3: Check DashPoint AI Agent
+print_info "Checking DashPoint AI Agent..."
 
-cd ../universalAgent
+cd ../Agent
 
 if [ ! -f "app/main.py" ]; then
-    print_error "Universal AI Agent main.py not found"
+    print_error "DashPoint AI Agent main.py not found"
     cd ../server
     exit 1
 fi
@@ -107,22 +107,22 @@ fi
 
 cd ../server
 
-print_status "Universal AI Agent checked"
+print_status "DashPoint AI Agent checked"
 
-# Step 4: Test Universal AI Agent connectivity
-print_info "Testing Universal AI Agent connectivity..."
+# Step 4: Test DashPoint AI Agent connectivity
+print_info "Testing DashPoint AI Agent connectivity..."
 
 # Start the agent if it's not running
 if ! curl -s http://localhost:8000/health > /dev/null 2>&1; then
-    print_info "Starting Universal AI Agent..."
+    print_info "Starting DashPoint AI Agent..."
     
     # Run the startup script
-    if [ -f "scripts/start-universal-agent.sh" ]; then
-        chmod +x scripts/start-universal-agent.sh
-        ./scripts/start-universal-agent.sh
+    if [ -f "scripts/start-dashpoint-agent.sh" ]; then
+        chmod +x scripts/start-dashpoint-agent.sh
+        ./scripts/start-dashpoint-agent.sh
     else
         print_warning "Startup script not found, starting manually..."
-        cd ../universalAgent
+        cd ../Agent
         if [ -f "run_server.sh" ]; then
             chmod +x run_server.sh
             ./run_server.sh &
@@ -132,7 +132,7 @@ if ! curl -s http://localhost:8000/health > /dev/null 2>&1; then
         cd ../server
         
         # Wait for agent to start
-        print_info "Waiting for Universal AI Agent to start..."
+        print_info "Waiting for DashPoint AI Agent to start..."
         for i in {1..30}; do
             if curl -s http://localhost:8000/health > /dev/null 2>&1; then
                 break
@@ -144,20 +144,20 @@ fi
 
 # Verify agent is running
 if curl -s http://localhost:8000/health > /dev/null 2>&1; then
-    print_status "Universal AI Agent is running and accessible"
+    print_status "DashPoint AI Agent is running and accessible"
 else
-    print_error "Failed to start Universal AI Agent"
+    print_error "Failed to start DashPoint AI Agent"
     print_info "Please check the logs and try starting manually:"
-    print_info "cd ../universalAgent && python app/main.py"
+    print_info "cd ../Agent && python app/main.py"
     exit 1
 fi
 
 # Step 5: Display completion message
 echo ""
-echo "🎉 Universal AI Agent Integration Setup Complete!"
+echo "🎉 DashPoint AI Agent Integration Setup Complete!"
 echo "================================================="
 echo ""
-print_status "Universal AI Agent is running at: http://localhost:8000"
+print_status "DashPoint AI Agent is running at: http://localhost:8000"
 print_status "Available endpoints:"
 echo "   - GET  http://localhost:8000/ (Root)"
 echo "   - POST http://localhost:8000/chat (Chat with AI)"
@@ -176,7 +176,7 @@ echo "   ✨ Content extraction with AI summaries"
 echo "   ✨ Advanced text processing"
 echo "   ✨ Intelligent chat interface"
 echo ""
-print_warning "Note: Old AI services are now deprecated but remain as fallbacks"
+print_warning "Note: Old Universal AI services have been replaced with DashPoint AI Agent"
 print_info "See docs/MIGRATION_GUIDE.md for migration details"
 echo ""
 print_status "Setup complete! Happy coding! 🚀"

@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator');
 
 const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const TEXTRAZOR_API_KEY = process.env.TEXTRAZOR_API_KEY;
-const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
+const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
 
 // Hugging Face API endpoints
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models';
@@ -300,8 +300,8 @@ exports.answerQuestion = async (req, res, next) => {
   }
 };
 
-// Universal AI Agent integration endpoints
-exports.summarizeTextWithUniversalAgent = async (req, res, next) => {
+// DashPoint AI Agent integration endpoints
+exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -314,7 +314,7 @@ exports.summarizeTextWithUniversalAgent = async (req, res, next) => {
 
     const { text_content, summary_length = 'medium' } = req.body;
 
-    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-text`, {
+    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-text`, {
       text_content,
       summary_length
     }, {
@@ -330,12 +330,12 @@ exports.summarizeTextWithUniversalAgent = async (req, res, next) => {
         summary: response.data.summary,
         originalLength: response.data.input_length,
         summaryLength: response.data.summary_length,
-        service: 'universal-ai-agent'
+        service: 'dashpoint-ai-agent'
       }
     });
 
   } catch (error) {
-    console.error('Universal AI Agent text summarization error:', error);
+    console.error('DashPoint AI Agent text summarization error:', error);
     // Fallback to original Hugging Face implementation
     try {
       const fallbackResult = await makeHuggingFaceRequest(MODELS.summarization, req.body.text_content, {
@@ -359,7 +359,7 @@ exports.summarizeTextWithUniversalAgent = async (req, res, next) => {
   }
 };
 
-exports.summarizeYouTubeWithUniversalAgent = async (req, res, next) => {
+exports.summarizeYouTubeWithDashPointAgent = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -372,7 +372,7 @@ exports.summarizeYouTubeWithUniversalAgent = async (req, res, next) => {
 
     const { youtube_url, summary_length = 'medium' } = req.body;
 
-    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-youtube`, {
+    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
       youtube_url,
       summary_length
     }, {
@@ -388,12 +388,12 @@ exports.summarizeYouTubeWithUniversalAgent = async (req, res, next) => {
         summary: response.data.summary,
         video_url: response.data.video_url,
         summaryLength: response.data.summary_length,
-        service: 'universal-ai-agent'
+        service: 'dashpoint-ai-agent'
       }
     });
 
   } catch (error) {
-    console.error('Universal AI Agent YouTube summarization error:', error);
+    console.error('DashPoint AI Agent YouTube summarization error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to summarize YouTube video',
@@ -402,7 +402,7 @@ exports.summarizeYouTubeWithUniversalAgent = async (req, res, next) => {
   }
 };
 
-exports.chatWithUniversalAgent = async (req, res, next) => {
+exports.chatWithDashPointAgent = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -415,7 +415,7 @@ exports.chatWithUniversalAgent = async (req, res, next) => {
 
     const { prompt } = req.body;
 
-    const response = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/chat`, {
+    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
       prompt
     }, {
       timeout: 120000,
@@ -427,11 +427,11 @@ exports.chatWithUniversalAgent = async (req, res, next) => {
     res.json({
       success: true,
       data: response.data.response,
-      service: 'universal-ai-agent'
+      service: 'dashpoint-ai-agent'
     });
 
   } catch (error) {
-    console.error('Universal AI Agent chat error:', error);
+    console.error('DashPoint AI Agent chat error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to process chat request',

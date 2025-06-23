@@ -429,7 +429,7 @@ exports.extractContentWithSummary = async (req, res, next) => {
     let aiSummary = null;
     if (generateSummary && extractedData.content && extractedData.content.length > 100) {
       try {
-        const summaryResponse = await axios.post(`${UNIVERSAL_AI_AGENT_URL}/summarize-text`, {
+        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-text`, {
           text_content: extractedData.content,
           summary_length: summaryLength
         }, {

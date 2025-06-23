@@ -139,7 +139,7 @@ export const VideoPlayer = ({
                 <div className="flex items-center mb-2">
                   <Sparkles size={16} className="text-purple-600 mr-2" />
                   <h4 className="font-semibold text-purple-800">
-                    Universal AI Summary
+                    DashPoint AI Summary
                   </h4>
                 </div>
                 <p className="text-sm text-purple-700 leading-relaxed">
