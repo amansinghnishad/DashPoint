@@ -99,7 +99,7 @@ def get_client_and_config():
     
     # Get the model
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-2.0-flash",
         tools=tools,
         generation_config=config
     )
