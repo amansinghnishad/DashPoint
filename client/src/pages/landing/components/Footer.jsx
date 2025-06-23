@@ -246,7 +246,7 @@ export const Footer = () => {
               <div className="flex items-center text-gray-400 text-sm">
                 <span>© 2025 DashPoint. Made with</span>
                 <Heart className="mx-1 text-red-500 fill-current" size={16} />
-                <span>by ASN</span>
+                <span>by Team Hackademics</span>
               </div>
 
               <div className="flex items-center space-x-6 mt-4 md:mt-0">

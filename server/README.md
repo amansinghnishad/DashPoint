@@ -1,6 +1,6 @@
-# Dashboard Server
+# DashPoint Server
 
-Backend API server for the MERN Dashboard application.
+Backend API server for the MERN DashPoint application, providing comprehensive backend services for the productivity dashboard.
 
 ## Features
 
@@ -9,8 +9,13 @@ Backend API server for the MERN Dashboard application.
 - **Todo Management**: Full todo functionality with priorities, due dates, categories, and bulk operations
 - **Content Extraction**: Website content extraction with cheerio for scraping titles, content, and metadata
 - **Weather API**: Integration with OpenWeatherMap for current weather and forecasts
+- **YouTube Integration**: Save, organize, and analyze YouTube videos
+- **Collections**: Organize and manage various types of content in collections
+- **AI Services**: Advanced AI capabilities including summarization, sentiment analysis, and more
+- **File Management**: Upload, store, and retrieve user files
 - **Security**: Rate limiting, CORS, helmet, and input validation
 - **Database**: MongoDB with Mongoose ODM
+- **Agent Integration**: Connect with external AI agent for enhanced features
 
 ## Setup
 
@@ -89,41 +94,108 @@ Backend API server for the MERN Dashboard application.
 - `GET /api/weather/forecast` - Get weather forecast by coordinates
 - `GET /api/weather/forecast/city` - Get weather forecast by city
 
+### File Management
+- `POST /api/files/upload` - Upload single or multiple files 
+- `GET /api/files` - List all user files with pagination and filtering
+- `GET /api/files/:id` - Get file metadata
+- `GET /api/files/:id/download` - Download file content
+- `DELETE /api/files/:id` - Delete a file
+- `PUT /api/files/:id/metadata` - Update file metadata (name, description, tags)
+- `GET /api/files/types/:type` - Filter files by type (image, document, video, etc.)
+- `POST /api/files/folders` - Create a new folder
+- `GET /api/files/folders` - List all user folders
+- `GET /api/files/search` - Search files by name, type, or content
+
+### YouTube
+- `GET /api/youtube/videos` - Get user's saved YouTube videos
+- `POST /api/youtube/videos` - Save YouTube video
+- `GET /api/youtube/videos/:id` - Get specific saved video
+- `PUT /api/youtube/videos/:id` - Update saved video
+- `DELETE /api/youtube/videos/:id` - Delete saved video
+- `GET /api/youtube/search` - Search YouTube videos via YouTube API
+- `POST /api/youtube/summarize` - Generate AI summary for YouTube video
+
+### Collections
+- `GET /api/collections` - Get user's collections
+- `POST /api/collections` - Create a new collection
+- `GET /api/collections/:id` - Get specific collection
+- `PUT /api/collections/:id` - Update collection
+- `DELETE /api/collections/:id` - Delete collection
+- `POST /api/collections/:id/items` - Add item to collection
+- `DELETE /api/collections/:id/items/:itemId` - Remove item from collection
+
+### AI Services
+- `POST /api/ai/summarize` - Generate text summary
+- `POST /api/ai/sentiment` - Analyze text sentiment
+- `POST /api/ai/keywords` - Extract keywords from text
+- `POST /api/ai/question-answer` - Get answers based on provided context
+- `POST /api/ai/grammar` - Check text grammar
+- `POST /api/ai/chat` - Interact with AI assistant
+
+### Files
+- `POST /api/files/upload` - Upload file
+- `GET /api/files` - Get user's files
+- `GET /api/files/:id` - Get specific file
+- `DELETE /api/files/:id` - Delete file
+- `GET /api/files/:id/download` - Download file
+
 ### System
 - `GET /health` - Health check endpoint
+- `GET /api/system/status` - Get system status
+- `GET /api/system/agent-status` - Check AI agent connection
 
 ## Project Structure
 
 ```
 src/
 ├── config/
-│   └── database.js          # MongoDB connection
+│   ├── database.js          # MongoDB connection
+│   └── aiConfig.js          # AI services configuration
 ├── controllers/
-│   ├── authController.js    # Authentication logic
-│   ├── stickyNoteController.js
-│   ├── todoController.js
-│   ├── contentExtractionController.js
-│   └── weatherController.js
+│   ├── aiServicesController.js  # AI processing endpoints
+│   ├── authController.js        # Authentication logic
+│   ├── collectionController.js  # Collections management
+│   ├── contentExtractionController.js # Content extraction
+│   ├── fileController.js        # File uploads and management
+│   ├── stickyNoteController.js  # Sticky notes operations
+│   ├── todoController.js        # Todo management
+│   ├── weatherController.js     # Weather API integration
+│   └── youtubeController.js     # YouTube operations
 ├── middleware/
-│   ├── auth.js             # JWT authentication middleware
-│   └── errorHandler.js     # Global error handling
+│   ├── auth.js              # JWT authentication middleware
+│   ├── errorHandler.js      # Global error handling
+│   ├── rateLimit.js         # API rate limiting
+│   └── upload.js            # File upload middleware
 ├── models/
-│   ├── User.js             # User schema
-│   ├── StickyNote.js       # Sticky note schema
-│   ├── Todo.js             # Todo schema
-│   └── ContentExtraction.js
+│   ├── Collection.js        # Collection schema
+│   ├── Content.js           # Content schema
+│   ├── ContentExtraction.js # Extracted content schema
+│   ├── File.js              # File schema
+│   ├── StickyNote.js        # Sticky note schema
+│   ├── Todo.js              # Todo schema
+│   ├── User.js              # User schema
+│   └── YouTube.js           # YouTube video schema
 ├── routes/
-│   ├── authRoutes.js
-│   ├── stickyNoteRoutes.js
-│   ├── todoRoutes.js
-│   ├── contentExtractionRoutes.js
-│   └── weatherRoutes.js
+│   ├── aiRoutes.js          # AI services routes
+│   ├── authRoutes.js        # Authentication routes
+│   ├── collectionRoutes.js  # Collections routes
+│   ├── contentExtractionRoutes.js # Content extraction routes
+│   ├── fileRoutes.js        # File management routes
+│   ├── stickyNoteRoutes.js  # Sticky notes routes
+│   ├── todoRoutes.js        # Todo routes
+│   ├── weatherRoutes.js     # Weather routes
+│   └── youtubeRoutes.js     # YouTube routes
 ├── services/
-│   └── contentExtractorService.js # Web scraping service
+│   ├── aiAgentService.js    # AI agent communication
+│   ├── contentExtractorService.js # Web scraping service
+│   ├── fileService.js       # File handling service
+│   └── youtubeService.js    # YouTube API service
 ├── utils/
-│   ├── jwt.js              # JWT utilities
-│   └── validation.js       # Validation helpers
-└── server.js               # Main server file
+│   ├── aiSummaryUtils.js    # AI summary helpers
+│   ├── jwt.js               # JWT utilities
+│   ├── validation.js        # Validation helpers
+│   └── responseFormatter.js # API response formatting
+└── server.js                # Main server file
 ```
 
 ## Security Features
@@ -134,6 +206,22 @@ src/
 - **Input Validation**: Request validation using express-validator
 - **JWT Authentication**: Secure token-based authentication
 - **Password Hashing**: bcrypt for secure password storage
+- **File Validation**: Secure file upload validation and scanning
+- **API Key Protection**: Environment variable protection for third-party services
+- **Role-Based Access**: Permission levels for different operations
+- **Request Sanitization**: Protection against XSS and injection attacks
+- **Session Management**: Secure session handling with expiration
+
+## Offline Support & PWA Features
+
+The server supports Progressive Web App functionality with:
+
+- **API Caching**: Strategies for offline data access
+- **Sync Mechanism**: Background synchronization when connection is restored
+- **Push Notifications**: Server-sent notifications for important events
+- **Service Worker Support**: Endpoints to support service worker functionality
+- **Update Management**: API for detecting and managing client updates
+- **Offline Analytics**: Track offline usage and sync when online
 
 ## Database Models
 
@@ -141,6 +229,7 @@ src/
 - Authentication credentials
 - Profile information
 - Account timestamps
+- Preferences storage
 
 ### StickyNote
 - User-specific notes
@@ -159,6 +248,24 @@ src/
 - Extracted content and metadata
 - Search and filtering
 
+### Collection
+- User-defined collections
+- Metadata and organization
+- Tagged content grouping
+- Hierarchical structure
+
+### YouTube
+- Saved YouTube videos
+- Video metadata
+- Playlists management
+- AI-generated summaries
+
+### File
+- User uploaded files
+- File metadata and type information
+- Access controls
+- Storage references
+
 ## Environment Variables
 
 See `.env.example` for required environment variables:
@@ -169,7 +276,13 @@ See `.env.example` for required environment variables:
 - `JWT_SECRET` - JWT signing secret
 - `JWT_EXPIRES_IN` - JWT expiration time
 - `OPENWEATHER_API_KEY` - OpenWeatherMap API key
+- `YOUTUBE_API_KEY` - YouTube Data API key
+- `HUGGING_FACE_TOKEN` - Hugging Face API token for AI services
+- `TEXTRAZOR_API_KEY` - TextRazor API key for text analysis
+- `DASHPOINT_AI_AGENT_URL` - URL for the AI agent service (default: http://localhost:8000)
 - `CLIENT_URL` - Frontend URL for CORS
+- `MAX_FILE_SIZE` - Maximum file upload size (in bytes)
+- `STORAGE_PATH` - Path for local file storage
 - Rate limiting configuration
 
 ## Development
@@ -183,6 +296,39 @@ The server uses:
 - **axios** and **cheerio** for web scraping
 - **morgan** for request logging
 - **nodemon** for development auto-restart
+- **multer** for file upload handling
+- **Hugging Face models** for AI text processing
+- **socket.io** for real-time capabilities
+- **googleapis** for YouTube API integration
+
+## Testing & Quality Assurance
+
+The DashPoint server includes comprehensive testing:
+
+- **Unit Tests**: Test individual components and functions
+  ```bash
+  npm run test:unit
+  ```
+
+- **Integration Tests**: Test API endpoints and database interactions
+  ```bash
+  npm run test:integration
+  ```
+
+- **E2E Tests**: Full system tests with frontend interaction
+  ```bash
+  npm run test:e2e
+  ```
+
+- **Load Testing**: Performance testing for high-traffic scenarios
+  ```bash
+  npm run test:load
+  ```
+
+- **Security Testing**: Vulnerability scanning and penetration testing
+  ```bash
+  npm run test:security
+  ```
 
 ## Production Deployment
 
@@ -192,7 +338,68 @@ The server uses:
 4. Set up reverse proxy (nginx/Apache)
 5. Use PM2 or similar for process management
 6. Set up SSL/TLS certificates
+7. Configure cloud storage for file uploads
+8. Set up monitoring and error tracking
+9. Implement CI/CD pipeline for automated deployments
+10. Configure backup and disaster recovery procedures
+
+## AI Agent Integration
+
+The DashPoint server includes integration with a dedicated AI agent service for enhanced features built with Gemini AI. This agent provides intelligent processing capabilities for content extraction and analysis.
+
+### Agent Setup
+
+1. **Setup AI Agent**
+   ```bash
+   # Run the AI agent setup script
+   ./scripts/setup-dashpoint-ai.sh
+   ```
+
+2. **Start AI Agent**
+   ```bash
+   # Linux/macOS
+   ./scripts/start-dashpoint-agent.sh
+   
+   # Windows
+   scripts/start-dashpoint-agent.ps1
+   ```
+
+3. **Verify Agent Status**
+   ```bash
+   # Check if agent is running
+   curl http://localhost:8000/health
+   ```
+
+### Agent Features
+
+The AI agent provides:
+- **Intelligent Chat Interface**: Process natural language queries through the agent
+- **YouTube Video Analysis**: Extract and analyze YouTube video content
+- **Web Content Extraction**: Advanced content extraction with AI analysis
+- **Text Summarization**: Generate summaries with customizable parameters
+- **Function Calling**: Intelligent task routing and execution
+- **Content Enhancement**: Keyword extraction, sentiment analysis, and topic detection
+
+### Integration Points
+
+The server integrates with the AI agent through:
+- **YouTube Controller**: Enhanced video analysis and intelligent summaries
+- **Content Extraction Controller**: Advanced web content processing
+- **AI Services Controller**: Direct access to AI capabilities via chat endpoints
+- **Secure AI Service**: Client-side integration through secure API wrapper
 
 ## License
 
-ISC
+MIT License
+
+Copyright (c) 2025 DashPoint
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
