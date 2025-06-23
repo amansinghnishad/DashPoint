@@ -68,16 +68,16 @@ async def chat_with_ai(request: UserPrompt):
     
     try:
         # Get the Gemini client and config
-        client, config = get_client_and_config()
+        client, config, tools = get_client_and_config()
         
         # Register functions that can be called by Gemini
         available_functions = register_functions()
         
         # Generate a response using Gemini
-        response = client.models.generate_content(
-            model="gemini-1.5-pro",
-            contents=request.prompt,
-            config=config
+        response = client.generate_content(
+            request.prompt,
+            generation_config=config,
+            tools=tools
         )
         
         # Process the response to find function calls
