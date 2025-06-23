@@ -1,7 +1,8 @@
 import { youtubeAPI, universalAIAPI, enhancedYouTubeAPI } from "../../../services/api";
 import {
   extractYouTubeId,
-  validateYouTubeUrl
+  validateYouTubeUrl,
+  getYouTubeErrorMessage
 } from "../../../utils/urlUtils";
 
 /**
@@ -80,17 +81,30 @@ export const addVideoToPlaylist = async (videoUrl, savedVideos, generateSummary 
 };
 
 /**
- * Generate AI summary for existing video
+ * Generate AI summary for existing video with improved error handling
  */
 export const generateVideoSummary = async (videoUrl, summaryLength = 'medium') => {
   try {
+    // Validate URL first
+    if (!validateYouTubeUrl(videoUrl)) {
+      throw new Error('Please enter a valid YouTube URL');
+    }
+
     const response = await universalAIAPI.summarizeYouTube(videoUrl, summaryLength);
     if (!response.success) {
       throw new Error(response.message || "Failed to generate video summary");
     }
+
+    // Check if the response contains an error message in the summary
+    if (response.data.summary && response.data.summary.startsWith('Error:')) {
+      throw new Error(response.data.summary);
+    }
+
     return response.data.summary;
   } catch (error) {
-    throw new Error(`Failed to generate AI summary: ${error.message}`);
+    // Provide user-friendly error message
+    const friendlyMessage = getYouTubeErrorMessage(error);
+    throw new Error(friendlyMessage);
   }
 };
 
