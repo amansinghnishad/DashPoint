@@ -285,7 +285,8 @@ export const collectionsAPI = {
 };
 
 // DashPoint AI Agent API
-export const dashPointAIAPI = {  // Summarize text using DashPoint AI Agent
+export const dashPointAIAPI = {
+  // Summarize text using DashPoint AI Agent
   summarizeText: async (textContent, summaryLength = 'medium') => {
     const response = await apiClient.post('/ai/dashpoint/summarize-text', {
       text_content: textContent,
@@ -303,11 +304,24 @@ export const dashPointAIAPI = {  // Summarize text using DashPoint AI Agent
     return response.data;
   },
 
-  // Chat with DashPoint AI Agent
-  chat: async (prompt) => {
-    const response = await apiClient.post('/ai/dashpoint/chat', {
-      prompt
+  // Intelligent chat with DashPoint AI Agent (supports function calling)
+  chat: async (chatRequest) => {
+    const response = await apiClient.post('/ai/dashpoint/chat', chatRequest);
+    return response.data;
+  },
+
+  // Extract and analyze web content using DashPoint AI Agent
+  extractContent: async (url, options = {}) => {
+    const response = await apiClient.post('/ai/dashpoint/extract-content', {
+      url,
+      ...options
     });
+    return response.data;
+  },
+
+  // Get agent health and capabilities
+  getHealth: async () => {
+    const response = await apiClient.get('/ai/dashpoint/health');
     return response.data;
   }
 };
@@ -333,7 +347,13 @@ export const enhancedYouTubeAPI = {
 
 // Enhanced Content API with AI summarization
 export const enhancedContentAPI = {
-  // Extract content with AI summarization
+  // Extract content with AI summarization using new agent approach
+  extractContentWithSummary: async (options = {}) => {
+    const response = await apiClient.post('/content-extraction/extract-enhanced', options);
+    return response.data;
+  },
+
+  // Legacy method - kept for compatibility
   extractWithSummary: async (url, options = {}) => {
     const {
       extractImages = false,

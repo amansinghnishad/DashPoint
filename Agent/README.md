@@ -1,26 +1,49 @@
 # DashPoint AI Agent
 
-A FastAPI-based AI agent for text and YouTube video summarization, integrated with the DashPoint dashboard application.
+Advanced AI-powered content processing and analysis service that provides intelligent summarization, content extraction, and YouTube video analysis capabilities.
 
 ## Features
 
-- **Text Summarization**: Intelligent text summarization with customizable length
-- **YouTube Video Summarization**: Extract and summarize YouTube video transcripts
-- **Chat Interface**: Interactive chat with AI capabilities (extensible)
-- **Health Monitoring**: Built-in health check endpoint
-- **RESTful API**: Clean, documented API endpoints
+- **Intelligent Chat Interface**: Natural language processing with function calling capabilities
+- **YouTube Video Analysis**: Extract transcripts and generate comprehensive summaries
+- **Web Content Extraction**: Smart content extraction from web pages with AI analysis
+- **Text Summarization**: Advanced text summarization with customizable length
+- **Function Calling**: Gemini-powered intelligent task routing and execution
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.8+
-- pip
-- Virtual environment (recommended)
+- Python 3.8 or higher
+- Gemini API key (optional but recommended for advanced features)
 
 ### Installation
 
-1. **Set up virtual environment**:
+1. **Clone and setup**:
+   ```bash
+   cd Agent
+   ```
+
+2. **Run the setup script**:
+   
+   **On Windows**:
+   ```batch
+   start_agent.bat
+   ```
+   
+   **On Linux/Mac**:
+   ```bash
+   chmod +x start_agent.sh
+   ./start_agent.sh
+   ```
+
+3. **Configure environment**:
+   - Edit the `.env` file created by the setup script
+   - Add your Gemini API key for advanced features
+
+### Manual Installation
+
+1. **Create virtual environment**:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -31,169 +54,151 @@ A FastAPI-based AI agent for text and YouTube video summarization, integrated wi
    pip install -r requirements.txt
    ```
 
-3. **Run the server**:
+3. **Configure environment**:
    ```bash
-   python app/main.py
+   cp .env.example .env
+   # Edit .env with your API keys
    ```
 
-   Or use the provided script:
+4. **Start the agent**:
    ```bash
-   chmod +x run_server.sh
-   ./run_server.sh
+   cd app
+   python main.py
    ```
-
-The server will start on `http://localhost:8000`
 
 ## API Endpoints
 
-### Health Check
-- **GET** `/health`
-- Returns server health status
+The agent runs on `http://localhost:8000` by default.
 
-### Root
-- **GET** `/`
-- Returns API information and available endpoints
+### Core Endpoints
 
-### Text Summarization
-- **POST** `/summarize-text`
-- Request body:
-  ```json
-  {
-    "text_content": "Your text to summarize here...",
-    "summary_length": "medium"  // "short", "medium", "long", or numeric
-  }
-  ```
+- `GET /` - Service information and available endpoints
+- `POST /chat` - Intelligent chat with function calling
+- `POST /summarize-text` - Direct text summarization
+- `POST /summarize-youtube` - YouTube video analysis
+- `POST /extract-content` - Web content extraction
+- `GET /health` - Service health check
 
-### YouTube Video Summarization
-- **POST** `/summarize-youtube`
-- Request body:
-  ```json
-  {
-    "youtube_url": "https://www.youtube.com/watch?v=VIDEO_ID",
-    "summary_length": "medium"  // "short", "medium", "long", or numeric
-  }
-  ```
+### Chat Endpoint
 
-### Chat
-- **POST** `/chat`
-- Request body:
-  ```json
-  {
-    "prompt": "Your question or prompt here"
-  }
-  ```
+The chat endpoint supports natural language requests and automatically calls appropriate functions:
 
-## Project Structure
-
-```
-Agent/
-├── app/
-│   ├── main.py                 # FastAPI server
-│   └── utils/
-│       ├── models/
-│       │   ├── textsum_client.py    # Text summarization logic
-│       │   └── youtube_client.py    # YouTube summarization logic
-│       └── agents/
-│           └── gemini_client.py     # Gemini AI integration (future)
-├── requirements.txt            # Python dependencies
-├── run_server.sh              # Server startup script
-└── README.md                  # This file
+```json
+POST /chat
+{
+  "prompt": "Summarize this YouTube video: https://youtube.com/watch?v=example",
+  "context": "Optional context for better understanding"
+}
 ```
 
-## Summary Lengths
+### Direct Endpoints
 
-The agent supports flexible summary length specifications:
+For direct API calls:
 
-- **"short"**: ~75 words
-- **"medium"**: ~200 words  
-- **"long"**: ~400 words
-- **Numeric**: Exact word count (e.g., "150")
+```json
+POST /summarize-text
+{
+  "text_content": "Your text here...",
+  "summary_length": "medium"
+}
 
-## Error Handling
+POST /summarize-youtube
+{
+  "youtube_url": "https://youtube.com/watch?v=example",
+  "summary_length": "medium"
+}
 
-The agent includes comprehensive error handling:
-- Invalid URLs are caught and reported
-- Missing YouTube transcripts are handled gracefully
-- Text processing errors include detailed messages
-- All endpoints return structured error responses
-
-## Integration with DashPoint
-
-This agent is designed to work seamlessly with the DashPoint dashboard:
-
-1. **Automatic Startup**: Server scripts automatically start the agent
-2. **Health Monitoring**: Dashboard checks agent health before requests
-3. **Fallback Support**: Legacy AI services fall back to this agent
-4. **Rate Limiting**: Integrated with server-side rate limiting
-
-## Development
-
-### Adding New Features
-
-1. **Text Processing**: Extend `textsum_client.py`
-2. **New Endpoints**: Add to `main.py`
-3. **AI Models**: Create new modules in `utils/agents/`
-
-### Testing
-
-```bash
-# Test health endpoint
-curl http://localhost:8000/health
-
-# Test text summarization
-curl -X POST http://localhost:8000/summarize-text \
-  -H "Content-Type: application/json" \
-  -d '{"text_content": "Your text here", "summary_length": "short"}'
-
-# Test YouTube summarization  
-curl -X POST http://localhost:8000/summarize-youtube \
-  -H "Content-Type: application/json" \
-  -d '{"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "summary_length": "medium"}'
+POST /extract-content
+{
+  "url": "https://example.com",
+  "generate_summary": true,
+  "summary_length": "medium"
+}
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-The agent supports configuration via environment variables:
-- Create `.env` file in the `app/` directory
-- Add any API keys or configuration as needed
+- `GEMINI_API_KEY` - Gemini API key for advanced AI features
+- `HOST` - Server host (default: 0.0.0.0)
+- `PORT` - Server port (default: 8000)
+- `LOG_LEVEL` - Logging level (default: INFO)
 
-### Port Configuration
+### Summary Lengths
 
-Default port is 8000. To change:
-1. Update `main.py`: `uvicorn.run(app, host="0.0.0.0", port=YOUR_PORT)`
-2. Update server environment: `DASHPOINT_AI_AGENT_URL=http://localhost:YOUR_PORT`
+- `short` - ~75 words
+- `medium` - ~200 words (default)
+- `long` - ~400 words
 
-## Performance
+## Integration
 
-- **Text Summarization**: ~1-3 seconds for typical articles
-- **YouTube Processing**: ~5-15 seconds depending on video length
-- **Memory Usage**: ~50-100MB typical operation
-- **Concurrent Requests**: Supports multiple simultaneous requests
+The agent is designed to work with the DashPoint application but can be used independently. It provides:
 
-## Future Enhancements
+- **Fallback Processing**: Works without Gemini API key with basic functionality
+- **Error Handling**: Graceful fallbacks when services are unavailable
+- **CORS Support**: Configurable cross-origin resource sharing
+- **Structured Responses**: Consistent JSON response format
 
-- [ ] Gemini AI integration
-- [ ] Multi-language support
-- [ ] Custom summarization strategies
-- [ ] Batch processing capabilities
-- [ ] Caching for improved performance
-- [ ] Advanced chat capabilities
+## Architecture
+
+```
+Agent/
+├── app/
+│   ├── main.py              # FastAPI application
+│   └── utils/
+│       ├── agents/
+│       │   ├── gemini_client.py    # Gemini AI integration
+│       │   └── web_extractor.py    # Web content extraction
+│       └── models/
+│           ├── textsum_client.py   # Text summarization
+│           └── youtube_client.py   # YouTube processing
+├── requirements.txt         # Python dependencies
+├── .env.example            # Environment template
+├── start_agent.sh          # Linux/Mac startup script
+└── start_agent.bat         # Windows startup script
+```
+
+## Development
+
+### Adding New Functions
+
+1. Create function implementation in appropriate module
+2. Add function declaration to `gemini_client.py`
+3. Register function in `register_functions()`
+4. Update main.py endpoints as needed
+
+### Testing
+
+The agent includes comprehensive error handling and fallback mechanisms. Test with:
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Chat test
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Test message"}'
+```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Port already in use**: Change port in `main.py`
-2. **Missing dependencies**: Run `pip install -r requirements.txt`
-3. **YouTube transcript errors**: Some videos don't have transcripts
-4. **Permission errors**: Ensure proper file permissions on Unix systems
+1. **Import Errors**: Ensure all dependencies are installed
+2. **API Key Issues**: Check `.env` file configuration
+3. **Port Conflicts**: Change PORT in `.env` file
+4. **YouTube Transcript Issues**: Some videos may not have transcripts available
 
 ### Logs
 
-The agent logs important events to stdout. When run via server scripts, logs are captured in `server/dashpoint-ai-agent.log`.
+The agent provides detailed logging. Check console output for:
+- Service startup messages
+- API request/response details
+- Error messages and stack traces
 
-## License
+## Version History
 
-Part of the DashPoint project. See main project license for details.
+- **v2.0.0**: New agent-based architecture with Gemini integration
+- **v1.x.x**: Legacy implementation (deprecated)

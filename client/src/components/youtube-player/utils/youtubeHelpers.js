@@ -46,7 +46,8 @@ export const createVideoObject = (videoData) => {
     channelTitle: videoData.channelTitle,
     viewCount: videoData.viewCount,
     aiSummary: videoData.aiSummary,
-    summaryGenerated: videoData.summaryGenerated
+    summaryGenerated: videoData.summaryGenerated,
+    agentVersion: videoData.agentVersion
   };
 };
 
@@ -81,26 +82,48 @@ export const addVideoToPlaylist = async (videoUrl, savedVideos, generateSummary 
 };
 
 /**
- * Generate AI summary for existing video with improved error handling
+ * Generate AI summary for existing video using DashPoint AI Agent
  */
 export const generateVideoSummary = async (videoUrl, summaryLength = 'medium') => {
   try {
     // Validate URL first
     if (!validateYouTubeUrl(videoUrl)) {
       throw new Error('Please enter a valid YouTube URL');
+    }    // Try the intelligent chat endpoint first for better results
+    try {
+      const chatResponse = await dashPointAIAPI.chat({
+        prompt: `Please analyze and summarize this YouTube video: ${videoUrl}`,
+        context: `Summary length: ${summaryLength}. Provide comprehensive analysis including key topics and insights.`
+      });
+
+      console.log('Chat response received:', chatResponse);
+
+      // Check if chat was successful and has results
+      if (chatResponse.success && chatResponse.results) {
+        for (const result of chatResponse.results) {
+          if (result.type === 'function_result' && result.result && result.result.success) {
+            console.log('Found successful function result:', result.result.data);
+            return result.result.data;
+          }
+        }
+      }
+    } catch (chatError) {
+      console.warn('Chat endpoint failed, trying direct summarization:', chatError);
     }
 
+    // Fallback to direct summarization endpoint
     const response = await dashPointAIAPI.summarizeYouTube(videoUrl, summaryLength);
     if (!response.success) {
       throw new Error(response.message || "Failed to generate video summary");
     }
 
     // Check if the response contains an error message in the summary
-    if (response.data.summary && response.data.summary.startsWith('Error:')) {
-      throw new Error(response.data.summary);
+    const summary = response.data.summary || response.data.data?.summary;
+    if (summary && summary.startsWith('Error:')) {
+      throw new Error(summary);
     }
 
-    return response.data.summary;
+    return summary;
   } catch (error) {
     // Provide user-friendly error message
     const friendlyMessage = getYouTubeErrorMessage(error);

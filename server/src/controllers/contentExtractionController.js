@@ -4,7 +4,7 @@ const contentExtractorService = require('../services/contentExtractorService');
 const axios = require('axios');
 const { validateAISummary } = require('../utils/aiSummaryUtils');
 
-const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
+const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
 
 // Extract content from URL
 exports.extractContent = async (req, res, next) => {
@@ -382,7 +382,7 @@ exports.delete = async (req, res, next) => {
   }
 };
 
-// Enhanced content extraction with AI summarization
+// Enhanced content extraction with AI summarization using new agent
 exports.extractContentWithSummary = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -424,28 +424,68 @@ exports.extractContentWithSummary = async (req, res, next) => {
       extractImages,
       extractLinks,
       maxContentLength
-    });
-
+    });    // AI-powered content analysis using DashPoint AI Agent
     let aiSummary = null;
+    let aiAnalysis = null;
+
     if (generateSummary && extractedData.content && extractedData.content.length > 100) {
       try {
-        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-text`, {
-          text_content: extractedData.content,
-          summary_length: summaryLength
+        // Use the new DashPoint AI Agent chat endpoint for intelligent content analysis
+        const analysisResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
+          prompt: `Please analyze and summarize the following web content: "${extractedData.content}"`,
+          context: `URL: ${url}. Title: "${extractedData.title || 'Unknown'}". Summary length: ${summaryLength}. Provide comprehensive analysis including summary, key topics, sentiment, and important insights.`
         }, {
-          timeout: 60000,
+          timeout: 120000,
           headers: {
             'Content-Type': 'application/json'
           }
         });
-        aiSummary = validateAISummary(summaryResponse.data.summary, 3000); // Content has 3000 char limit
+
+        // Extract analysis from agent response
+        if (analysisResponse.data && analysisResponse.data.success && analysisResponse.data.results) {
+          for (const result of analysisResponse.data.results) {
+            if (result.type === 'function_result' && result.result && result.result.success) {
+              const resultData = result.result.data;
+              if (typeof resultData === 'string') {
+                aiSummary = validateAISummary(resultData, 3000);
+              } else if (resultData && resultData.summary) {
+                aiSummary = validateAISummary(resultData.summary, 3000);
+                if (resultData.keywords || resultData.topics || resultData.sentiment) {
+                  aiAnalysis = {
+                    keywords: resultData.keywords || [],
+                    topics: resultData.topics || [],
+                    sentiment: resultData.sentiment || 'neutral'
+                  };
+                }
+              }
+              break;
+            }
+          }
+        }
+
+        // Fallback to direct text summarization endpoint if chat doesn't provide summary
+        if (!aiSummary) {
+          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-text`, {
+            text_content: extractedData.content,
+            summary_length: summaryLength
+          }, {
+            timeout: 60000,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
+            aiSummary = validateAISummary(fallbackResponse.data.data.summary, 3000);
+          }
+        }
       } catch (summaryError) {
-        console.error('AI summarization failed:', summaryError);
-        // Continue without summary rather than failing the entire extraction
+        console.error('AI analysis failed:', summaryError);
+        // Continue without AI analysis rather than failing the entire extraction
       }
     }
 
-    // Save extraction to database with AI summary
+    // Save extraction to database with AI analysis
     const extraction = new ContentExtraction({
       userId,
       url,
@@ -464,20 +504,165 @@ exports.extractContentWithSummary = async (req, res, next) => {
           summaryLength
         },
         aiSummary: aiSummary,
-        summaryGenerated: !!aiSummary
-      }
+        aiAnalysis: aiAnalysis,
+        summaryGenerated: !!aiSummary,
+        agentVersion: (aiSummary || aiAnalysis) ? "2.0.0" : null
+      },
+      domain: extractedData.domain
     });
 
     await extraction.save();
 
     res.status(201).json({
       success: true,
-      message: 'Content extracted and saved successfully',
+      message: 'Content extracted and analyzed successfully',
       data: extraction
     });
 
   } catch (error) {
     console.error('Content extraction with summary error:', error);
+    next(error);
+  }
+};
+
+// Intelligent content processing using AI agent
+exports.processContentWithAI = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { url, content, processType = 'analyze' } = req.body;
+    const userId = req.user.id;
+
+    let inputContent = content;
+    let sourceUrl = url;
+
+    // If URL is provided, extract content first
+    if (url && !content) {
+      try {
+        const extractedData = await contentExtractorService.extractContent(url, {
+          extractImages: false,
+          extractLinks: false,
+          maxContentLength: 10000
+        });
+        inputContent = extractedData.content;
+        sourceUrl = url;
+      } catch (extractError) {
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to extract content from URL',
+          error: extractError.message
+        });
+      }
+    }
+
+    if (!inputContent) {
+      return res.status(400).json({
+        success: false,
+        message: 'Either URL or content must be provided'
+      });
+    }
+
+    try {
+      // Use the new agent for intelligent content processing
+      let prompt;
+      switch (processType.toLowerCase()) {
+        case 'summarize':
+          prompt = `Please provide a comprehensive summary of this content: ${inputContent}`;
+          break;
+        case 'analyze':
+          prompt = `Please analyze this content and provide summary, key topics, sentiment, and important insights: ${inputContent}`;
+          break;
+        case 'keywords':
+          prompt = `Extract the most important keywords and key phrases from this content: ${inputContent}`;
+          break;
+        case 'topics':
+          prompt = `Identify the main topics and themes discussed in this content: ${inputContent}`;
+          break;
+        case 'sentiment':
+          prompt = `Analyze the sentiment and tone of this content: ${inputContent}`;
+          break;
+        default:
+          prompt = `Please analyze and provide insights about this content: ${inputContent}`;
+      }
+
+      const agentResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
+        prompt: prompt,
+        context: sourceUrl ? `Source URL: ${sourceUrl}. Processing type: ${processType}` : `Processing type: ${processType}`
+      }, {
+        timeout: 120000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Extract results from agent response
+      let processedResults = null;
+      if (agentResponse.data && agentResponse.data.results) {
+        processedResults = agentResponse.data.results;
+      }
+
+      // Save processing result to user's history (optional)
+      const processingResult = {
+        userId,
+        sourceUrl,
+        contentPreview: inputContent.substring(0, 500) + (inputContent.length > 500 ? '...' : ''),
+        processType,
+        results: processedResults,
+        agentVersion: "2.0.0",
+        processedAt: new Date()
+      };
+
+      res.status(200).json({
+        success: true,
+        message: 'Content processed successfully',
+        data: processingResult
+      });
+
+    } catch (agentError) {
+      console.error('AI agent processing failed:', agentError);
+
+      // Fallback to direct endpoint based on process type
+      try {
+        let fallbackResponse;
+        if (processType.toLowerCase() === 'summarize' || processType.toLowerCase() === 'analyze') {
+          fallbackResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/analyze-content`, {
+            content: inputContent,
+            analysis_type: processType.toLowerCase() === 'analyze' ? 'summary' : processType.toLowerCase()
+          }, {
+            timeout: 60000,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: 'Content processed successfully (fallback)',
+          data: {
+            userId,
+            sourceUrl,
+            contentPreview: inputContent.substring(0, 500) + (inputContent.length > 500 ? '...' : ''),
+            processType,
+            results: fallbackResponse?.data || { error: 'Processing failed' },
+            agentVersion: "2.0.0-fallback",
+            processedAt: new Date()
+          }
+        });
+      } catch (fallbackError) {
+        throw new Error(`Both agent and fallback processing failed: ${agentError.message}`);
+      }
+    }
+
+  } catch (error) {
+    console.error('Content processing error:', error);
     next(error);
   }
 };

@@ -10,10 +10,6 @@ import {
 import { dashPointAIAPI } from "../../../services/api";
 import secureAIService from "../../../services/secureAIService";
 
-// Legacy services - deprecated, kept for fallback only
-import freeAIServices from "../../../services/freeAIServices";
-import aiTextFormattingService from "../../../services/aiTextFormattingService";
-
 export const AIFormattingPanel = ({
   content,
   onContentUpdate,
@@ -169,9 +165,7 @@ export const AIFormattingPanel = ({
               content,
               formattingOptions
             );
-          }
-
-          // Normalize the result format
+          } // Normalize the result format
           if (result.success) {
             result.confidence = (result.data.confidence || 0.5) * 100;
             result.enhanced = result.data.formatted || result.data.enhanced;
@@ -179,20 +173,17 @@ export const AIFormattingPanel = ({
             result.provider = "Secure AI Service";
           }
         } else {
-          // Final fallback to legacy services for unauthenticated users
-          if (useAdvanced && aiTextFormattingService.isConfigured()) {
-            result = await aiTextFormattingService.formatText(
-              content,
-              formattingOptions
-            );
-            if (result) result.provider = "Legacy AI Text Formatting";
-          } else {
-            result = await freeAIServices.enhanceText(
-              content,
-              formattingOptions
-            );
-            if (result) result.provider = "Legacy Free AI Services";
-          }
+          // Fallback: Use basic text formatting if no AI services are available
+          console.warn(
+            "No AI services available, skipping advanced formatting"
+          );
+          result = {
+            success: false,
+            confidence: 0,
+            enhanced: content,
+            improvements: [],
+            provider: "Basic Text Processing",
+          };
         }
       }
 

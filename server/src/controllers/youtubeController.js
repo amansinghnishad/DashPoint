@@ -5,7 +5,7 @@ const { validateAISummary } = require('../utils/aiSummaryUtils');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
+const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
 
 // CRUD Operations for saved YouTube videos
 // Get all saved videos for the authenticated user
@@ -308,7 +308,7 @@ exports.getChannelDetails = async (req, res, next) => {
   }
 };
 
-// Enhanced video details with AI summarization
+// Enhanced video details with AI summarization using new agent
 exports.getVideoDetailsWithSummary = async (req, res, next) => {
   try {
     const { videoId } = req.params;
@@ -337,21 +337,48 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
     }
 
     const video = response.data.items[0];
-    const duration = parseDuration(video.contentDetails.duration);
-
-    let aiSummary = null;
+    const duration = parseDuration(video.contentDetails.duration); let aiSummary = null;
     if (generateSummary === 'true') {
       try {
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`; const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
-          youtube_url: videoUrl,
-          summary_length: summaryLength
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        // Use the new DashPoint AI Agent chat endpoint for intelligent processing
+        const summaryResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
+          prompt: `Please analyze and summarize this YouTube video: ${videoUrl}`,
+          context: `Video title: "${video.snippet.title}". Channel: ${video.snippet.channelTitle}. Summary length: ${summaryLength}. Provide a comprehensive summary including key topics and insights.`
         }, {
           timeout: 120000,
           headers: {
             'Content-Type': 'application/json'
           }
         });
-        aiSummary = validateAISummary(summaryResponse.data.summary);
+
+        // Extract summary from agent response
+        if (summaryResponse.data && summaryResponse.data.success && summaryResponse.data.results) {
+          for (const result of summaryResponse.data.results) {
+            if (result.type === 'function_result' && result.result && result.result.success) {
+              aiSummary = validateAISummary(result.result.data);
+              break;
+            }
+          }
+        }
+
+        // Fallback to direct endpoint if chat doesn't provide summary
+        if (!aiSummary) {
+          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
+            youtube_url: videoUrl,
+            summary_length: summaryLength
+          }, {
+            timeout: 120000,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
+            aiSummary = validateAISummary(fallbackResponse.data.data.summary);
+          }
+        }
       } catch (summaryError) {
         console.error('AI summarization failed for video:', summaryError);
         // Continue without summary rather than failing the entire request
@@ -377,7 +404,8 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
       url: `https://www.youtube.com/watch?v=${video.id}`,
       embedUrl: `https://www.youtube.com/embed/${video.id}`,
       aiSummary: aiSummary,
-      summaryGenerated: !!aiSummary
+      summaryGenerated: !!aiSummary,
+      agentVersion: "2.0.0"
     };
 
     res.status(200).json({
@@ -391,7 +419,7 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
   }
 };
 
-// Create video with AI summary option
+// Create video with AI summary option using new agent
 exports.createVideoWithSummary = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -403,24 +431,49 @@ exports.createVideoWithSummary = async (req, res, next) => {
       });
     }
 
-    const { generateSummary = false, summaryLength = 'medium', ...videoData } = req.body;
-
-    let aiSummary = null;
+    const { generateSummary = false, summaryLength = 'medium', ...videoData } = req.body; let aiSummary = null;
     if (generateSummary && videoData.url) {
       try {
-        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
-          youtube_url: videoData.url,
-          summary_length: summaryLength
+        // Use the new DashPoint AI Agent chat endpoint for intelligent processing
+        const summaryResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
+          prompt: `Please analyze and summarize this YouTube video: ${videoData.url}`,
+          context: `Video title: "${videoData.title || 'Unknown'}". Summary length: ${summaryLength}. This video is being saved to user collection. Provide comprehensive analysis including key topics, insights, and main takeaways.`
         }, {
           timeout: 120000,
           headers: {
             'Content-Type': 'application/json'
           }
         });
-        aiSummary = validateAISummary(summaryResponse.data.summary);
+
+        // Extract summary from agent response
+        if (summaryResponse.data && summaryResponse.data.success && summaryResponse.data.results) {
+          for (const result of summaryResponse.data.results) {
+            if (result.type === 'function_result' && result.result && result.result.success) {
+              aiSummary = validateAISummary(result.result.data);
+              break;
+            }
+          }
+        }
+
+        // Fallback to direct endpoint if chat doesn't provide summary
+        if (!aiSummary) {
+          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
+            youtube_url: videoData.url,
+            summary_length: summaryLength
+          }, {
+            timeout: 120000,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
+            aiSummary = validateAISummary(fallbackResponse.data.data.summary);
+          }
+        }
       } catch (summaryError) {
         console.error('AI summarization failed during video creation:', summaryError);
-        // Continue without summary
+        // Continue without summary rather than failing the video creation
       }
     }
 
@@ -428,7 +481,8 @@ exports.createVideoWithSummary = async (req, res, next) => {
       ...videoData,
       userId: req.user._id,
       aiSummary: aiSummary,
-      summaryGenerated: !!aiSummary
+      summaryGenerated: !!aiSummary,
+      agentVersion: aiSummary ? "2.0.0" : null
     });
 
     await video.save();

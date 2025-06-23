@@ -133,16 +133,17 @@ export const generateContentSummary = async (content, summaryLength = 'medium') 
   try {
     if (!content || content.trim().length < 100) {
       throw new Error("Content is too short to summarize");
-    }    // Try the intelligent chat endpoint first for better results
+    }
+
+    // Try the intelligent chat endpoint first for better results
     try {
       const chatResponse = await dashPointAIAPI.chat({
         prompt: `Please analyze and summarize the following content: "${content}"`,
         context: `Summary length: ${summaryLength}. Provide comprehensive analysis including key topics and insights.`
       });
 
-      // Check if chat was successful and has results
-      if (chatResponse.success && chatResponse.results) {
-        for (const result of chatResponse.results) {
+      if (chatResponse.success && chatResponse.data.results) {
+        for (const result of chatResponse.data.results) {
           if (result.type === 'function_result' && result.result && result.result.success) {
             return result.result.data;
           }

@@ -124,6 +124,37 @@ router.post('/extract-enhanced',
   contentExtractionController.extractContentWithSummary
 );
 
+// Intelligent content processing using AI agent
+router.post('/process-ai',
+  enhancedExtractionLimiter,
+  [
+    body('url')
+      .optional()
+      .isURL({
+        protocols: ['http', 'https'],
+        require_protocol: true
+      })
+      .withMessage('Please provide a valid HTTP/HTTPS URL'),
+    body('content')
+      .optional()
+      .isString()
+      .isLength({ min: 10, max: 50000 })
+      .withMessage('Content must be between 10 and 50000 characters'),
+    body('processType')
+      .optional()
+      .isIn(['summarize', 'analyze', 'keywords', 'topics', 'sentiment'])
+      .withMessage('processType must be one of: summarize, analyze, keywords, topics, sentiment'),
+    // At least one of url or content must be provided
+    body().custom((value, { req }) => {
+      if (!req.body.url && !req.body.content) {
+        throw new Error('Either url or content must be provided');
+      }
+      return true;
+    })
+  ],
+  contentExtractionController.processContentWithAI
+);
+
 // Routes
 router.post('/extract', extractionLimiter, extractContentValidation, contentExtractionController.extractContent);
 router.get('/', searchValidation, contentExtractionController.getExtractions);
