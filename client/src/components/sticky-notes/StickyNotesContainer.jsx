@@ -92,15 +92,13 @@ export const StickyNotesContainer = () => {
     setShowAddToCollection(false);
     setNoteToAdd(null);
   };
-
   return (
-    <div className="sticky-notes-container relative min-h-screen p-4">
-      {" "}
-      <div className="mb-4">
+    <div className="sticky-notes-container relative min-h-screen p-2 sm:p-4">
+      <div className="mb-3 sm:mb-4">
         <button
           onClick={handleCreateNewNote}
           disabled={isCreatingNote}
-          className={`px-4 py-2 rounded-lg font-medium shadow-sm transition-all duration-200 ${
+          className={`w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg font-medium shadow-sm transition-all duration-200 touch-manipulation ${
             isCreatingNote
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : "bg-yellow-400 hover:bg-yellow-500 text-gray-800 hover:shadow-md"
@@ -109,7 +107,7 @@ export const StickyNotesContainer = () => {
           {isCreatingNote ? "+ Creating..." : "+ Add Sticky Note"}
         </button>
       </div>
-      <div className="relative">
+      <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 sm:block">
         {stickyNotes.map((note) => (
           <StickyNote
             key={note._id || note.id}

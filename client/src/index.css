@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Import mobile-specific styles */
+@import "./styles/widgets-mobile.css";
+@import "./styles/keyboard-shortcuts-mobile.css";
+
 /* Resizable Items Grid Styles */
 .items-grid {
   display: flex;

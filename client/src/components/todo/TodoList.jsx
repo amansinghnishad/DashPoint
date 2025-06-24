@@ -51,10 +51,10 @@ export const TodoList = () => {
   const filteredTodos = filterTodos(todos, filter);
   const { activeCount, completedCount, totalCount } = getTodoStats(todos);
   return (
-    <div className="todo-list min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6">
+    <div className="todo-list min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-3 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header Section with Glassmorphism */}
-        <div className="backdrop-blur-sm bg-white/80 rounded-2xl border border-white/20 shadow-xl p-8 mb-8">
+        <div className="backdrop-blur-sm bg-white/80 rounded-xl sm:rounded-2xl border border-white/20 shadow-xl p-4 sm:p-8 mb-4 sm:mb-8">
           <TodoHeader
             onToggleForm={() => setShowForm(!showForm)}
             showForm={showForm}
@@ -67,10 +67,11 @@ export const TodoList = () => {
             completedCount={completedCount}
             totalCount={totalCount}
           />
-        </div>{" "}
+        </div>
+
         {/* Add Todo Form */}
         {showForm && (
-          <div className="mb-8 animate-fade-in-up">
+          <div className="mb-4 sm:mb-8 animate-fade-in-up">
             <TodoForm
               onAdd={handleAddTodo}
               onCancel={() => setShowForm(false)}
@@ -78,20 +79,21 @@ export const TodoList = () => {
             />
           </div>
         )}
+
         {/* Todo List */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {filteredTodos.length === 0 ? (
-            <div className="backdrop-blur-sm bg-white/80 rounded-2xl border border-white/20 shadow-xl p-12 text-center">
-              <div className="mb-8">
-                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-3xl flex items-center justify-center mb-6">
-                  <span className="text-6xl">✅</span>
+            <div className="backdrop-blur-sm bg-white/80 rounded-xl sm:rounded-2xl border border-white/20 shadow-xl p-6 sm:p-12 text-center">
+              <div className="mb-4 sm:mb-8">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-4 sm:mb-6">
+                  <span className="text-4xl sm:text-6xl">✅</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
                   {filter === "all"
                     ? "Ready to get productive?"
                     : `No ${filter} todos`}
                 </h3>
-                <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto">
+                <p className="text-gray-600 text-sm sm:text-lg leading-relaxed max-w-md mx-auto">
                   {filter === "all"
                     ? "Create your first todo to start organizing your tasks"
                     : `You don't have any ${filter} todos at the moment`}
@@ -100,11 +102,15 @@ export const TodoList = () => {
               {!showForm && filter === "all" && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="group inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
+                  className="group inline-flex items-center space-x-2 sm:space-x-3 px-4 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg sm:rounded-xl hover:from-green-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold text-sm sm:text-base touch-manipulation"
                 >
                   <Plus
+                    size={18}
+                    className="group-hover:rotate-90 transition-transform duration-200 sm:hidden"
+                  />
+                  <Plus
                     size={20}
-                    className="group-hover:rotate-90 transition-transform duration-200"
+                    className="group-hover:rotate-90 transition-transform duration-200 hidden sm:block"
                   />
                   <span>Add Your First Todo</span>
                 </button>
@@ -128,6 +134,7 @@ export const TodoList = () => {
             ))
           )}
         </div>
+
         {/* Add to Collection Modal */}
         {showAddToCollectionModal && selectedTodo && (
           <AddToCollectionModal

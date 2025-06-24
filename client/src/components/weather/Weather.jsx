@@ -43,10 +43,9 @@ export const Weather = () => {
   const weatherCondition =
     weather.current?.weather?.main || weather.condition || "clear";
   const gradientColors = getWeatherColors(weatherCondition);
-
   return (
     <div
-      className={`weather-widget bg-gradient-to-br ${gradientColors} rounded-xl p-6 text-white shadow-lg`}
+      className={`weather-widget bg-gradient-to-br ${gradientColors} rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg`}
     >
       <WeatherHeader
         weather={weather}

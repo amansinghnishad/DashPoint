@@ -76,6 +76,21 @@ export const Hero = () => {
     return () => ctx.revert();
   }, []);
 
+  // Handle autoplay initialization
+  useEffect(() => {
+    const handleAutoplay = () => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((error) => {
+          console.log("Autoplay failed:", error);
+        });
+      }
+    };
+
+    // Small delay to ensure video is loaded
+    const timer = setTimeout(handleAutoplay, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const playDemo = () => {
     if (videoRef.current) {
       videoRef.current.play();
@@ -172,6 +187,7 @@ export const Hero = () => {
             <div className="glass-card p-8 rounded-3xl">
               {/* Demo Video/Screenshot */}
               <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/50 to-blue-900/50 aspect-video mb-6">
+                {" "}
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
@@ -179,10 +195,11 @@ export const Hero = () => {
                   controls={false}
                   muted
                   loop
+                  autoPlay
+                  playsInline
                 >
-                  <source src="/demo-video.mp4" type="video/mp4" />
+                  <source src="./2.mp4" type="video/mp4" />
                 </video>
-
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button
