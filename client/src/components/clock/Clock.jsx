@@ -14,9 +14,8 @@ export const Clock = () => {
     setFormat24h,
     toggleSettings,
   } = useClock();
-
   return (
-    <div className="clock-widget bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+    <div className="clock-widget bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg">
       <ClockHeader onSettingsToggle={toggleSettings} />
 
       {showSettings && (

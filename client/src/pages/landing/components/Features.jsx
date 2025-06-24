@@ -218,11 +218,11 @@ export const Features = () => {
                 className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
               >
                 <feature.icon className="text-white" size={24} />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+              </div>{" "}
+              <h3 className="text-lg font-semibold text-cyan-100 mb-2 group-hover:text-purple-600 transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-gray-300 text-sm leading-relaxed">
                 {feature.description}
               </p>
             </div>
@@ -236,17 +236,14 @@ export const Features = () => {
               <Zap className="mr-2" size={16} />
               Featured Capability
             </div>
-
             <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
               AI-Powered Content Extraction & Organization
-            </h3>
-
-            <p className="text-lg text-gray-600 mb-8">
+            </h3>{" "}
+            <p className="text-lg text-gray-100 mb-8">
               Our advanced AI algorithms automatically extract, categorize, and
               organize content from any webpage, document, or media source. Save
               time and stay organized with intelligent content management.
             </p>
-
             <div className="space-y-4">
               <div className="flex items-center">
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
@@ -261,8 +258,8 @@ export const Features = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                </div>
-                <span className="text-gray-700">
+                </div>{" "}
+                <span className="text-gray-300">
                   Automatic content categorization
                 </span>
               </div>
@@ -281,7 +278,7 @@ export const Features = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">Smart tagging and search</span>
+                <span className="text-gray-300">Smart tagging and search</span>
               </div>
 
               <div className="flex items-center">
@@ -298,7 +295,7 @@ export const Features = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-700">
+                <span className="text-gray-300">
                   Cross-platform synchronization
                 </span>
               </div>

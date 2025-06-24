@@ -53,7 +53,7 @@ const dashboardReducer = (state, action) => {
       return {
         ...state,
         todos: state.todos.map((todo) =>
-          todo._id === action.payload._id
+          todo._id === action.payload._id || todo.id === action.payload.id
             ? { ...todo, ...action.payload }
             : todo
         ),
@@ -245,27 +245,32 @@ export const DashboardProvider = ({ children }) => {
       console.error("Failed to delete sticky note:", error);
       throw error;
     }
-  };
-
-  // saveTodo function
+  }; // saveTodo function
   const saveTodo = async (todo) => {
     try {
-      if (todo._id) {
+      if (todo._id || todo.id) {
         // Update existing todo
-        const response = await todoAPI.update(todo._id, todo);
+        const id = todo._id || todo.id;
+        const response = await todoAPI.update(id, todo);
+
         if (response.success) {
           dispatch({ type: "UPDATE_TODO", payload: response.data });
           addActivity("todo", `Updated task: "${todo.title || "Untitled"}"`);
+        } else {
+          throw new Error(response.message || "Failed to update todo");
         }
       } else {
         // Create new todo
         const response = await todoAPI.create(todo);
+
         if (response.success) {
           dispatch({ type: "ADD_TODO", payload: response.data });
           addActivity(
             "todo",
             `Created new task: "${todo.title || "Untitled"}"`
           );
+        } else {
+          throw new Error(response.message || "Failed to create todo");
         }
       }
     } catch (error) {
@@ -287,20 +292,30 @@ export const DashboardProvider = ({ children }) => {
       throw error;
     }
   };
-
   // toggleTodo function
   const toggleTodo = async (id) => {
-    const todo = state.todos.find((t) => t._id === id);
+    const todo = state.todos.find((t) => t._id === id || t.id === id);
     if (todo) {
-      const updatedTodo = { ...todo, completed: !todo.completed };
-      await saveTodo(updatedTodo);
-      const action = updatedTodo.completed ? "completed" : "reopened";
-      addActivity(
-        "todo",
-        `${action.charAt(0).toUpperCase() + action.slice(1)} task: "${
-          todo.title || "Untitled"
-        }"`
-      );
+      try {
+        const updatedTodo = {
+          ...todo,
+          completed: !todo.completed,
+          updatedAt: new Date().toISOString(),
+        };
+        await saveTodo(updatedTodo);
+        const action = updatedTodo.completed ? "completed" : "reopened";
+        addActivity(
+          "todo",
+          `${action.charAt(0).toUpperCase() + action.slice(1)} task: "${
+            todo.title || "Untitled"
+          }"`
+        );
+      } catch (error) {
+        console.error("Failed to toggle todo:", error);
+        // Optionally show an error message to the user
+      }
+    } else {
+      console.error("Todo not found with id:", id);
     }
   };
 

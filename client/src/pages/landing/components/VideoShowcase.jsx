@@ -8,10 +8,9 @@ gsap.registerPlugin(ScrollTrigger);
 export const VideoShowcase = () => {
   const showcaseRef = useRef(null);
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Title animation
@@ -70,6 +69,22 @@ export const VideoShowcase = () => {
     }, showcaseRef);
 
     return () => ctx.revert();
+  }, []);
+
+  // Handle autoplay initialization
+  useEffect(() => {
+    const handleAutoplay = () => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((error) => {
+          console.log("Autoplay failed:", error);
+          setIsPlaying(false);
+        });
+      }
+    };
+
+    // Small delay to ensure video is loaded
+    const timer = setTimeout(handleAutoplay, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const togglePlay = () => {
@@ -189,6 +204,7 @@ export const VideoShowcase = () => {
           <div className="lg:col-span-2">
             <div className="video-container glass-card p-6 rounded-3xl">
               <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+                {" "}
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
@@ -196,11 +212,13 @@ export const VideoShowcase = () => {
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
                   onEnded={() => setIsPlaying(false)}
+                  muted
+                  autoPlay
+                  playsInline
                 >
-                  <source src="/dashboard-demo.mp4" type="video/mp4" />
+                  <source src="./2.mp4" type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
-
                 {/* Video Controls Overlay */}
                 <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <button
@@ -214,7 +232,6 @@ export const VideoShowcase = () => {
                     )}
                   </button>
                 </div>
-
                 {/* Custom Video Controls */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                   {/* Progress Bar */}

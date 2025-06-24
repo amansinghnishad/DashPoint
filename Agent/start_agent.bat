@@ -20,7 +20,9 @@ REM Check if .env file exists
 if not exist ".env" (
     echo Warning: .env file not found. Please copy .env.example to .env and configure it.
     copy .env.example .env
-    echo Created .env file from template. Please edit it with your API keys.
+    echo Created .env file from template. Please edit it with your API keys:
+    echo - GEMINI_API_KEY: Required for AI features
+    echo - YOUTUBE_API_KEY: Required for YouTube video analysis
 )
 
 REM Start the agent
