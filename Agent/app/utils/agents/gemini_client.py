@@ -34,13 +34,12 @@ def get_client_and_config():
                     "enum": ["short", "medium", "long"]
                 }
             },
-            "required": ["text_content"]
-        }
+            "required": ["text_content"]        }
     )
     
     summarize_youtube_function = FunctionDeclaration(
         name="summarize_youtube_video",
-        description="Summarize a YouTube video by extracting and analyzing its content",
+        description="Summarize a YouTube video using metadata analysis from YouTube Data API v3 (title, description, tags, statistics)",
         parameters={
             "type": "object",
             "properties": {

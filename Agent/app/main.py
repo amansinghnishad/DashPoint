@@ -23,8 +23,18 @@ sys.path.append(str(current_dir))
 sys.path.append(str(current_dir / "utils" / "models"))
 sys.path.append(str(current_dir / "utils" / "agents"))
 
-# Load environment variables from .env file
-load_dotenv(dotenv_path=current_dir / '.env')
+# Load environment variables from .env file (check parent directory first)
+env_file_parent = current_dir.parent / '.env'
+env_file_current = current_dir / '.env'
+
+if env_file_parent.exists():
+    load_dotenv(dotenv_path=env_file_parent)
+    logger.info(f"Loaded environment variables from {env_file_parent}")
+elif env_file_current.exists():
+    load_dotenv(dotenv_path=env_file_current)
+    logger.info(f"Loaded environment variables from {env_file_current}")
+else:
+    logger.warning("No .env file found, using system environment variables")
 
 # Import the core functions
 from utils.models.textsum_client import summarize_text_content
@@ -283,6 +293,24 @@ async def health_check():
             "content_extraction",
             "intelligent_chat" if GEMINI_AVAILABLE else "basic_chat"
         ]
+    }
+
+@app.get("/debug/env")
+async def debug_environment():
+    """Debug endpoint to check environment variable status"""
+    return {
+        "gemini_api_key_loaded": bool(os.getenv('GEMINI_API_KEY')),
+        "youtube_api_key_loaded": bool(os.getenv('YOUTUBE_API_KEY')),
+        "current_working_directory": os.getcwd(),
+        "app_directory": str(current_dir),
+        "env_file_paths_checked": [
+            str(current_dir.parent / '.env'),
+            str(current_dir / '.env')
+        ],
+        "env_files_exist": {
+            "parent_dir": (current_dir.parent / '.env').exists(),
+            "current_dir": (current_dir / '.env').exists()
+        }
     }
 
 # Run the server when executed directly

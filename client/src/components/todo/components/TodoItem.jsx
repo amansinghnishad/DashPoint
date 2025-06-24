@@ -19,12 +19,26 @@ export const TodoItem = ({
   onAddToCollection,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
   const [title, setTitle] = useState(todo.title);
   const [description, setDescription] = useState(todo.description || "");
   const [dueDate, setDueDate] = useState(
     todo.dueDate ? new Date(todo.dueDate).toISOString().split("T")[0] : ""
   );
   const [priority, setPriority] = useState(todo.priority || "medium");
+
+  const handleToggle = async () => {
+    if (isToggling) return; // Prevent double clicks
+
+    setIsToggling(true);
+    try {
+      await onToggle(todo._id || todo.id);
+    } catch (error) {
+      console.error("Error toggling todo:", error);
+    } finally {
+      setIsToggling(false);
+    }
+  };
 
   const handleSave = () => {
     if (title.trim()) {
@@ -135,7 +149,9 @@ export const TodoItem = ({
   return (
     <div
       className={`group backdrop-blur-sm bg-white/90 rounded-xl sm:rounded-2xl border border-white/20 shadow-lg hover:shadow-xl p-4 sm:p-6 transition-all duration-300 overflow-hidden hover-sweep hover-sweep-green ${
-        todo.completed ? "opacity-70" : "hover:transform hover:scale-[1.02]"
+        todo.completed
+          ? "opacity-70 todo-completed"
+          : "hover:transform hover:scale-[1.02]"
       }`}
     >
       {/* Gradient overlay on hover */}
@@ -144,18 +160,36 @@ export const TodoItem = ({
       {/* Content */}
       <div className="relative z-10">
         <div className="flex items-start space-x-3 sm:space-x-4">
+          {" "}
           <button
-            onClick={() => onToggle(todo._id || todo.id)}
-            className={`mt-1 w-5 h-5 sm:w-6 sm:h-6 rounded-lg sm:rounded-xl border-2 flex items-center justify-center transition-all duration-200 touch-manipulation ${
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleToggle();
+            }}
+            disabled={isToggling}
+            className={`mt-1 w-5 h-5 sm:w-6 sm:h-6 rounded-lg sm:rounded-xl border-2 flex items-center justify-center transition-all duration-200 touch-manipulation flex-shrink-0 ${
               todo.completed
                 ? "bg-gradient-to-r from-green-500 to-emerald-500 border-green-500 text-white shadow-lg"
                 : "border-gray-300 hover:border-green-500 hover:bg-green-50"
+            } ${
+              isToggling
+                ? "opacity-50 cursor-wait"
+                : "cursor-pointer hover:scale-110"
             }`}
+            type="button"
+            aria-label={
+              todo.completed ? "Mark as incomplete" : "Mark as complete"
+            }
           >
-            {todo.completed && <Check size={12} className="sm:hidden" />}
-            {todo.completed && <Check size={14} className="hidden sm:block" />}
+            {" "}
+            {todo.completed && (
+              <Check size={12} className="sm:hidden animate-checkmark" />
+            )}
+            {todo.completed && (
+              <Check size={14} className="hidden sm:block animate-checkmark" />
+            )}
           </button>
-
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start mb-2">
               <h3

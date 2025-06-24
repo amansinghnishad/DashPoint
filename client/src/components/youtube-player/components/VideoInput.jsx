@@ -26,10 +26,10 @@ export const VideoInput = ({
         </div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-red-800 to-pink-800 bg-clip-text text-transparent mb-4">
           YouTube Player
-        </h1>
+        </h1>{" "}
         <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
           Build your personal YouTube playlist with DashPoint AI-powered
-          summarization and seamless video management
+          metadata analysis and seamless video management
         </p>
         <div className="flex justify-center mt-4">
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-full">
@@ -127,12 +127,12 @@ export const VideoInput = ({
                   <p className="text-sm text-purple-800 flex items-center mb-2">
                     <Sparkles size={14} className="mr-2" />
                     <strong>DashPoint AI Agent Features:</strong>
-                  </p>
+                  </p>{" "}
                   <ul className="text-xs text-purple-700 space-y-1 ml-4">
-                    <li>• Advanced video transcript analysis</li>
-                    <li>• Intelligent content summarization</li>
-                    <li>• Key points extraction</li>
-                    <li>• Multi-language support</li>
+                    <li>• Intelligent video metadata analysis</li>
+                    <li>• Content summarization from title & description</li>
+                    <li>• Key topics extraction from tags</li>
+                    <li>• Engagement metrics analysis</li>
                   </ul>
                 </div>
               )}

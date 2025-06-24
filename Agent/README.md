@@ -5,7 +5,7 @@ Advanced AI-powered content processing and analysis service that provides intell
 ## Features
 
 - **Intelligent Chat Interface**: Natural language processing with function calling capabilities
-- **YouTube Video Analysis**: Extract transcripts and generate comprehensive summaries
+- **YouTube Video Analysis**: Extract metadata and generate comprehensive summaries using YouTube Data API v3
 - **Web Content Extraction**: Smart content extraction from web pages with AI analysis
 - **Text Summarization**: Advanced text summarization with customizable length
 - **Function Calling**: Gemini-powered intelligent task routing and execution
@@ -121,6 +121,7 @@ POST /extract-content
 ### Environment Variables
 
 - `GEMINI_API_KEY` - Gemini API key for advanced AI features
+- `YOUTUBE_API_KEY` - YouTube Data API v3 key for video analysis
 - `HOST` - Server host (default: 0.0.0.0)
 - `PORT` - Server port (default: 8000)
 - `LOG_LEVEL` - Logging level (default: INFO)
@@ -202,3 +203,22 @@ The agent provides detailed logging. Check console output for:
 
 - **v2.0.0**: New agent-based architecture with Gemini integration
 - **v1.x.x**: Legacy implementation (deprecated)
+
+### Getting YouTube Data API v3 Key
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the YouTube Data API v3:
+   - Go to APIs & Services > Library
+   - Search for "YouTube Data API v3"
+   - Click on it and press "Enable"
+4. Create credentials:
+   - Go to APIs & Services > Credentials
+   - Click "Create Credentials" > "API Key"
+   - Copy the generated API key
+5. Add the API key to your `.env` file:
+   ```bash
+   YOUTUBE_API_KEY=your_youtube_api_v3_key_here
+   ```
+
+**Note**: YouTube transcript extraction has been replaced with metadata-based analysis to avoid rate limiting issues. The agent now uses video title, description, tags, and statistics to generate summaries.
