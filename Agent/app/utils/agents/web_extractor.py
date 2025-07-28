@@ -93,8 +93,8 @@ def extract_title(soup: BeautifulSoup) -> str:
     # Try various title sources
     title_sources = [
         soup.find('title'),
-        soup.find('meta', property='og:title'),
-        soup.find('meta', name='twitter:title'),
+        soup.find('meta', attrs={'property': 'og:title'}),
+        soup.find('meta', attrs={'name': 'twitter:title'}),
         soup.find('h1')
     ]
     
@@ -114,9 +114,9 @@ def extract_description(soup: BeautifulSoup) -> str:
     """Extract page description"""
     # Try various description sources
     desc_sources = [
-        soup.find('meta', name='description'),
-        soup.find('meta', property='og:description'),
-        soup.find('meta', name='twitter:description')
+        soup.find('meta', attrs={'name': 'description'}),
+        soup.find('meta', attrs={'property': 'og:description'}),
+        soup.find('meta', attrs={'name': 'twitter:description'})
     ]
     
     for source in desc_sources:
@@ -162,7 +162,7 @@ def extract_images(soup: BeautifulSoup, base_url: str) -> List[Dict[str, str]]:
     """Extract images from the page"""
     images = []
     
-    for img in soup.find_all('img', src=True):
+    for img in soup.find_all('img', attrs={'src': True}):
         src = img.get('src')
         if src:
             # Convert relative URLs to absolute
@@ -184,7 +184,7 @@ def extract_links(soup: BeautifulSoup, base_url: str) -> List[Dict[str, str]]:
     """Extract links from the page"""
     links = []
     
-    for link in soup.find_all('a', href=True):
+    for link in soup.find_all('a', attrs={'href': True}):
         href = link.get('href')
         if href:
             # Convert relative URLs to absolute
