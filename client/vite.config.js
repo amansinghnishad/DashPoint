@@ -6,11 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(), 
+    react(),
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['dashpoint-icon.svg', 'vite.svg'],
+      includeAssets: ['logo.png', 'vite.svg'],
       manifest: {
         name: 'DashPoint - Personal Productivity Dashboard',
         short_name: 'DashPoint',
@@ -23,7 +23,7 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
-            src: 'dashpoint-icon.svg',
+            src: 'logo.png',
             sizes: 'any',
             type: 'image/svg+xml',
             purpose: 'any maskable'

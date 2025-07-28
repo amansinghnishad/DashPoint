@@ -13,7 +13,7 @@ source venv/bin/activate || {
     source venv/bin/activate
     
     echo "Installing dependencies..."
-    pip install fastapi uvicorn python-dotenv youtube-transcript-api google-genai
+    pip install -r requirements.txt
 }
 
 # Run the server

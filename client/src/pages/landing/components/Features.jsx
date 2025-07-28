@@ -1,20 +1,19 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  Clock,
-  FileText,
-  StickyNote,
-  CheckSquare,
-  Youtube,
-  Cloud,
-  Zap,
-  Shield,
-  Palette,
-  Globe,
-  BarChart3,
-  Smartphone,
-} from "lucide-react";
+
+import clockIcon from "../../../assets/icons/clock.png";
+import fileTextIcon from "../../../assets/icons/file-text.png";
+import stickyNoteIcon from "../../../assets/icons/sticky-note.png";
+import checkSquareIcon from "../../../assets/icons/check-square.png";
+import youtubeIcon from "../../../assets/icons/youtube.png";
+import cloudIcon from "../../../assets/icons/cloud.png";
+import zapIcon from "../../../assets/icons/zap.png";
+import shieldIcon from "../../../assets/icons/shield.png";
+import paletteIcon from "../../../assets/icons/palette.png";
+import globeIcon from "../../../assets/icons/globe.png";
+import barChart3Icon from "../../../assets/icons/bar-chart-3.png";
+import smartphoneIcon from "../../../assets/icons/smartphone.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -99,74 +98,74 @@ export const Features = () => {
 
   const features = [
     {
-      icon: Clock,
+      icon: clockIcon,
       title: "Real-time Clock",
       description:
         "Stay on track with customizable world clocks and time zones",
       color: "from-blue-400 to-blue-600",
     },
     {
-      icon: FileText,
+      icon: fileTextIcon,
       title: "Content Extraction",
       description: "Extract and organize content from any webpage instantly",
       color: "from-green-400 to-green-600",
     },
     {
-      icon: StickyNote,
+      icon: stickyNoteIcon,
       title: "Smart Notes",
       description: "AI-powered sticky notes that organize themselves",
       color: "from-yellow-400 to-yellow-600",
     },
     {
-      icon: CheckSquare,
+      icon: checkSquareIcon,
       title: "Task Management",
       description: "Powerful todo lists with smart prioritization",
       color: "from-purple-400 to-purple-600",
     },
     {
-      icon: Youtube,
+      icon: youtubeIcon,
       title: "Media Player",
       description: "Built-in YouTube player for seamless entertainment",
       color: "from-red-400 to-red-600",
     },
     {
-      icon: Cloud,
+      icon: cloudIcon,
       title: "Weather Widget",
       description: "Live weather updates for your location and favorites",
       color: "from-cyan-400 to-cyan-600",
     },
     {
-      icon: Zap,
+      icon: zapIcon,
       title: "Lightning Fast",
       description: "Optimized performance for instant responses",
       color: "from-orange-400 to-orange-600",
     },
     {
-      icon: Shield,
+      icon: shieldIcon,
       title: "Secure & Private",
       description: "Enterprise-grade security for your data",
       color: "from-indigo-400 to-indigo-600",
     },
     {
-      icon: Palette,
+      icon: paletteIcon,
       title: "Customizable",
       description: "Personalize your dashboard with themes and layouts",
       color: "from-pink-400 to-pink-600",
     },
     {
-      icon: Globe,
+      icon: globeIcon,
       title: "Cross Platform",
       description: "Access your dashboard from any device, anywhere",
       color: "from-teal-400 to-teal-600",
     },
     {
-      icon: BarChart3,
+      icon: barChart3Icon,
       title: "Analytics",
       description: "Track your productivity with detailed insights",
       color: "from-violet-400 to-violet-600",
     },
     {
-      icon: Smartphone,
+      icon: smartphoneIcon,
       title: "Mobile Ready",
       description: "Responsive design that works on all screen sizes",
       color: "from-emerald-400 to-emerald-600",
@@ -212,17 +211,17 @@ export const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="feature-card glass-card bg-white p-6 rounded-2xl hover-lift group cursor-pointer"
+              className="feature-card glass-card bg-gray-100 p-6 rounded-2xl hover-lift group cursor-pointer"
             >
-              <div
-                className={`w-12 h-12 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
-              >
-                <feature.icon className="text-white" size={24} />
-              </div>{" "}
-              <h3 className="text-lg font-semibold text-cyan-100 mb-2 group-hover:text-purple-600 transition-colors">
+              <img
+                src={feature.icon}
+                alt={feature.title}
+                className="w-12 h-12 mb-4 group-hover:scale-110 transition-transform duration-300"
+              />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-gray-300 text-sm leading-relaxed">
+              <p className="text-gray-700 text-sm leading-relaxed">
                 {feature.description}
               </p>
             </div>
@@ -233,7 +232,7 @@ export const Features = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="main-feature">
             <div className="inline-flex items-center bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Zap className="mr-2" size={16} />
+              <img src={zapIcon} alt="zap" className="mr-2 w-4 h-4" />
               Featured Capability
             </div>
             <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
@@ -320,7 +319,11 @@ export const Features = () => {
                 <div className="space-y-3">
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                      <FileText className="text-white" size={20} />
+                      <img
+                        src={fileTextIcon}
+                        alt="File Text"
+                        className="w-6 h-6"
+                      />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">
@@ -334,7 +337,11 @@ export const Features = () => {
 
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                      <Youtube className="text-white" size={20} />
+                      <img
+                        src={youtubeIcon}
+                        alt="YouTube"
+                        className="w-6 h-6"
+                      />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">
@@ -348,7 +355,11 @@ export const Features = () => {
 
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
-                      <StickyNote className="text-white" size={20} />
+                      <img
+                        src={stickyNoteIcon}
+                        alt="Sticky Note"
+                        className="w-6 h-6"
+                      />
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">

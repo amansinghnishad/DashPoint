@@ -302,20 +302,3 @@
     animation-delay: 0ms !important;
   }
 }
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .glass-card {
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .card-hover::before {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-  }
-}

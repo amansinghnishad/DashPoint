@@ -4,6 +4,7 @@ A comprehensive MERN stack dashboard application with multiple productivity feat
 
 ## Features
 
+- **Conversational Interface**: Natural language commands for all dashboard actions - just type "add note..." or "create task..." and let AI handle it
 - **Sticky Notes**: Create, edit, drag & drop colorful sticky notes
 - **Todo List**: Manage tasks with priorities, due dates, and completion tracking
 - **YouTube Player**: Add YouTube videos to playlist and watch them in the dashboard
@@ -113,6 +114,14 @@ npm run dev
 
 ## Features Overview
 
+### Conversational Interface (Ask DashPoint)
+- Natural language commands for all actions
+- "add note..." "create task..." "weather for..." 
+- AI-powered command understanding
+- Automatic dashboard updates after actions
+- Real-time conversation history
+- Confidence scoring for command interpretation
+
 ### Sticky Notes
 - Create colorful sticky notes
 - Drag and drop positioning
@@ -164,7 +173,7 @@ npm run dev
 
 ### Keyboard Shortcuts
 - Navigate between widgets with keyboard
-- Quick actions for common tasks
+- Dashboard navigation shortcuts
 - Customizable shortcuts
 - Keyboard navigation guide
 - Accessibility support

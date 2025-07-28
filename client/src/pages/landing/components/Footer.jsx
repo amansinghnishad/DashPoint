@@ -112,13 +112,12 @@ export const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Company Info */}
             <div className="footer-section">
-              <div className="flex items-center mb-6">
-                <div className="bg-gradient-to-r from-yellow-400 to-pink-400 p-2 rounded-xl mr-3">
-                  <Zap className="h-8 w-8 text-purple-900" />
-                </div>
-                <span className="text-2xl font-bold">
-                  Dash<span className="text-yellow-300">Point</span>
-                </span>
+              <div className="mb-6">
+                <img
+                  src="/logo-vertical.png"
+                  alt="DashPoint Logo"
+                  className="h-20"
+                />
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
                 Transform your productivity with our all-in-one dashboard

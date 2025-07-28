@@ -15,7 +15,6 @@ import { useLocalStorage } from "../../hooks/useCommon";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { ContentRenderer } from "./components/ContentRenderer";
 import { DashboardSidebar } from "./components/DashboardSidebar";
-import { QuickActions } from "./components/QuickActions";
 import {
   getPageTitle,
   getKeyboardShortcuts,
@@ -67,27 +66,6 @@ export const Dashboard = () => {
     handleTabChange(tab, setActiveTab, setSidebarOpen);
   };
 
-  // Quick Actions handlers
-  const handleQuickNavigate = (tab) => {
-    setActiveTab(tab);
-    setSidebarOpen(false);
-  };
-
-  const handleAddNote = () => {
-    showToast("Opening note editor...", "info");
-  };
-
-  const handleAddTodo = () => {
-    showToast("Opening todo list...", "info");
-  };
-
-  const handleUploadFile = () => {
-    showToast("Opening file manager...", "info");
-  };
-
-  const handleBookmark = () => {
-    showToast("Opening collections...", "info");
-  };
   return (
     <div
       className={`min-h-screen scrollable-area ${
@@ -151,15 +129,6 @@ export const Dashboard = () => {
       />{" "}
       {/* Toast Container */}
       <ToastContainer toasts={toasts} onRemoveToast={removeToast} />{" "}
-      {/* Quick Actions */}
-      <QuickActions
-        onNavigate={handleQuickNavigate}
-        onAddNote={handleAddNote}
-        onAddTodo={handleAddTodo}
-        onUploadFile={handleUploadFile}
-        onBookmark={handleBookmark}
-        onOpenWidgets={() => setWidgetsOpen(true)}
-      />
       {/* Widgets Dialog */}
       <WidgetsDialog
         isOpen={widgetsOpen}

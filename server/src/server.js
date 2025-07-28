@@ -19,6 +19,7 @@ const youtubeRoutes = require('./routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
 const aiServicesRoutes = require('./routes/aiServicesRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const conversationalRoutes = require('./routes/conversationalRoutes');
 
 const app = express();
 
@@ -32,8 +33,8 @@ connectDB();
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 30 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   message: {
     error: 'Too many requests from this IP, please try again later.'
   },
@@ -143,6 +144,7 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/ai', aiServicesRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/conversational', conversationalRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

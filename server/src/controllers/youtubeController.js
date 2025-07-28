@@ -5,7 +5,7 @@ const { validateAISummary } = require('../utils/aiSummaryUtils');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
-const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
+const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // CRUD Operations for saved YouTube videos
 // Get all saved videos for the authenticated user
@@ -337,15 +337,17 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
     }
 
     const video = response.data.items[0];
-    const duration = parseDuration(video.contentDetails.duration); let aiSummary = null;
+    const duration = parseDuration(video.contentDetails.duration);
+
+    let aiSummary = null;
     if (generateSummary === 'true') {
       try {
         const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-        // Use the new DashPoint AI Agent chat endpoint for intelligent processing
-        const summaryResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
-          prompt: `Please analyze and summarize this YouTube video: ${videoUrl}`,
-          context: `Video title: "${video.snippet.title}". Channel: ${video.snippet.channelTitle}. Summary length: ${summaryLength}. Provide a comprehensive summary including key topics and insights.`
+        // Use the new agent chat endpoint for more intelligent processing
+        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
+          prompt: `Please summarize this YouTube video: ${videoUrl}`,
+          context: `Video title: ${video.snippet.title}. Summary length: ${summaryLength}`
         }, {
           timeout: 120000,
           headers: {
@@ -354,18 +356,19 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
         });
 
         // Extract summary from agent response
-        if (summaryResponse.data && summaryResponse.data.success && summaryResponse.data.results) {
+        if (summaryResponse.data && summaryResponse.data.results) {
           for (const result of summaryResponse.data.results) {
             if (result.type === 'function_result' && result.result && result.result.success) {
-              aiSummary = validateAISummary(result.result.data);
+              aiSummary = validateAISummary(result.result.summary);
               break;
             }
           }
         }
-
-        // Fallback to direct endpoint if chat doesn't provide summary
-        if (!aiSummary) {
-          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
+      } catch (summaryError) {
+        console.error('AI summarization failed for video:', summaryError);
+        // Fallback to direct endpoint if chat fails
+        try {
+          const fallbackResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
             youtube_url: videoUrl,
             summary_length: summaryLength
           }, {
@@ -374,14 +377,10 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
               'Content-Type': 'application/json'
             }
           });
-
-          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
-            aiSummary = validateAISummary(fallbackResponse.data.data.summary);
-          }
+          aiSummary = validateAISummary(fallbackResponse.data.summary);
+        } catch (fallbackError) {
+          console.error('Fallback summarization also failed:', fallbackError);
         }
-      } catch (summaryError) {
-        console.error('AI summarization failed for video:', summaryError);
-        // Continue without summary rather than failing the entire request
       }
     }
 
@@ -431,13 +430,15 @@ exports.createVideoWithSummary = async (req, res, next) => {
       });
     }
 
-    const { generateSummary = false, summaryLength = 'medium', ...videoData } = req.body; let aiSummary = null;
+    const { generateSummary = false, summaryLength = 'medium', ...videoData } = req.body;
+
+    let aiSummary = null;
     if (generateSummary && videoData.url) {
       try {
-        // Use the new DashPoint AI Agent chat endpoint for intelligent processing
-        const summaryResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
+        // Use the new agent chat endpoint for more intelligent processing
+        const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
           prompt: `Please analyze and summarize this YouTube video: ${videoData.url}`,
-          context: `Video title: "${videoData.title || 'Unknown'}". Summary length: ${summaryLength}. This video is being saved to user collection. Provide comprehensive analysis including key topics, insights, and main takeaways.`
+          context: `Video title: ${videoData.title || 'Unknown'}. Summary length: ${summaryLength}. This is for saving to user collection.`
         }, {
           timeout: 120000,
           headers: {
@@ -446,18 +447,19 @@ exports.createVideoWithSummary = async (req, res, next) => {
         });
 
         // Extract summary from agent response
-        if (summaryResponse.data && summaryResponse.data.success && summaryResponse.data.results) {
+        if (summaryResponse.data && summaryResponse.data.results) {
           for (const result of summaryResponse.data.results) {
             if (result.type === 'function_result' && result.result && result.result.success) {
-              aiSummary = validateAISummary(result.result.data);
+              aiSummary = validateAISummary(result.result.summary);
               break;
             }
           }
         }
-
-        // Fallback to direct endpoint if chat doesn't provide summary
-        if (!aiSummary) {
-          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
+      } catch (summaryError) {
+        console.error('AI summarization failed during video creation:', summaryError);
+        // Fallback to direct endpoint
+        try {
+          const fallbackResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
             youtube_url: videoData.url,
             summary_length: summaryLength
           }, {
@@ -466,14 +468,10 @@ exports.createVideoWithSummary = async (req, res, next) => {
               'Content-Type': 'application/json'
             }
           });
-
-          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
-            aiSummary = validateAISummary(fallbackResponse.data.data.summary);
-          }
+          aiSummary = validateAISummary(fallbackResponse.data.summary);
+        } catch (fallbackError) {
+          console.error('Fallback summarization also failed:', fallbackError);
         }
-      } catch (summaryError) {
-        console.error('AI summarization failed during video creation:', summaryError);
-        // Continue without summary rather than failing the video creation
       }
     }
 

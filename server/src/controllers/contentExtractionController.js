@@ -4,7 +4,7 @@ const contentExtractorService = require('../services/contentExtractorService');
 const axios = require('axios');
 const { validateAISummary } = require('../utils/aiSummaryUtils');
 
-const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
+const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // Extract content from URL
 exports.extractContent = async (req, res, next) => {
@@ -424,16 +424,17 @@ exports.extractContentWithSummary = async (req, res, next) => {
       extractImages,
       extractLinks,
       maxContentLength
-    });    // AI-powered content analysis using DashPoint AI Agent
+    });
+
     let aiSummary = null;
     let aiAnalysis = null;
 
     if (generateSummary && extractedData.content && extractedData.content.length > 100) {
       try {
-        // Use the new DashPoint AI Agent chat endpoint for intelligent content analysis
-        const analysisResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
-          prompt: `Please analyze and summarize the following web content: "${extractedData.content}"`,
-          context: `URL: ${url}. Title: "${extractedData.title || 'Unknown'}". Summary length: ${summaryLength}. Provide comprehensive analysis including summary, key topics, sentiment, and important insights.`
+        // Use the new agent chat endpoint for more intelligent content analysis
+        const analysisResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
+          prompt: `Please analyze and summarize the following web content: ${extractedData.content}`,
+          context: `URL: ${url}. Title: ${extractedData.title || 'Unknown'}. Summary length: ${summaryLength}. Also extract key topics and sentiment.`
         }, {
           timeout: 120000,
           headers: {
@@ -442,30 +443,29 @@ exports.extractContentWithSummary = async (req, res, next) => {
         });
 
         // Extract analysis from agent response
-        if (analysisResponse.data && analysisResponse.data.success && analysisResponse.data.results) {
+        if (analysisResponse.data && analysisResponse.data.results) {
           for (const result of analysisResponse.data.results) {
             if (result.type === 'function_result' && result.result && result.result.success) {
-              const resultData = result.result.data;
-              if (typeof resultData === 'string') {
-                aiSummary = validateAISummary(resultData, 3000);
-              } else if (resultData && resultData.summary) {
-                aiSummary = validateAISummary(resultData.summary, 3000);
-                if (resultData.keywords || resultData.topics || resultData.sentiment) {
-                  aiAnalysis = {
-                    keywords: resultData.keywords || [],
-                    topics: resultData.topics || [],
-                    sentiment: resultData.sentiment || 'neutral'
-                  };
-                }
+              if (result.result.summary) {
+                aiSummary = validateAISummary(result.result.summary, 3000);
+              }
+              if (result.result.keywords || result.result.topics || result.result.sentiment) {
+                aiAnalysis = {
+                  keywords: result.result.keywords || [],
+                  topics: result.result.topics || [],
+                  sentiment: result.result.sentiment || 'neutral'
+                };
               }
               break;
             }
           }
         }
+      } catch (summaryError) {
+        console.error('AI analysis failed:', summaryError);
 
-        // Fallback to direct text summarization endpoint if chat doesn't provide summary
-        if (!aiSummary) {
-          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-text`, {
+        // Fallback to direct text summarization endpoint
+        try {
+          const fallbackResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-text`, {
             text_content: extractedData.content,
             summary_length: summaryLength
           }, {
@@ -474,14 +474,10 @@ exports.extractContentWithSummary = async (req, res, next) => {
               'Content-Type': 'application/json'
             }
           });
-
-          if (fallbackResponse.data && fallbackResponse.data.success && fallbackResponse.data.data) {
-            aiSummary = validateAISummary(fallbackResponse.data.data.summary, 3000);
-          }
+          aiSummary = validateAISummary(fallbackResponse.data.summary, 3000);
+        } catch (fallbackError) {
+          console.error('Fallback summarization also failed:', fallbackError);
         }
-      } catch (summaryError) {
-        console.error('AI analysis failed:', summaryError);
-        // Continue without AI analysis rather than failing the entire extraction
       }
     }
 

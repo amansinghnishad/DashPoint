@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Zap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { InstallButton } from "../../../components/install-button";
 
 export const Navigation = () => {
@@ -88,17 +88,11 @@ export const Navigation = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center logo">
-            <div className="bg-white p-2 rounded-xl mr-3 animate-pulse-glow">
-              <Zap className="h-8 w-8 text-purple-600" />
-            </div>
-            <span className={`text-2xl font-bold ${getTextColor()}`}>
-              Dash
-              <span
-                className={isLightPage ? "text-purple-600" : "text-yellow-300"}
-              >
-                Point
-              </span>
-            </span>
+            <img
+              src="/logo-vertical.png"
+              alt="DashPoint Logo"
+              className="h-16"
+            />
           </div>{" "}
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -119,7 +113,8 @@ export const Navigation = () => {
               className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
             >
               Pricing
-            </button>            <Link
+            </button>{" "}
+            <Link
               to="/login"
               className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
             >
@@ -177,7 +172,8 @@ export const Navigation = () => {
               className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
             >
               Pricing
-            </button>            <Link
+            </button>{" "}
+            <Link
               to="/login"
               className={`block ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
             >

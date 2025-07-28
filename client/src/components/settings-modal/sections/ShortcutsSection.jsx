@@ -10,7 +10,7 @@ export const ShortcutsSection = ({ settings, updateSetting }) => {
           updateSetting("shortcuts", "enabled", !settings.shortcuts.enabled)
         }
         label="Enable Shortcuts"
-        description="Use keyboard shortcuts for quick actions"
+        description="Use keyboard shortcuts for dashboard navigation"
       />
 
       <Toggle

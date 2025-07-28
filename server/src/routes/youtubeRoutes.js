@@ -216,4 +216,164 @@ router.post('/process-ai', [
   }
 });
 
+// New intelligent YouTube video processing endpoint
+router.post('/process-with-ai', [
+  auth,
+  body('youtube_url')
+    .notEmpty()
+    .withMessage('YouTube URL is required')
+    .matches(/^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/)
+    .withMessage('Must be a valid YouTube URL'),
+  body('processType')
+    .optional()
+    .isIn(['analyze', 'summarize', 'transcript', 'topics', 'sentiment'])
+    .withMessage('Process type must be one of: analyze, summarize, transcript, topics, sentiment'),
+  body('saveToCollection')
+    .optional()
+    .isBoolean()
+    .withMessage('saveToCollection must be boolean')
+], async (req, res, next) => {
+  try {
+    const { youtube_url, processType = 'analyze', saveToCollection = false } = req.body;
+    const userId = req.user._id;
+
+    // Use the new agent for intelligent YouTube processing
+    let prompt;
+    switch (processType.toLowerCase()) {
+      case 'summarize':
+        prompt = `Please provide a comprehensive summary of this YouTube video: ${youtube_url}`;
+        break;
+      case 'analyze':
+        prompt = `Please analyze this YouTube video and provide summary, key topics, main points, and insights: ${youtube_url}`;
+        break;
+      case 'transcript':
+        prompt = `Please extract and format the transcript from this YouTube video: ${youtube_url}`;
+        break;
+      case 'topics':
+        prompt = `Identify the main topics and themes discussed in this YouTube video: ${youtube_url}`;
+        break;
+      case 'sentiment':
+        prompt = `Analyze the sentiment and tone of this YouTube video: ${youtube_url}`;
+        break;
+      default:
+        prompt = `Please analyze and provide insights about this YouTube video: ${youtube_url}`;
+    }
+
+    try {
+      const agentResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
+        prompt: prompt,
+        context: `YouTube URL: ${youtube_url}. Processing type: ${processType}. User ID: ${userId}`
+      }, {
+        timeout: 120000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Extract results from agent response
+      let processedResults = null;
+      if (agentResponse.data && agentResponse.data.results) {
+        processedResults = agentResponse.data.results;
+      }
+
+      // Optionally save to user's YouTube collection
+      if (saveToCollection && processedResults) {
+        // Extract video info first
+        const videoIdMatch = youtube_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+        if (videoIdMatch) {
+          const videoId = videoIdMatch[1];
+
+          try {
+            // Get video details from YouTube API
+            const videoDetailsResponse = await axios.get(`${process.env.YOUTUBE_API_BASE_URL || 'https://www.googleapis.com/youtube/v3'}/videos`, {
+              params: {
+                part: 'snippet,contentDetails,statistics',
+                id: videoId,
+                key: process.env.YOUTUBE_API_KEY
+              }
+            });
+
+            if (videoDetailsResponse.data.items && videoDetailsResponse.data.items.length > 0) {
+              const video = videoDetailsResponse.data.items[0];
+
+              // Save to YouTube collection with AI analysis
+              const YouTube = require('../models/YouTube');
+              const youtubeEntry = new YouTube({
+                userId: userId,
+                videoId: videoId,
+                title: video.snippet.title,
+                thumbnail: video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url,
+                embedUrl: `https://www.youtube.com/embed/${videoId}`,
+                url: youtube_url,
+                channelTitle: video.snippet.channelTitle,
+                description: video.snippet.description,
+                aiAnalysis: processedResults,
+                agentVersion: "2.0.0",
+                processType: processType
+              });
+
+              await youtubeEntry.save();
+            }
+          } catch (saveError) {
+            console.error('Failed to save to collection:', saveError);
+            // Continue without saving
+          }
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'YouTube video processed successfully',
+        data: {
+          youtube_url,
+          processType,
+          results: processedResults,
+          savedToCollection: saveToCollection,
+          agentVersion: "2.0.0",
+          processedAt: new Date()
+        }
+      });
+
+    } catch (agentError) {
+      console.error('AI agent processing failed:', agentError);
+
+      // Fallback to direct endpoint
+      try {
+        const fallbackResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
+          youtube_url: youtube_url,
+          summary_length: 'medium'
+        }, {
+          timeout: 60000,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        res.status(200).json({
+          success: true,
+          message: 'YouTube video processed successfully (fallback)',
+          data: {
+            youtube_url,
+            processType: 'summarize',
+            results: [{
+              type: 'function_result',
+              function: 'summarize_youtube_video',
+              result: fallbackResponse.data
+            }],
+            savedToCollection: false,
+            agentVersion: "2.0.0-fallback",
+            processedAt: new Date()
+          }
+        });
+      } catch (fallbackError) {
+        throw new Error(`Both agent and fallback processing failed: ${agentError.message}`);
+      }
+    }
+
+  } catch (error) {
+    console.error('YouTube processing error:', error);
+    next(error);
+  }
+});
+
 module.exports = router;

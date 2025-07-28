@@ -65,13 +65,11 @@ export const Sidebar = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <h1
-                className={`text-xl font-bold transition-colors duration-200 ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
-                Dashboard
-              </h1>
+              <img
+                src="/logo-vertical.png"
+                alt="DashPoint Logo"
+                className="h-16"
+              />
               <button
                 onClick={onClose}
                 className={`lg:hidden p-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 ${

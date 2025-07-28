@@ -90,70 +90,69 @@ const searchValidation = [
     .withMessage('Limit must be between 1 and 50')
 ];
 
+// Enhanced content extraction with AI summarization validation
+const extractContentWithSummaryValidation = [
+  body('url')
+    .isURL({
+      protocols: ['http', 'https'],
+      require_protocol: true
+    })
+    .withMessage('Please provide a valid HTTP/HTTPS URL'),
+  body('extractImages')
+    .optional()
+    .isBoolean()
+    .withMessage('extractImages must be a boolean'),
+  body('extractLinks')
+    .optional()
+    .isBoolean()
+    .withMessage('extractLinks must be a boolean'),
+  body('maxContentLength')
+    .optional()
+    .isInt({ min: 100, max: 50000 })
+    .withMessage('maxContentLength must be between 100 and 50000'),
+  body('generateSummary')
+    .optional()
+    .isBoolean()
+    .withMessage('generateSummary must be a boolean'),
+  body('summaryLength')
+    .optional()
+    .isString()
+    .withMessage('summaryLength must be a string')
+];
+
 // Enhanced content extraction with AI summarization
 router.post('/extract-enhanced',
   enhancedExtractionLimiter,
-  [
-    body('url')
-      .isURL({
-        protocols: ['http', 'https'],
-        require_protocol: true
-      })
-      .withMessage('Please provide a valid HTTP/HTTPS URL'),
-    body('extractImages')
-      .optional()
-      .isBoolean()
-      .withMessage('extractImages must be a boolean'),
-    body('extractLinks')
-      .optional()
-      .isBoolean()
-      .withMessage('extractLinks must be a boolean'),
-    body('maxContentLength')
-      .optional()
-      .isInt({ min: 100, max: 50000 })
-      .withMessage('maxContentLength must be between 100 and 50000'),
-    body('generateSummary')
-      .optional()
-      .isBoolean()
-      .withMessage('generateSummary must be a boolean'),
-    body('summaryLength')
-      .optional()
-      .isString()
-      .withMessage('summaryLength must be a string')
-  ],
+  extractContentWithSummaryValidation,
   contentExtractionController.extractContentWithSummary
 );
 
-// Intelligent content processing using AI agent
-router.post('/process-ai',
+// Enhanced extraction with AI summary (alias route)
+router.post('/extract-with-summary',
   enhancedExtractionLimiter,
-  [
-    body('url')
-      .optional()
-      .isURL({
-        protocols: ['http', 'https'],
-        require_protocol: true
-      })
-      .withMessage('Please provide a valid HTTP/HTTPS URL'),
-    body('content')
-      .optional()
-      .isString()
-      .isLength({ min: 10, max: 50000 })
-      .withMessage('Content must be between 10 and 50000 characters'),
-    body('processType')
-      .optional()
-      .isIn(['summarize', 'analyze', 'keywords', 'topics', 'sentiment'])
-      .withMessage('processType must be one of: summarize, analyze, keywords, topics, sentiment'),
-    // At least one of url or content must be provided
-    body().custom((value, { req }) => {
-      if (!req.body.url && !req.body.content) {
-        throw new Error('Either url or content must be provided');
-      }
-      return true;
-    })
-  ],
-  contentExtractionController.processContentWithAI
+  extractContentWithSummaryValidation,
+  contentExtractionController.extractContentWithSummary
 );
+
+// New intelligent content processing endpoint
+router.post('/process-with-ai', enhancedExtractionLimiter, [
+  body('url')
+    .optional()
+    .isURL({
+      protocols: ['http', 'https'],
+      require_protocol: true
+    })
+    .withMessage('Please provide a valid HTTP/HTTPS URL'),
+  body('content')
+    .optional()
+    .isString()
+    .isLength({ min: 10, max: 50000 })
+    .withMessage('Content must be between 10 and 50000 characters'),
+  body('processType')
+    .optional()
+    .isIn(['analyze', 'summarize', 'keywords', 'topics', 'sentiment'])
+    .withMessage('Process type must be one of: analyze, summarize, keywords, topics, sentiment')
+], contentExtractionController.processContentWithAI);
 
 // Routes
 router.post('/extract', extractionLimiter, extractContentValidation, contentExtractionController.extractContent);
