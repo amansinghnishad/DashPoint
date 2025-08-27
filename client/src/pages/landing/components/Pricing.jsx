@@ -149,14 +149,14 @@ export const Pricing = () => {
                 <Zap className="text-white" size={32} />
               </div>
 
-              <h3 className="text-2xl font-bold text-cyan-100 mb-2">
+              <h3 className="text-2xl font-bold text-cyan-500 mb-2">
                 Free Plan
               </h3>
-              <p className="text-gray-300 mb-4">Perfect for getting started</p>
+              <p className="text-black/70 mb-4">Perfect for getting started</p>
 
               <div className="mb-6">
-                <span className="text-5xl font-bold text-cyan-100">$0</span>
-                <span className="text-gray-300 ml-2">/month</span>
+                <span className="text-5xl font-bold text-cyan-500">$0</span>
+                <span className="text-black/70 ml-2">/month</span>
               </div>
 
               <Link
@@ -169,15 +169,15 @@ export const Pricing = () => {
             </div>
 
             <div className="current-features space-y-3">
-              <h4 className="font-semibold text-cyan-100 mb-4">
+              <h4 className="font-semibold text-cyan-500 mb-4">
                 Everything included:
               </h4>
               {currentFeatures.map((feature, index) => (
                 <div key={index} className="feature-item flex items-center">
                   <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                    <Check className="text-white" size={12} />
+                    <Check className="text-black" size={12} />
                   </div>
-                  <span className="text-gray-400">{feature}</span>
+                  <span className="text-black/70">{feature}</span>
                 </div>
               ))}
             </div>
@@ -195,21 +195,21 @@ export const Pricing = () => {
                 <Star className="text-white" size={32} />
               </div>
 
-              <h3 className="text-2xl font-bold text-cyan-100 mb-2">
+              <h3 className="text-2xl font-bold text-cyan-500 mb-2">
                 Premium Plan
               </h3>
-              <p className="text-gray-300 mb-4">
+              <p className="text-black/70 mb-4">
                 Advanced features for power users
               </p>
 
               <div className="mb-6">
-                <span className="text-5xl font-bold text-cyan-100">$9.99</span>
-                <span className="text-gray-300 ml-2">/month</span>
+                <span className="text-5xl font-bold text-cyan-500">$9.99</span>
+                <span className="text-black/70 ml-2">/month</span>
               </div>
 
               <button
                 disabled
-                className="w-full bg-gray-300 text-gray-200 px-8 py-3 rounded-full font-semibold cursor-not-allowed flex items-center justify-center"
+                className="w-full bg-black/70 text-gray-200 px-8 py-3 rounded-full font-semibold cursor-not-allowed flex items-center justify-center"
               >
                 <Calendar className="mr-2" size={16} />
                 Notify Me
@@ -217,7 +217,7 @@ export const Pricing = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-cyan-100 mb-4">
+              <h4 className="font-semibold text-cyan-500 mb-4">
                 Everything in Free, plus:
               </h4>
               {comingSoonFeatures.map((feature, index) => (
@@ -226,9 +226,9 @@ export const Pricing = () => {
                   className="feature-item flex items-center opacity-70"
                 >
                   <div className="w-5 h-5 bg-purple-300 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                    <Check className="text-white" size={12} />
+                    <Check className="text-black" size={12} />
                   </div>
-                  <span className="text-gray-300">{feature}</span>
+                  <span className="text-black/70">{feature}</span>
                 </div>
               ))}
             </div>

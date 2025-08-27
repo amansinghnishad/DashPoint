@@ -102,11 +102,9 @@ export const Hero = () => {
       ref={heroRef}
       className="relative min-h-screen flex items-center overflow-hidden"
     >
-      {/* Background Elements */}
       <div className="parallax-bg"></div>
       <div className="absolute inset-0 gradient-mesh"></div>
 
-      {/* Floating Background Elements */}
       <div className="absolute top-20 left-10 floating-element-1">
         <div className="w-20 h-20 bg-white/10 rounded-full backdrop-blur-sm"></div>
       </div>
@@ -119,7 +117,6 @@ export const Hero = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
           <div className="text-center lg:text-left">
             <div className="hero-title">
               <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
@@ -153,7 +150,7 @@ export const Hero = () => {
 
               <button
                 onClick={playDemo}
-                className="group glass-card text-white px-8 py-4 rounded-full font-semibold text-lg hover-glow flex items-center justify-center"
+                className="group glass-card text-black px-8 py-4 rounded-full font-semibold text-lg hover-glow flex items-center justify-center"
               >
                 <Play
                   className="mr-2 group-hover:scale-110 transition-transform"
@@ -161,8 +158,7 @@ export const Hero = () => {
                 />
                 Watch Demo
               </button>
-            </div>{" "}
-            {/* Launch Info */}
+            </div>
             <div className="hero-stats grid grid-cols-2 gap-8 max-w-md mx-auto lg:mx-0">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -182,11 +178,9 @@ export const Hero = () => {
             </div>
           </div>
 
-          {/* Right Visual */}
           <div className="hero-visual relative">
-            <div className="glass-card p-8 rounded-3xl">
-              {/* Demo Video/Screenshot */}
-              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/50 to-blue-900/50 aspect-video mb-6">
+            <div className="glass-card p-8 rounded-3xl bg-[#000]">
+              <div className="relative rounded-2xl overflow-hidden  aspect-video mb-6">
                 {" "}
                 <video
                   ref={videoRef}
@@ -200,7 +194,6 @@ export const Hero = () => {
                 >
                   <source src="./2.mp4" type="video/mp4" />
                 </video>
-                {/* Play Button Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button
                     onClick={playDemo}
@@ -211,34 +204,32 @@ export const Hero = () => {
                 </div>
               </div>
 
-              {/* Feature Highlights */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="glass-card p-4 rounded-xl hover-lift">
                   <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-pink-400 rounded-lg flex items-center justify-center mb-3">
                     <Zap className="text-purple-900" size={20} />
                   </div>
-                  <h3 className="text-white font-semibold mb-1">
+                  <h3 className="text-black font-semibold mb-1">
                     Lightning Fast
                   </h3>
-                  <p className="text-white/70 text-sm">Optimized performance</p>
+                  <p className="text-black/70 text-sm">Optimized performance</p>
                 </div>
 
                 <div className="glass-card p-4 rounded-xl hover-lift">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg flex items-center justify-center mb-3">
-                    <Star className="text-white" size={20} />
+                    <Star className="text-black" size={20} />
                   </div>
-                  <h3 className="text-white font-semibold mb-1">AI Powered</h3>
-                  <p className="text-white/70 text-sm">Smart automation</p>
+                  <h3 className="text-black font-semibold mb-1">AI Powered</h3>
+                  <p className="text-black/70 text-sm">Smart automation</p>
                 </div>
               </div>
             </div>
 
-            {/* Floating UI Elements */}
             <div className="absolute -top-4 -right-4 animate-float">
               <div className="glass-card p-3 rounded-xl">
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-white text-sm">Live Updates</span>
+                  <span className="text-black text-sm">Live Updates</span>
                 </div>
               </div>
             </div>
@@ -250,7 +241,7 @@ export const Hero = () => {
               <div className="glass-card p-3 rounded-xl">
                 <div className="flex items-center space-x-2">
                   <Star className="text-yellow-400" size={16} />
-                  <span className="text-white text-sm">Premium Features</span>
+                  <span className="text-black text-sm">Premium Features</span>
                 </div>
               </div>
             </div>

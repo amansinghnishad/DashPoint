@@ -280,10 +280,10 @@ export const VideoShowcase = () => {
 
               {/* Video Info */}
               <div className="mt-6 text-center">
-                <h3 className="text-xl font-semibold text-white mb-2">
+                <h3 className="text-xl font-semibold text-black mb-2">
                   Complete Dashboard Tour
                 </h3>
-                <p className="text-white/70">
+                <p className="text-black/70">
                   A comprehensive walkthrough of all DashPoint features and
                   capabilities
                 </p>
@@ -296,7 +296,7 @@ export const VideoShowcase = () => {
                 <div className="glass-card p-3 rounded-xl">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-white text-sm">Live Demo</span>
+                    <span className="text-black text-sm">Live Demo</span>
                   </div>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export const VideoShowcase = () => {
                 <div className="glass-card p-3 rounded-xl">
                   <div className="flex items-center space-x-2">
                     <Play className="text-yellow-400" size={16} />
-                    <span className="text-white text-sm">4K Quality</span>
+                    <span className="text-black text-sm">4K Quality</span>
                   </div>
                 </div>
               </div>

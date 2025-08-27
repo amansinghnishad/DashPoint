@@ -238,7 +238,7 @@ export const Features = () => {
             <h3 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
               AI-Powered Content Extraction & Organization
             </h3>{" "}
-            <p className="text-lg text-gray-100 mb-8">
+            <p className="text-lg text-black/70 mb-8">
               Our advanced AI algorithms automatically extract, categorize, and
               organize content from any webpage, document, or media source. Save
               time and stay organized with intelligent content management.
@@ -247,7 +247,7 @@ export const Features = () => {
               <div className="flex items-center">
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
                   <svg
-                    className="w-4 h-4 text-white"
+                    className="w-4 h-4 text-black"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -258,7 +258,7 @@ export const Features = () => {
                     />
                   </svg>
                 </div>{" "}
-                <span className="text-gray-300">
+                <span className="text-black/70">
                   Automatic content categorization
                 </span>
               </div>
@@ -266,7 +266,7 @@ export const Features = () => {
               <div className="flex items-center">
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
                   <svg
-                    className="w-4 h-4 text-white"
+                    className="w-4 h-4 text-black"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -277,13 +277,13 @@ export const Features = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-300">Smart tagging and search</span>
+                <span className="text-black/70">Smart tagging and search</span>
               </div>
 
               <div className="flex items-center">
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-3">
                   <svg
-                    className="w-4 h-4 text-white"
+                    className="w-4 h-4 text-black"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -294,7 +294,7 @@ export const Features = () => {
                     />
                   </svg>
                 </div>
-                <span className="text-gray-300">
+                <span className="text-black/70">
                   Cross-platform synchronization
                 </span>
               </div>
@@ -318,7 +318,7 @@ export const Features = () => {
 
                 <div className="space-y-3">
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center mr-3">
                       <img
                         src={fileTextIcon}
                         alt="File Text"
@@ -336,7 +336,7 @@ export const Features = () => {
                   </div>
 
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-10 h-10  rounded-lg flex items-center justify-center mr-3">
                       <img
                         src={youtubeIcon}
                         alt="YouTube"
@@ -354,7 +354,7 @@ export const Features = () => {
                   </div>
 
                   <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center mr-3">
                       <img
                         src={stickyNoteIcon}
                         alt="Sticky Note"

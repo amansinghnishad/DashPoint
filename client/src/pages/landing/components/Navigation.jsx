@@ -96,41 +96,66 @@ export const Navigation = () => {
           </div>{" "}
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <button
-              onClick={() => scrollToSection("features")}
-              className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection("showcase")}
-              className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Demo
-            </button>
-            <button
-              onClick={() => scrollToSection("pricing")}
-              className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Pricing
-            </button>{" "}
-            <Link
-              to="/login"
-              className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Sign In
-            </Link>
-            <InstallButton className="nav-item" />
-            <Link
-              to="/register"
-              className={`nav-item ${
-                isLightPage
-                  ? "bg-purple-600 text-white hover:bg-purple-700"
-                  : "bg-white text-purple-600 hover:bg-yellow-300 hover:text-purple-700"
-              } px-6 py-2 rounded-full transition-all duration-300 hover-lift font-semibold`}
-            >
-              Start Free
-            </Link>
+            {isLightPage ? (
+              <>
+                <Link
+                  to="/"
+                  className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Home
+                </Link>
+                {location.pathname !== "/login" && (
+                  <Link
+                    to="/login"
+                    className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                  >
+                    Sign In
+                  </Link>
+                )}
+                {location.pathname !== "/register" && (
+                  <Link
+                    to="/register"
+                    className={`nav-item bg-purple-600 text-white hover:bg-purple-700 px-6 py-2 rounded-full transition-all duration-300 hover-lift font-semibold`}
+                  >
+                    Sign Up
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => scrollToSection("features")}
+                  className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Features
+                </button>
+                <button
+                  onClick={() => scrollToSection("showcase")}
+                  className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Demo
+                </button>
+                <button
+                  onClick={() => scrollToSection("pricing")}
+                  className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Pricing
+                </button>{" "}
+                <Link
+                  to="/login"
+                  className={`nav-item ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Sign In
+                </Link>
+                <InstallButton className="nav-item" />
+                <Link
+                  to="/register"
+                  className={`nav-item bg-white text-purple-600 hover:bg-yellow-300 hover:text-purple-700 px-6 py-2 rounded-full transition-all duration-300 hover-lift font-semibold`}
+                >
+                  Start Free
+                </Link>
+              </>
+            )}
           </div>{" "}
           {/* Mobile Menu Button */}
           <div className="md:hidden">
@@ -155,43 +180,68 @@ export const Navigation = () => {
                 : "glass-card"
             } p-4 space-y-4 rounded-xl`}
           >
-            <button
-              onClick={() => scrollToSection("features")}
-              className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection("showcase")}
-              className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Demo
-            </button>
-            <button
-              onClick={() => scrollToSection("pricing")}
-              className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Pricing
-            </button>{" "}
-            <Link
-              to="/login"
-              className={`block ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
-            >
-              Sign In
-            </Link>
-            <div className="flex justify-center">
-              <InstallButton />
-            </div>
-            <Link
-              to="/register"
-              className={`block ${
-                isLightPage
-                  ? "bg-purple-600 text-white hover:bg-purple-700"
-                  : "bg-white text-purple-600 hover:bg-yellow-300 hover:text-purple-700"
-              } px-6 py-2 rounded-full transition-all duration-300 text-center font-semibold`}
-            >
-              Start Free
-            </Link>
+            {isLightPage ? (
+              <>
+                <Link
+                  to="/"
+                  className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Home
+                </Link>
+                {location.pathname !== "/login" && (
+                  <Link
+                    to="/login"
+                    className={`block ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                  >
+                    Sign In
+                  </Link>
+                )}
+                {location.pathname !== "/register" && (
+                  <Link
+                    to="/register"
+                    className={`block bg-purple-600 text-white hover:bg-purple-700 px-6 py-2 rounded-full transition-all duration-300 text-center font-semibold`}
+                  >
+                    Sign Up
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => scrollToSection("features")}
+                  className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Features
+                </button>
+                <button
+                  onClick={() => scrollToSection("showcase")}
+                  className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Demo
+                </button>
+                <button
+                  onClick={() => scrollToSection("pricing")}
+                  className={`block w-full text-left ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Pricing
+                </button>{" "}
+                <Link
+                  to="/login"
+                  className={`block ${getTextColor()} ${getHoverColor()} transition-colors duration-300`}
+                >
+                  Sign In
+                </Link>
+                <div className="flex justify-center">
+                  <InstallButton />
+                </div>
+                <Link
+                  to="/register"
+                  className={`block bg-white text-purple-600 hover:bg-yellow-300 hover:text-purple-700 px-6 py-2 rounded-full transition-all duration-300 text-center font-semibold`}
+                >
+                  Start Free
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
