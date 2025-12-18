@@ -3,8 +3,7 @@
  */
 export const getPageTitle = (activeTab) => {
   const titles = {
-    overview: "Dashboard Overview",
-    collections: "Collections",
+    collections: "Home",
     youtube: "YouTube Player",
     content: "Content Extractor",
     files: "File Manager",
@@ -20,26 +19,21 @@ export const getKeyboardShortcuts = (handlers) => {
   return [
     {
       keys: "ctrl+1",
-      action: () => handlers.setActiveTab("overview"),
-      description: "Go to Overview"
+      action: () => handlers.setActiveTab("collections"),
+      description: "Go to Home"
     },
     {
       keys: "ctrl+2",
-      action: () => handlers.setActiveTab("collections"),
-      description: "Go to Collections"
-    },
-    {
-      keys: "ctrl+3",
       action: () => handlers.setActiveTab("youtube"),
       description: "Go to YouTube Player"
     },
     {
-      keys: "ctrl+4",
+      keys: "ctrl+3",
       action: () => handlers.setActiveTab("content"),
       description: "Go to Content Extractor"
     },
     {
-      keys: "ctrl+5",
+      keys: "ctrl+4",
       action: () => handlers.setActiveTab("files"),
       description: "Go to File Manager"
     },

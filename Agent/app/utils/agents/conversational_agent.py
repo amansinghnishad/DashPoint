@@ -1,550 +1,633 @@
-"""
-Conversational Command Agent for DashPoint
-This agent interprets natural language commands and executes appropriate actions automatically.
-"""
+"""Conversational Command Agent for DashPoint."""
 
-import re
+from __future__ import annotations
+
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime
-import google.generativeai as genai
-from google.generativeai.types import GenerationConfig
+import re
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Iterable, List, Optional, Pattern
+
+from google.generativeai import GenerativeModel
+
+from .gemini_client import get_client_and_config
+
+
+CommandHandler = Callable[[List[str], Optional[Dict[str, Any]]], Dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class CommandDefinition:
+    """Specification of a conversational command."""
+
+    name: str
+    handler: CommandHandler
+    patterns: Iterable[str]
+    description: str
+
+    def compile(self) -> "CompiledCommandDefinition":
+        compiled = [re.compile(pattern, re.IGNORECASE) for pattern in self.patterns]
+        return CompiledCommandDefinition(self.name, compiled, self.handler, self.description)
+
+
+@dataclass(frozen=True)
+class CompiledCommandDefinition:
+    """Regex-ready command definition."""
+
+    name: str
+    patterns: List[Pattern[str]]
+    handler: CommandHandler
+    description: str
+
+    def match(self, text: str) -> Optional[List[str]]:
+        for pattern in self.patterns:
+            match = pattern.search(text)
+            if match:
+                return list(match.groups())
+        return None
+
+
+@dataclass(frozen=True)
+class CommandMatch:
+    """Represents a resolved command from user input."""
+
+    name: str
+    parameters: List[str]
+    confidence: float
+    method: str
+
 
 class ConversationalCommandAgent:
-    """Agent that processes conversational commands and executes actions"""
-    
-    def __init__(self):
-        self.api_key = None
-        self.model = None
-        self.initialize_ai()
-        
-        # Command patterns and their corresponding actions
-        self.command_patterns = {
-            # Notes and sticky notes
-            'add_note': [
-                r'add note\s+["\'](.+?)["\']',
-                r'create note\s+["\'](.+?)["\']',
-                r'new note\s+["\'](.+?)["\']',
-                r'add sticky note\s+["\'](.+?)["\']',
-                r'note:\s*(.+)',
-                r'remind me to\s+(.+)',
-                r'remember\s+(.+)'
-            ],
-            
-            # Todo items
-            'add_todo': [
-                r'add todo\s+["\'](.+?)["\']',
-                r'add task\s+["\'](.+?)["\']',
-                r'create task\s+["\'](.+?)["\']',
-                r'todo:\s*(.+)',
-                r'task:\s*(.+)',
-                r'i need to\s+(.+)',
-                r'add to my todo list\s+(.+)'
-            ],
-            
-            # Complete tasks
-            'complete_todo': [
-                r'complete task\s+["\'](.+?)["\']',
-                r'mark done\s+["\'](.+?)["\']',
-                r'finish task\s+["\'](.+?)["\']',
-                r'completed\s+(.+)',
-                r'done with\s+(.+)'
-            ],
-            
-            # YouTube operations
-            'save_youtube': [
-                r'save youtube\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'add youtube\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'bookmark this video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'save video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)'
-            ],
-            
-            'summarize_youtube': [
-                r'summarize\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'what is this video about\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'explain this video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)',
-                r'analyze video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)'
-            ],
-            
-            # Web content operations
-            'extract_content': [
-                r'extract content from\s+(https?://[^\s]+)',
-                r'summarize this page\s+(https?://[^\s]+)',
-                r'analyze website\s+(https?://[^\s]+)',
-                r'what is on this page\s+(https?://[^\s]+)'
-            ],
-            
-            # File operations
-            'upload_file': [
-                r'upload file\s+["\'](.+?)["\']',
-                r'save file\s+["\'](.+?)["\']',
-                r'add document\s+["\'](.+?)["\']'
-            ],
-            
-            # Collections
-            'create_collection': [
-                r'create collection\s+["\'](.+?)["\']',
-                r'new collection\s+["\'](.+?)["\']',
-                r'make collection\s+["\'](.+?)["\']'
-            ],
-            
-            # Weather
-            'get_weather': [
-                r'weather for\s+(.+)',
-                r'what\'s the weather in\s+(.+)',
-                r'check weather\s+(.+)',
-                r'weather (.+)'
-            ],
-            
-            # Search operations
-            'search': [
-                r'search for\s+["\'](.+?)["\']',
-                r'find\s+["\'](.+?)["\']',
-                r'look for\s+["\'](.+?)["\']',
-                r'search:\s*(.+)'
-            ],
-            
-            # AI assistance
-            'ask_ai': [
-                r'ask ai\s+["\'](.+?)["\']',
-                r'ai help with\s+(.+)',
-                r'explain\s+(.+)',
-                r'what is\s+(.+)',
-                r'how to\s+(.+)',
-                r'help me\s+(.+)'
-            ]
-        }
-        
-        # Function mappings for API calls
-        self.action_functions = {
-            'add_note': self.add_sticky_note,
-            'add_todo': self.add_todo_item,
-            'complete_todo': self.complete_todo_item,
-            'save_youtube': self.save_youtube_video,
-            'summarize_youtube': self.summarize_youtube_video,
-            'extract_content': self.extract_web_content,
-            'upload_file': self.upload_file,
-            'create_collection': self.create_collection,
-            'get_weather': self.get_weather_info,
-            'search': self.search_content,
-            'ask_ai': self.ask_ai_assistant
-        }
-    
-    def initialize_ai(self):
-        """Initialize the AI model for advanced command understanding"""
-        import os
+    """Agent that processes conversational commands and produces API intents."""
+
+    _CONTRACTIONS = {
+        "i'm": "i am",
+        "i'll": "i will",
+        "i'd": "i would",
+        "i've": "i have",
+        "you're": "you are",
+        "you'll": "you will",
+        "you'd": "you would",
+        "you've": "you have",
+        "he's": "he is",
+        "she's": "she is",
+        "it's": "it is",
+        "we're": "we are",
+        "we'll": "we will",
+        "we'd": "we would",
+        "we've": "we have",
+        "they're": "they are",
+        "they'll": "they will",
+        "they'd": "they would",
+        "they've": "they have",
+        "can't": "cannot",
+        "won't": "will not",
+        "don't": "do not",
+        "doesn't": "does not",
+        "didn't": "did not",
+        "haven't": "have not",
+        "hasn't": "has not",
+        "hadn't": "had not",
+        "wouldn't": "would not",
+        "shouldn't": "should not",
+        "couldn't": "could not",
+    }
+
+    def __init__(self) -> None:
+        self._model: Optional[GenerativeModel] = None
+        self._initialize_ai()
+        self._commands = self._build_commands()
+        self._command_index = {command.name: command for command in self._commands}
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+    def process_command(
+        self, user_input: str, user_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Process natural language and return an actionable response."""
+
+        user_context = user_context or {}
+        normalized_input = self._normalize_input(user_input)
+
+        match = self._match_command(normalized_input)
+        if match:
+            return self._execute(match, user_context)
+
+        ai_match = self._ai_understand_command(normalized_input)
+        if ai_match:
+            return self._execute(ai_match, user_context)
+
+        fallback = CommandMatch(
+            name="ask_ai",
+            parameters=[normalized_input],
+            confidence=0.6,
+            method="fallback",
+        )
+        return self._execute(fallback, user_context)
+
+    # ------------------------------------------------------------------
+    # Command resolution helpers
+    # ------------------------------------------------------------------
+    def _match_command(self, text: str) -> Optional[CommandMatch]:
+        for command in self._commands:
+            parameters = command.match(text)
+            if parameters is not None:
+                return CommandMatch(
+                    name=command.name,
+                    parameters=parameters,
+                    confidence=0.95,
+                    method="pattern_match",
+                )
+        return None
+
+    def _ai_understand_command(self, text: str) -> Optional[CommandMatch]:
+        if not self._model:
+            return None
+
+        prompt = self._build_ai_prompt(text)
         try:
-            self.api_key = os.getenv('GEMINI_API_KEY')
-            if self.api_key:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-pro')
-        except Exception as e:
-            print(f"AI initialization failed: {e}")
-            self.model = None
-    
-    def process_command(self, user_input: str, user_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """
-        Process a natural language command and execute the appropriate action
-        
-        Args:
-            user_input (str): The natural language command from the user
-            user_context (dict): User context including user_id, preferences, etc.
-        
-        Returns:
-            dict: Result of the command execution
-        """
+            response = self._model.generate_content(prompt)
+        except Exception as exc:  # pragma: no cover - defensive logging path
+            print(f"AI understanding failed: {exc}")
+            return None
+
+        payload = self._parse_ai_payload(response)
+        if not payload:
+            return None
+
+        action_name = payload.get("action")
+        if action_name not in self._command_index:
+            return None
+
+        parameters = payload.get("parameters") or []
+        if not isinstance(parameters, list):
+            parameters = [str(parameters)]
+
+        confidence = payload.get("confidence", 0.75)
         try:
-            # Clean and normalize the input
-            normalized_input = self.normalize_input(user_input)
-            
-            # First try pattern matching for speed
-            pattern_result = self.match_command_patterns(normalized_input)
-            
-            if pattern_result['action'] != 'unknown':
-                return self.execute_action(pattern_result, user_context)
-            
-            # If pattern matching fails, use AI for understanding
-            if self.model:
-                ai_result = self.ai_understand_command(normalized_input)
-                if ai_result['action'] != 'unknown':
-                    return self.execute_action(ai_result, user_context)
-            
-            # If all else fails, treat as general AI question
-            return self.execute_action({
-                'action': 'ask_ai',
-                'parameters': [normalized_input],
-                'confidence': 0.7
-            }, user_context)
-            
-        except Exception as e:
+            confidence = float(confidence)
+        except (TypeError, ValueError):
+            confidence = 0.75
+
+        return CommandMatch(
+            name=action_name,
+            parameters=[str(param) for param in parameters],
+            confidence=max(0.0, min(confidence, 1.0)),
+            method="ai_understanding",
+        )
+
+    def _execute(self, match: CommandMatch, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        command = self._command_index.get(match.name)
+        if not command:
             return {
-                'success': False,
-                'error': str(e),
-                'action': 'error',
-                'message': 'Failed to process command'
+                "success": False,
+                "action": "unknown",
+                "message": "Command not recognized",
             }
-    
-    def normalize_input(self, user_input: str) -> str:
-        """Normalize user input for better matching"""
-        # Convert to lowercase and strip whitespace
-        normalized = user_input.lower().strip()
-        
-        # Remove extra spaces
-        normalized = re.sub(r'\s+', ' ', normalized)
-        
-        # Handle common contractions
-        contractions = {
-            "i'm": "i am",
-            "i'll": "i will",
-            "i'd": "i would",
-            "i've": "i have",
-            "you're": "you are",
-            "you'll": "you will",
-            "you'd": "you would",
-            "you've": "you have",
-            "he's": "he is",
-            "she's": "she is",
-            "it's": "it is",
-            "we're": "we are",
-            "we'll": "we will",
-            "we'd": "we would",
-            "we've": "we have",
-            "they're": "they are",
-            "they'll": "they will",
-            "they'd": "they would",
-            "they've": "they have",
-            "can't": "cannot",
-            "won't": "will not",
-            "don't": "do not",
-            "doesn't": "does not",
-            "didn't": "did not",
-            "haven't": "have not",
-            "hasn't": "has not",
-            "hadn't": "had not",
-            "wouldn't": "would not",
-            "shouldn't": "should not",
-            "couldn't": "could not"
-        }
-        
-        for contraction, expansion in contractions.items():
-            normalized = normalized.replace(contraction, expansion)
-        
-        return normalized
-    
-    def match_command_patterns(self, normalized_input: str) -> Dict[str, Any]:
-        """Match input against predefined command patterns"""
-        for action, patterns in self.command_patterns.items():
-            for pattern in patterns:
-                match = re.search(pattern, normalized_input, re.IGNORECASE)
-                if match:
-                    return {
-                        'action': action,
-                        'parameters': list(match.groups()),
-                        'confidence': 0.95,
-                        'method': 'pattern_match'
-                    }
-        
-        return {
-            'action': 'unknown',
-            'parameters': [],
-            'confidence': 0.0,
-            'method': 'pattern_match'
-        }
-    
-    def ai_understand_command(self, user_input: str) -> Dict[str, Any]:
-        """Use AI to understand complex or ambiguous commands"""
-        if not self.model:
-            return {'action': 'unknown', 'parameters': [], 'confidence': 0.0}
-        
+
         try:
-            prompt = f"""
-            Analyze this user command and determine what action they want to perform.
-            
-            User command: "{user_input}"
-            
-            Available actions:
-            - add_note: Add a sticky note or reminder
-            - add_todo: Add a task to todo list
-            - complete_todo: Mark a task as completed
-            - save_youtube: Save a YouTube video to collection
-            - summarize_youtube: Summarize a YouTube video
-            - extract_content: Extract and analyze web content
-            - upload_file: Upload or save a file
-            - create_collection: Create a new collection
-            - get_weather: Get weather information
-            - search: Search for content
-            - ask_ai: General AI assistance or questions
-            
-            Return ONLY a JSON object with this format:
-            {{
-                "action": "action_name",
-                "parameters": ["extracted_parameter1", "extracted_parameter2"],
-                "confidence": 0.8
-            }}
-            
-            Extract the relevant parameters from the user input. For example:
-            - For notes: extract the note content
-            - For URLs: extract the full URL
-            - For locations: extract the location name
-            - For search: extract the search query
-            """
-            
-            response = self.model.generate_content(prompt)
-            
-            try:
-                result = json.loads(response.text.strip())
-                result['method'] = 'ai_understanding'
-                return result
-            except json.JSONDecodeError:
-                return {'action': 'unknown', 'parameters': [], 'confidence': 0.0}
-                
-        except Exception as e:
-            print(f"AI understanding failed: {e}")
-            return {'action': 'unknown', 'parameters': [], 'confidence': 0.0}
-    
-    def execute_action(self, action_result: Dict[str, Any], user_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Execute the determined action"""
-        action = action_result['action']
-        parameters = action_result.get('parameters', [])
-        
-        if action in self.action_functions:
-            try:
-                result = self.action_functions[action](parameters, user_context)
-                result['action'] = action
-                result['confidence'] = action_result.get('confidence', 0.8)
-                result['method'] = action_result.get('method', 'unknown')
-                return result
-            except Exception as e:
-                return {
-                    'success': False,
-                    'error': str(e),
-                    'action': action,
-                    'message': f'Failed to execute {action}'
-                }
+            result = command.handler(match.parameters, user_context)
+        except Exception as exc:  # pragma: no cover - runtime guard
+            return {
+                "success": False,
+                "action": match.name,
+                "error": str(exc),
+                "message": f"Failed to execute {match.name}",
+            }
+
+        result["action"] = match.name
+        result["confidence"] = match.confidence
+        result["method"] = match.method
+        return result
+
+    # ------------------------------------------------------------------
+    # AI utilities
+    # ------------------------------------------------------------------
+    def _initialize_ai(self) -> None:
+        try:
+            model, _config = get_client_and_config()
+        except ValueError:
+            self._model = None
         else:
-            return {
-                'success': False,
-                'action': 'unknown',
-                'message': 'Command not recognized'
-            }
-    
-    # Action implementation methods
-    def add_sticky_note(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Add a sticky note"""
+            self._model = model
+
+    @staticmethod
+    def _build_ai_prompt(user_input: str) -> str:
+        return (
+            "You are an assistant that converts user commands into structured actions.\n"
+            "Analyze the command and respond with only valid JSON using this schema:\n"
+            "{\n"
+            "  \"action\": \"<action_name>\",\n"
+            "  \"parameters\": [\"param1\", \"param2\"],\n"
+            "  \"confidence\": 0.0\n"
+            "}\n"
+            "Available actions and descriptions:\n"
+            "- add_note: Add a sticky note or reminder\n"
+            "- add_todo: Add a task to the todo list\n"
+            "- complete_todo: Mark a task as completed\n"
+            "- save_youtube: Save a YouTube video\n"
+            "- summarize_youtube: Summarize a YouTube video\n"
+            "- extract_content: Extract or summarize web content\n"
+            "- upload_file: Upload or save a file\n"
+            "- create_collection: Create a new collection\n"
+            "- get_weather: Retrieve weather information\n"
+            "- search: Search DashPoint content\n"
+            "- ask_ai: General AI assistance\n"
+            "User command: "
+            f"{user_input!r}\n"
+            "Respond with JSON only."
+        )
+
+    @staticmethod
+    def _parse_ai_payload(response: Any) -> Optional[Dict[str, Any]]:
+        raw_text = getattr(response, "text", "") or ""
+        raw_text = raw_text.strip()
+        if not raw_text:
+            return None
+
+        candidate = raw_text
+        if "```" in raw_text:
+            match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
+            if match:
+                candidate = match.group(1)
+
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", candidate, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except json.JSONDecodeError:
+                    return None
+        return None
+
+    # ------------------------------------------------------------------
+    # Input normalization
+    # ------------------------------------------------------------------
+    def _normalize_input(self, user_input: str) -> str:
+        normalized = user_input.lower().strip()
+        normalized = re.sub(r"\s+", " ", normalized)
+        for contraction, expansion in self._CONTRACTIONS.items():
+            normalized = normalized.replace(contraction, expansion)
+        return normalized
+
+    # ------------------------------------------------------------------
+    # Command registry
+    # ------------------------------------------------------------------
+    def _build_commands(self) -> List[CompiledCommandDefinition]:
+        definitions = [
+            CommandDefinition(
+                name="add_note",
+                handler=self.add_sticky_note,
+                patterns=[
+                    r"add note\s+\"(.+?)\"",
+                    r"create note\s+\"(.+?)\"",
+                    r"new note\s+\"(.+?)\"",
+                    r"add sticky note\s+\"(.+?)\"",
+                    r"note:\s*(.+)",
+                    r"remind me to\s+(.+)",
+                    r"remember\s+(.+)",
+                ],
+                description="Add a sticky note or reminder",
+            ),
+            CommandDefinition(
+                name="add_todo",
+                handler=self.add_todo_item,
+                patterns=[
+                    r"add todo\s+\"(.+?)\"",
+                    r"add task\s+\"(.+?)\"",
+                    r"create task\s+\"(.+?)\"",
+                    r"todo:\s*(.+)",
+                    r"task:\s*(.+)",
+                    r"i need to\s+(.+)",
+                    r"add to my todo list\s+(.+)",
+                ],
+                description="Add an item to the todo list",
+            ),
+            CommandDefinition(
+                name="complete_todo",
+                handler=self.complete_todo_item,
+                patterns=[
+                    r"complete task\s+\"(.+?)\"",
+                    r"mark done\s+\"(.+?)\"",
+                    r"finish task\s+\"(.+?)\"",
+                    r"completed\s+(.+)",
+                    r"done with\s+(.+)",
+                ],
+                description="Mark a todo item as complete",
+            ),
+            CommandDefinition(
+                name="save_youtube",
+                handler=self.save_youtube_video,
+                patterns=[
+                    r"save youtube\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"add youtube\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"bookmark this video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"save video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                ],
+                description="Save a YouTube video",
+            ),
+            CommandDefinition(
+                name="summarize_youtube",
+                handler=self.summarize_youtube_video,
+                patterns=[
+                    r"summarize\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"what is this video about\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"explain this video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                    r"analyze video\s+(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)[\w-]+)",
+                ],
+                description="Summarize a YouTube video",
+            ),
+            CommandDefinition(
+                name="extract_content",
+                handler=self.extract_web_content,
+                patterns=[
+                    r"extract content from\s+(https?://[^\s]+)",
+                    r"summarize this page\s+(https?://[^\s]+)",
+                    r"analyze website\s+(https?://[^\s]+)",
+                    r"what is on this page\s+(https?://[^\s]+)",
+                ],
+                description="Extract and analyze web content",
+            ),
+            CommandDefinition(
+                name="upload_file",
+                handler=self.upload_file,
+                patterns=[
+                    r"upload file\s+\"(.+?)\"",
+                    r"save file\s+\"(.+?)\"",
+                    r"add document\s+\"(.+?)\"",
+                ],
+                description="Upload a document",
+            ),
+            CommandDefinition(
+                name="create_collection",
+                handler=self.create_collection,
+                patterns=[
+                    r"create collection\s+\"(.+?)\"",
+                    r"new collection\s+\"(.+?)\"",
+                    r"make collection\s+\"(.+?)\"",
+                ],
+                description="Create a new collection",
+            ),
+            CommandDefinition(
+                name="get_weather",
+                handler=self.get_weather_info,
+                patterns=[
+                    r"weather for\s+(.+)",
+                    r"what's the weather in\s+(.+)",
+                    r"check weather\s+(.+)",
+                    r"weather (.+)",
+                ],
+                description="Get weather information",
+            ),
+            CommandDefinition(
+                name="search",
+                handler=self.search_content,
+                patterns=[
+                    r"search for\s+\"(.+?)\"",
+                    r"find\s+\"(.+?)\"",
+                    r"look for\s+\"(.+?)\"",
+                    r"search:\s*(.+)",
+                ],
+                description="Search for stored content",
+            ),
+            CommandDefinition(
+                name="ask_ai",
+                handler=self.ask_ai_assistant,
+                patterns=[
+                    r"ask ai\s+\"(.+?)\"",
+                    r"ai help with\s+(.+)",
+                    r"explain\s+(.+)",
+                    r"what is\s+(.+)",
+                    r"how to\s+(.+)",
+                    r"help me\s+(.+)",
+                ],
+                description="General AI assistance",
+            ),
+        ]
+
+        return [definition.compile() for definition in definitions]
+
+    # ------------------------------------------------------------------
+    # Action implementations
+    # ------------------------------------------------------------------
+    def add_sticky_note(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No note content provided'}
-        
+            return {"success": False, "message": "No note content provided"}
+
         note_content = parameters[0]
         return {
-            'success': True,
-            'message': f'Added note: "{note_content}"',
-            'api_call': {
-                'endpoint': '/api/sticky-notes',
-                'method': 'POST',
-                'data': {
-                    'content': note_content,
-                    'color': 'yellow',
-                    'priority': 'medium'
-                }
-            }
+            "success": True,
+            "message": f"Added note: \"{note_content}\"",
+            "api_call": {
+                "endpoint": "/api/sticky-notes",
+                "method": "POST",
+                "data": {
+                    "content": note_content,
+                    "color": "yellow",
+                    "priority": "medium",
+                },
+            },
         }
-    
-    def add_todo_item(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Add a todo item"""
+
+    def add_todo_item(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No task content provided'}
-        
+            return {"success": False, "message": "No task content provided"}
+
         task_content = parameters[0]
         return {
-            'success': True,
-            'message': f'Added task: "{task_content}"',
-            'api_call': {
-                'endpoint': '/api/todos',
-                'method': 'POST',
-                'data': {
-                    'title': task_content,
-                    'completed': False,
-                    'priority': 'medium'
-                }
-            }
+            "success": True,
+            "message": f"Added task: \"{task_content}\"",
+            "api_call": {
+                "endpoint": "/api/todos",
+                "method": "POST",
+                "data": {
+                    "title": task_content,
+                    "completed": False,
+                    "priority": "medium",
+                },
+            },
         }
-    
-    def complete_todo_item(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Complete a todo item"""
+
+    def complete_todo_item(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No task specified'}
-        
+            return {"success": False, "message": "No task specified"}
+
         task_content = parameters[0]
         return {
-            'success': True,
-            'message': f'Marked as completed: "{task_content}"',
-            'api_call': {
-                'endpoint': '/api/todos/search-and-complete',
-                'method': 'PUT',
-                'data': {
-                    'search_term': task_content,
-                    'completed': True
-                }
-            }
+            "success": True,
+            "message": f"Marked as completed: \"{task_content}\"",
+            "api_call": {
+                "endpoint": "/api/todos/search-and-complete",
+                "method": "PUT",
+                "data": {
+                    "search_term": task_content,
+                    "completed": True,
+                },
+            },
         }
-    
-    def save_youtube_video(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Save a YouTube video"""
+
+    def save_youtube_video(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No YouTube URL provided'}
-        
+            return {"success": False, "message": "No YouTube URL provided"}
+
         youtube_url = parameters[0]
         return {
-            'success': True,
-            'message': f'Saving YouTube video: {youtube_url}',
-            'api_call': {
-                'endpoint': '/api/youtube/videos-enhanced',
-                'method': 'POST',
-                'data': {
-                    'url': youtube_url,
-                    'generateSummary': True,
-                    'summaryLength': 'medium'
-                }
-            }
+            "success": True,
+            "message": f"Saving YouTube video: {youtube_url}",
+            "api_call": {
+                "endpoint": "/api/youtube/videos-enhanced",
+                "method": "POST",
+                "data": {
+                    "url": youtube_url,
+                    "generateSummary": True,
+                    "summaryLength": "medium",
+                },
+            },
         }
-    
-    def summarize_youtube_video(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Summarize a YouTube video"""
+
+    def summarize_youtube_video(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No YouTube URL provided'}
-        
+            return {"success": False, "message": "No YouTube URL provided"}
+
         youtube_url = parameters[0]
         return {
-            'success': True,
-            'message': f'Analyzing YouTube video: {youtube_url}',
-            'api_call': {
-                'endpoint': '/api/youtube/process-with-ai',
-                'method': 'POST',
-                'data': {
-                    'youtube_url': youtube_url,
-                    'processType': 'analyze',
-                    'saveToCollection': False
-                }
-            }
+            "success": True,
+            "message": f"Analyzing YouTube video: {youtube_url}",
+            "api_call": {
+                "endpoint": "/api/youtube/process-with-ai",
+                "method": "POST",
+                "data": {
+                    "youtube_url": youtube_url,
+                    "processType": "analyze",
+                    "saveToCollection": False,
+                },
+            },
         }
-    
-    def extract_web_content(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract content from a web page"""
+
+    def extract_web_content(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No URL provided'}
-        
+            return {"success": False, "message": "No URL provided"}
+
         url = parameters[0]
         return {
-            'success': True,
-            'message': f'Extracting content from: {url}',
-            'api_call': {
-                'endpoint': '/api/content-extraction/process-with-ai',
-                'method': 'POST',
-                'data': {
-                    'url': url,
-                    'processType': 'analyze'
-                }
-            }
+            "success": True,
+            "message": f"Extracting content from: {url}",
+            "api_call": {
+                "endpoint": "/api/content-extraction/process-with-ai",
+                "method": "POST",
+                "data": {"url": url, "processType": "analyze"},
+            },
         }
-    
-    def upload_file(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle file upload"""
+
+    def upload_file(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No file specified'}
-        
+            return {"success": False, "message": "No file specified"}
+
         filename = parameters[0]
         return {
-            'success': True,
-            'message': f'Ready to upload file: {filename}',
-            'api_call': {
-                'endpoint': '/api/files/upload',
-                'method': 'POST',
-                'data': {
-                    'filename': filename
-                }
-            }
+            "success": True,
+            "message": f"Ready to upload file: {filename}",
+            "api_call": {
+                "endpoint": "/api/files/upload",
+                "method": "POST",
+                "data": {"filename": filename},
+            },
         }
-    
-    def create_collection(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new collection"""
+
+    def create_collection(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No collection name provided'}
-        
+            return {"success": False, "message": "No collection name provided"}
+
         collection_name = parameters[0]
         return {
-            'success': True,
-            'message': f'Creating collection: "{collection_name}"',
-            'api_call': {
-                'endpoint': '/api/collections',
-                'method': 'POST',
-                'data': {
-                    'name': collection_name,
-                    'description': f'Collection created via conversational command'
-                }
-            }
+            "success": True,
+            "message": f"Creating collection: \"{collection_name}\"",
+            "api_call": {
+                "endpoint": "/api/collections",
+                "method": "POST",
+                "data": {
+                    "name": collection_name,
+                    "description": "Collection created via conversational command",
+                },
+            },
         }
-    
-    def get_weather_info(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Get weather information"""
+
+    def get_weather_info(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No location provided'}
-        
+            return {"success": False, "message": "No location provided"}
+
         location = parameters[0]
         return {
-            'success': True,
-            'message': f'Getting weather for: {location}',
-            'api_call': {
-                'endpoint': '/api/weather',
-                'method': 'GET',
-                'params': {
-                    'location': location
-                }
-            }
+            "success": True,
+            "message": f"Getting weather for: {location}",
+            "api_call": {
+                "endpoint": "/api/weather",
+                "method": "GET",
+                "params": {"location": location},
+            },
         }
-    
-    def search_content(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Search for content"""
+
+    def search_content(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No search query provided'}
-        
+            return {"success": False, "message": "No search query provided"}
+
         query = parameters[0]
         return {
-            'success': True,
-            'message': f'Searching for: "{query}"',
-            'api_call': {
-                'endpoint': '/api/search',
-                'method': 'GET',
-                'params': {
-                    'q': query
-                }
-            }
+            "success": True,
+            "message": f"Searching for: \"{query}\"",
+            "api_call": {
+                "endpoint": "/api/search",
+                "method": "GET",
+                "params": {"q": query},
+            },
         }
-    
-    def ask_ai_assistant(self, parameters: List[str], user_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle general AI assistance"""
+
+    def ask_ai_assistant(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         if not parameters:
-            return {'success': False, 'message': 'No question provided'}
-        
+            return {"success": False, "message": "No question provided"}
+
         question = parameters[0]
         return {
-            'success': True,
-            'message': f'Processing AI request: "{question}"',
-            'api_call': {
-                'endpoint': '/api/ai-services/chat',
-                'method': 'POST',
-                'data': {
-                    'message': question,
-                    'context': 'general_assistance'
-                }
-            }
+            "success": True,
+            "message": f"Processing AI request: \"{question}\"",
+            "api_call": {
+                "endpoint": "/api/ai-services/chat",
+                "method": "POST",
+                "data": {"message": question, "context": "general_assistance"},
+            },
         }
 
 
-# Singleton instance
-_conversational_agent = None
+_conversational_agent: Optional[ConversationalCommandAgent] = None
 
-def get_conversational_agent():
-    """Get or create the conversational command agent instance"""
+
+def get_conversational_agent() -> ConversationalCommandAgent:
+    """Return a singleton conversational agent instance."""
+
     global _conversational_agent
     if _conversational_agent is None:
         _conversational_agent = ConversationalCommandAgent()

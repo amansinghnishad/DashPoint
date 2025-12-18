@@ -161,36 +161,4 @@ router.get('/search', searchValidation, contentExtractionController.searchExtrac
 router.get('/:id', getExtractionValidation, contentExtractionController.getExtractionById);
 router.delete('/:id', getExtractionValidation, contentExtractionController.deleteExtraction);
 
-// CRUD routes for saved content
-// GET /api/content-extraction - Get all saved content
-router.get('/', contentExtractionController.getAll);
-
-// POST /api/content-extraction - Save new content
-router.post('/', [
-  body('url').isURL().withMessage('Valid URL is required'),
-  body('title').notEmpty().withMessage('Title is required').isLength({ max: 300 }),
-  body('content').notEmpty().withMessage('Content is required').isLength({ max: 50000 }),
-  body('domain').notEmpty().withMessage('Domain is required'),
-  body('category').optional().isString(),
-  body('tags').optional().isArray(),
-  body('summary').optional().isLength({ max: 1000 }),
-  body('author').optional().isString(),
-  body('language').optional().isString()
-], contentExtractionController.create);
-
-// PUT /api/content-extraction/:id - Update saved content
-router.put('/:id', [
-  param('id').isMongoId().withMessage('Invalid content ID'),
-  body('title').optional().isLength({ max: 300 }),
-  body('content').optional().isLength({ max: 50000 }),
-  body('category').optional().isString(),
-  body('tags').optional().isArray(),
-  body('summary').optional().isLength({ max: 1000 })
-], contentExtractionController.update);
-
-// DELETE /api/content-extraction/:id - Delete saved content
-router.delete('/:id', [
-  param('id').isMongoId().withMessage('Invalid content ID')
-], contentExtractionController.delete);
-
 module.exports = router;

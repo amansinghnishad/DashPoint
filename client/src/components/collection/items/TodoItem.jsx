@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { getPriorityColor } from "../utils/itemHelpers";
 
 export const TodoItem = ({ item, className = "" }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
     <div className={`w-full h-full p-3 bg-white rounded-lg ${className}`}>
       <div className="mb-2">
@@ -33,11 +30,7 @@ export const TodoItem = ({ item, className = "" }) => {
           </span>
         </div>
       </div>
-      <div
-        className={`text-sm text-gray-700 ${
-          isExpanded ? "overflow-y-auto h-full" : "line-clamp-4"
-        }`}
-      >
+      <div className="text-sm text-gray-700 line-clamp-4">
         {item.itemData?.description ||
           item.itemData?.content ||
           "No description"}

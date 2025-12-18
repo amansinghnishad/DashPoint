@@ -15,7 +15,7 @@ import { ToastContainer } from "./components/toast/index";
 import { SessionWarning } from "./components/session-warning/index";
 import { UpdateNotification } from "./components/update-notification";
 import { OfflineIndicator } from "./components/offline-indicator";
-import ConversationalInterface from "./components/conversational-interface";
+// import ConversationalInterface from "./components/conversational-interface";
 import { useToast } from "./hooks/useToast";
 import "./App.css";
 
@@ -113,7 +113,7 @@ function AppContent() {
               <ProtectedRoute>
                 <DashboardProvider>
                   <Dashboard />
-                  <ConversationalInterface />
+                  {/* <ConversationalInterface /> */}
                 </DashboardProvider>
               </ProtectedRoute>
             }

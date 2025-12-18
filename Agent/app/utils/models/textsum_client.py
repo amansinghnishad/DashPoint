@@ -1,224 +1,272 @@
-"""
-Text summarization client - Legacy compatibility layer
-This module provides backward compatibility while the system transitions to the new agent-based approach.
-"""
+"""Utility helpers for extractive text summarisation."""
 
-def summarize_text_content(text_content, summary_length="medium"):
-    """
-    Legacy text summarization function - now uses improved algorithms
-    
-    Args:
-        text_content (str): The text content to summarize
-        summary_length (str): Length of summary - 'short', 'medium', 'long',
-                             numeric value, or text with units (default: 'medium')
-    
-    Returns:
-        str: Summary of the provided text content
-    """
+from __future__ import annotations
+
+import re
+from collections import Counter
+from dataclasses import dataclass
+from typing import Iterable, List, Optional, Sequence, Set
+
+
+_DEFAULT_STOP_WORDS: Set[str] = {
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "of",
+    "with",
+    "by",
+    "from",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "will",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "can",
+    "this",
+    "that",
+    "these",
+    "those",
+    "i",
+    "you",
+    "he",
+    "she",
+    "it",
+    "we",
+    "they",
+}
+
+_IMPORTANT_INDICATORS = {
+    "therefore",
+    "however",
+    "moreover",
+    "furthermore",
+    "in conclusion",
+    "as a result",
+    "consequently",
+    "important",
+    "significant",
+    "key",
+    "main",
+    "primary",
+    "essential",
+}
+
+
+class SummarizationError(ValueError):
+    """Raised when summarisation input is invalid."""
+
+
+@dataclass(frozen=True)
+class SummarySettings:
+    """Configuration describing the desired summary length."""
+
+    target_words: int
+    max_sentences: int
+
+    @classmethod
+    def from_length(cls, summary_length: str) -> "SummarySettings":
+        length = (summary_length or "medium").strip().lower()
+        presets = {"short": 75, "medium": 200, "long": 400}
+
+        if length in presets:
+            target_words = presets[length]
+        else:
+            numbers = re.findall(r"\d+", length)
+            if numbers:
+                target_words = max(30, min(int(numbers[0]), 600))
+            else:
+                target_words = presets["medium"]
+
+        max_sentences = max(1, min(12, target_words // 60 + 1))
+        return cls(target_words=target_words, max_sentences=max_sentences)
+
+
+class TextSummarizer:
+    """Simple extractive summariser with basic sentence scoring."""
+
+    def __init__(self, stop_words: Optional[Iterable[str]] = None) -> None:
+        self.stop_words = set(stop_words or _DEFAULT_STOP_WORDS)
+
+    def summarize(self, text: str, settings: SummarySettings) -> str:
+        cleaned_text = self.clean(text)
+        if not cleaned_text:
+            raise SummarizationError("No text content provided")
+
+        sentences = self.split_into_sentences(cleaned_text)
+        if len(sentences) <= 2:
+            return cleaned_text
+
+        words = cleaned_text.split()
+        if len(words) <= settings.target_words:
+            return cleaned_text
+
+        scores = self.score_sentences(sentences, words)
+        selected_sentences = self.select_sentences(sentences, scores, settings)
+        if not selected_sentences:
+            return cleaned_text
+
+        summary = " ".join(selected_sentences)
+        return summary.strip()
+
+    def clean(self, text_content: str) -> str:
+        text = re.sub(r"\s+", " ", (text_content or "").strip())
+        text = re.sub(r"[^\w\s\.\,\!\?\;\:\-\(\)]", "", text)
+        return text
+
+    def split_into_sentences(self, text: str) -> List[str]:
+        sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", text)
+        cleaned_sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+        return cleaned_sentences
+
+    def score_sentences(self, sentences: Sequence[str], words: Sequence[str]) -> List[float]:
+        clean_tokens = [self._clean_token(word) for word in words]
+        clean_tokens = [token for token in clean_tokens if token and token not in self.stop_words]
+        frequencies = Counter(clean_tokens)
+
+        if not frequencies:
+            return [0.0 for _ in sentences]
+
+        total_sentences = len(sentences)
+        scores: List[float] = []
+        for index, sentence in enumerate(sentences):
+            sentence_tokens = [self._clean_token(word) for word in sentence.split()]
+            sentence_tokens = [token for token in sentence_tokens if token and token not in self.stop_words]
+            if not sentence_tokens:
+                scores.append(0.0)
+                continue
+
+            base_score = sum(frequencies.get(token, 0) for token in sentence_tokens)
+            base_score /= len(sentence_tokens)
+
+            position_multiplier = 1.0
+            if index == 0:
+                position_multiplier += 0.2
+            elif index == total_sentences - 1:
+                position_multiplier += 0.1
+            elif index < total_sentences * 0.3:
+                position_multiplier += 0.1
+
+            length = len(sentence_tokens)
+            if 10 <= length <= 25:
+                position_multiplier += 0.1
+            elif length < 5:
+                position_multiplier -= 0.2
+            elif length > 35:
+                position_multiplier -= 0.1
+
+            indicator_multiplier = 1.3 if any(
+                indicator in sentence.lower() for indicator in _IMPORTANT_INDICATORS
+            ) else 1.0
+
+            scores.append(base_score * position_multiplier * indicator_multiplier)
+
+        return scores
+
+    def select_sentences(
+        self,
+        sentences: Sequence[str],
+        scores: Sequence[float],
+        settings: SummarySettings,
+    ) -> List[str]:
+        ranked = sorted(
+            ((index, scores[index]) for index in range(len(sentences))),
+            key=lambda item: item[1],
+            reverse=True,
+        )
+
+        chosen_indices: List[int] = []
+        for index, score in ranked:
+            if len(chosen_indices) >= settings.max_sentences:
+                break
+            if score <= 0:
+                continue
+            if any(abs(index - existing) <= 1 for existing in chosen_indices):
+                continue
+            chosen_indices.append(index)
+
+        if len(chosen_indices) < settings.max_sentences:
+            for index, score in ranked:
+                if len(chosen_indices) >= settings.max_sentences:
+                    break
+                if index not in chosen_indices:
+                    chosen_indices.append(index)
+
+        chosen_indices.sort()
+
+        summary_sentences: List[str] = []
+        word_count = 0
+        for index in chosen_indices:
+            sentence = sentences[index]
+            summary_sentences.append(sentence)
+            word_count += len(sentence.split())
+            if word_count >= settings.target_words:
+                break
+
+        return summary_sentences
+
+    @staticmethod
+    def _clean_token(token: str) -> str:
+        return re.sub(r"[^a-z0-9]", "", token.lower())
+
+
+_DEFAULT_SUMMARIZER = TextSummarizer()
+
+
+def summarize_text_content(text_content: str, summary_length: str = "medium") -> str:
+    """Summarise *text_content* according to the requested *summary_length*."""
+
     try:
         if not text_content or not text_content.strip():
-            return "Error: No text content provided"
-        
-        # Clean the text content
-        cleaned_text = clean_text_content(text_content)
-        
-        # Determine target word count
-        target_words = parse_summary_length_text(summary_length)
-        
-        # Generate summary using improved algorithm
-        summary = generate_summary_text(cleaned_text, target_words)
-        
-        return summary
-        
-    except Exception as e:
-        return f"Error summarizing text: {str(e)}"
+            raise SummarizationError("No text content provided")
+        settings = SummarySettings.from_length(summary_length)
+        return _DEFAULT_SUMMARIZER.summarize(text_content, settings)
+    except SummarizationError as exc:
+        return f"Error: {exc}"
+    except Exception as exc:  # pragma: no cover - defensive guard
+        return f"Error summarizing text: {exc}"
 
 
-def clean_text_content(text_content):
-    """Clean and preprocess text content"""
-    import re
-    
-    # Remove extra whitespace and normalize
-    text = re.sub(r'\s+', ' ', text_content.strip())
-    
-    # Remove special characters but keep punctuation
-    text = re.sub(r'[^\w\s\.\,\!\?\;\:\-\(\)]', '', text)
-    
-    return text
+def clean_text_content(text_content: str) -> str:
+    return _DEFAULT_SUMMARIZER.clean(text_content)
 
 
-def parse_summary_length_text(summary_length):
-    """Parse summary length parameter and return target word count for text"""
-    import re
-    
-    # Predefined lengths
-    if summary_length.lower() == "short":
-        return 75  # 50-100 words average
-    elif summary_length.lower() == "medium":
-        return 200  # 150-250 words average
-    elif summary_length.lower() == "long":
-        return 400  # 300-500 words average
-    
-    # Extract numeric value
-    numbers = re.findall(r'\d+', summary_length)
-    if numbers:
-        return int(numbers[0])
-    
-    # Default to medium if parsing fails
-    return 200
+def parse_summary_length_text(summary_length: str) -> int:
+    return SummarySettings.from_length(summary_length).target_words
 
 
-def generate_summary_text(text, target_words):
-    """Generate summary of specified length for text content using improved extractive summarization"""
-    sentences = split_into_sentences(text)
-    
-    if len(sentences) <= 2:
-        return text
-    
-    words = text.split()
-    if len(words) <= target_words:
-        return text
-    
-    # Improved sentence scoring algorithm
-    sentence_scores = score_sentences_improved(sentences, words)
-    
-    # Select top sentences based on score and position
-    avg_words_per_sentence = len(words) / len(sentences)
-    target_sentences = max(1, int(target_words / avg_words_per_sentence))
-    
-    # Sort by score and take top sentences
-    scored_sentences = list(zip(sentences, sentence_scores, range(len(sentences))))
-    scored_sentences.sort(key=lambda x: x[1], reverse=True)
-    
-    # Select sentences but maintain some positional diversity
-    selected_sentences = []
-    selected_positions = []
-    
-    for sent, score, pos in scored_sentences[:target_sentences * 2]:  # Get more candidates
-        if len(selected_sentences) >= target_sentences:
-            break
-        
-        # Prefer sentences that aren't too close to already selected ones
-        if not selected_positions or min(abs(pos - p) for p in selected_positions) > 1:
-            selected_sentences.append(sent)
-            selected_positions.append(pos)
-    
-    # If we don't have enough, fill with remaining top sentences
-    if len(selected_sentences) < target_sentences:
-        for sent, score, pos in scored_sentences:
-            if len(selected_sentences) >= target_sentences:
-                break
-            if sent not in selected_sentences:
-                selected_sentences.append(sent)
-    
-    # Reorder sentences to maintain original flow
-    summary_sentences = []
-    for sentence in sentences:
-        if sentence in selected_sentences:
-            summary_sentences.append(sentence)
-    
-    summary = ' '.join(summary_sentences)
-    
-    return summary
+def generate_summary_text(text: str, target_words: int) -> str:
+    settings = SummarySettings(target_words=target_words, max_sentences=max(1, target_words // 60 + 1))
+    return _DEFAULT_SUMMARIZER.summarize(text, settings)
 
 
-def split_into_sentences(text):
-    """Split text into sentences with improved detection"""
-    import re
-    
-    # Improved sentence splitting that handles abbreviations better
-    sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])', text)
-    
-    # Filter out very short sentences and clean up
-    sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
-    
-    return sentences
+def split_into_sentences(text: str) -> List[str]:
+    return _DEFAULT_SUMMARIZER.split_into_sentences(text)
 
 
-def score_sentences_improved(sentences, words):
-    """Improved sentence scoring algorithm"""
-    from collections import Counter
-    import re
-    
-    # Calculate word frequencies (excluding stop words)
-    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'}
-    
-    # Clean and count words
-    clean_words = [re.sub(r'[^\w]', '', word.lower()) for word in words if len(word) > 2]
-    clean_words = [word for word in clean_words if word not in stop_words and len(word) > 2]
-    word_freq = Counter(clean_words)
-    
-    sentence_scores = []
-    total_sentences = len(sentences)
-    
-    for i, sentence in enumerate(sentences):
-        score = 0
-        sentence_words = [re.sub(r'[^\w]', '', word.lower()) for word in sentence.split()]
-        sentence_words = [word for word in sentence_words if word not in stop_words and len(word) > 2]
-        
-        if not sentence_words:
-            sentence_scores.append(0)
-            continue
-        
-        # Word frequency score
-        word_score = sum(word_freq.get(word, 0) for word in sentence_words)
-        score += word_score / len(sentence_words)  # Average word frequency
-        
-        # Position bonus (sentences at beginning and end are often important)
-        if i < total_sentences * 0.3:  # First 30%
-            score *= 1.2
-        elif i > total_sentences * 0.7:  # Last 30%
-            score *= 1.1
-        
-        # Length penalty/bonus (prefer medium-length sentences)
-        sentence_length = len(sentence_words)
-        if 10 <= sentence_length <= 25:  # Optimal length
-            score *= 1.1
-        elif sentence_length < 5:  # Too short
-            score *= 0.8
-        elif sentence_length > 35:  # Too long
-            score *= 0.9
-        
-        # Keyword indicators (sentences with certain words are often important)
-        important_indicators = ['therefore', 'however', 'moreover', 'furthermore', 'in conclusion', 'as a result', 'consequently', 'important', 'significant', 'key', 'main', 'primary', 'essential']
-        if any(indicator in sentence.lower() for indicator in important_indicators):
-            score *= 1.3
-        
-        sentence_scores.append(score)
-    
-    return sentence_scores
-    
-    # Simple sentence splitting
-    sentences = re.split(r'[.!?]+', text)
-    sentences = [s.strip() for s in sentences if s.strip()]
-    
-    return sentences
+def score_sentences_improved(sentences: Sequence[str], words: Sequence[str]) -> List[float]:
+    return _DEFAULT_SUMMARIZER.score_sentences(sentences, words)
 
-def score_sentences(sentences, words):
-    """Score sentences based on word frequency and position"""
-    from collections import Counter
-    
-    # Calculate word frequencies
-    word_freq = Counter(word.lower() for word in words if len(word) > 3)
-    
-    scores = []
-    for i, sentence in enumerate(sentences):
-        sentence_words = sentence.lower().split()
-        
-        # Score based on word frequency
-        freq_score = sum(word_freq.get(word, 0) for word in sentence_words)
-        
-        # Bonus for position (first and last sentences often important)
-        position_bonus = 0
-        if i == 0 or i == len(sentences) - 1:
-            position_bonus = freq_score * 0.2
-        
-        # Penalty for very short sentences
-        length_penalty = 0
-        if len(sentence_words) < 5:
-            length_penalty = freq_score * 0.3
-        
-        total_score = freq_score + position_bonus - length_penalty
-        scores.append(total_score)
-    
-    return scores
+
+def score_sentences(sentences: Sequence[str], words: Sequence[str]) -> List[float]:
+    return _DEFAULT_SUMMARIZER.score_sentences(sentences, words)

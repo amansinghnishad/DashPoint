@@ -1,24 +1,4 @@
 /**
- * Get icon component for different item types
- */
-export const getItemTypeIcon = (itemType, size = 14) => {
-  const iconProps = { size };
-
-  switch (itemType) {
-    case "youtube":
-      return { ...iconProps, className: "text-red-500" };
-    case "content":
-      return { ...iconProps, className: "text-blue-500" };
-    case "sticky-note":
-      return { ...iconProps, className: "text-yellow-500" };
-    case "todo":
-      return { ...iconProps, className: "text-green-500" };
-    default:
-      return { ...iconProps, className: "text-gray-500" };
-  }
-};
-
-/**
  * Count items by type in a collection
  */
 export const getItemTypeCounts = (items) => {

@@ -7,6 +7,7 @@ export const DashboardSidebar = ({
   onClose,
   isDark,
   toggleTheme,
+  onNotificationsOpen,
   onSettingsOpen,
   onShortcutsOpen,
   onWidgetsOpen,
@@ -19,6 +20,7 @@ export const DashboardSidebar = ({
       onClose={onClose}
       isDark={isDark}
       toggleTheme={toggleTheme}
+      onNotificationsOpen={onNotificationsOpen}
       onSettingsOpen={onSettingsOpen}
       onShortcutsOpen={onShortcutsOpen}
       onWidgetsOpen={onWidgetsOpen}

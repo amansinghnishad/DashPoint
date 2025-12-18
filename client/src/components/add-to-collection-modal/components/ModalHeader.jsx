@@ -1,6 +1,6 @@
 import { X, Folder } from "lucide-react";
 
-export const ModalHeader = ({ itemTitle, onClose }) => {
+export const ModalHeader = ({ onClose }) => {
   return (
     <div className="flex justify-between items-center p-4 border-b border-gray-200">
       <div className="flex items-center space-x-2">

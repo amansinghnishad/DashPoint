@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../../hooks/useToast";
 import { Modal, Button } from "../ui";
 import { CollectionList } from "./components/CollectionList";
@@ -22,13 +22,7 @@ export const AddToCollectionModal = ({
   const [creatingCollection, setCreatingCollection] = useState(false);
   const { success, error, info } = useToast();
 
-  useEffect(() => {
-    if (isOpen && itemType && itemId) {
-      loadData();
-    }
-  }, [isOpen, itemType, itemId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const result = await loadCollectionsData(itemType, itemId);
 
@@ -40,7 +34,13 @@ export const AddToCollectionModal = ({
     }
 
     setLoading(false);
-  };
+  }, [error, itemId, itemType]);
+
+  useEffect(() => {
+    if (isOpen && itemType && itemId) {
+      loadData();
+    }
+  }, [isOpen, itemType, itemId, loadData]);
 
   const handleToggleCollection = async (collectionId, isAdding) => {
     const result = await toggleItemInCollection(

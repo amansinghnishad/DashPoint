@@ -1,30 +1,35 @@
 #!/bin/bash
 
-# DashPoint AI Agent Startup Script
+# DashPoint AI Agent Startup Script (POSIX)
+set -euo pipefail
 
-echo "Starting DashPoint AI Agent..."
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${ROOT_DIR}/app"
+VENV_DIR="${ROOT_DIR}/venv"
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
+PYTHON_BIN="${PYTHON:-python3}"
+if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
+    PYTHON_BIN=python
+fi
+
+if [ ! -d "${VENV_DIR}" ]; then
     echo "Creating virtual environment..."
-    python -m venv venv
+    "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
 
-# Activate virtual environment
-source venv/bin/activate
+echo "Activating virtual environment..."
+# shellcheck disable=SC1090
+source "${VENV_DIR}/bin/activate"
 
-# Install/update requirements
-echo "Installing dependencies..."
-pip install -r requirements.txt
+echo "Installing dependencies (may take a minute on first run)..."
+pip install --upgrade pip >/dev/null
+pip install -r "${ROOT_DIR}/requirements.txt"
 
-# Check if .env file exists
-if [ ! -f ".env" ]; then
-    echo "Warning: .env file not found. Please copy .env.example to .env and configure it."
-    cp .env.example .env
-    echo "Created .env file from template. Please edit it with your API keys."
+if [ ! -f "${APP_DIR}/.env" ] && [ -f "${APP_DIR}/.env.example" ]; then
+    cp "${APP_DIR}/.env.example" "${APP_DIR}/.env"
+    echo "Created ${APP_DIR}/.env. Populate your API keys before using AI features."
 fi
 
-# Start the agent
 echo "Starting DashPoint AI Agent on port 8000..."
-cd app
-python main.py
+cd "${APP_DIR}"
+exec uvicorn main:app --host 0.0.0.0 --port 8000

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NotificationCenter } from "../../components/notification-center/index";
 import {
   KeyboardShortcuts,
@@ -9,36 +9,30 @@ import { WidgetsDialog } from "../../components/widgets-dialog";
 import { useToast } from "../../hooks/useToast";
 import { useNotifications } from "../../hooks/useNotifications";
 import { ToastContainer } from "../../components/toast/index";
-import { useAuth } from "../../context/AuthContext";
 import { useLocalStorage } from "../../hooks/useCommon";
 
-import { DashboardHeader } from "./components/DashboardHeader";
 import { ContentRenderer } from "./components/ContentRenderer";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import {
-  getPageTitle,
   getKeyboardShortcuts,
   handleTabChange,
 } from "./utils/dashboardHelpers";
 
 export const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("collections");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useLocalStorage("theme-dark-mode", false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [widgetsOpen, setWidgetsOpen] = useState(false);
 
   // Toast functionality
-  const { toasts, removeToast, showToast } = useToast();
+  const { toasts, removeToast } = useToast();
 
   // Notifications functionality
   const {
     notifications,
-    unreadCount,
-    addNotification,
     markAsRead,
     markAllAsRead,
     removeNotification,
@@ -58,9 +52,6 @@ export const Dashboard = () => {
   };
   const shortcuts = getKeyboardShortcuts(shortcutHandlers);
   useKeyboardShortcuts(shortcuts);
-
-  // Get current page title
-  const pageTitle = getPageTitle(activeTab);
   // Handle tab change
   const handleTabChangeWithSidebar = (tab) => {
     handleTabChange(tab, setActiveTab, setSidebarOpen);
@@ -72,9 +63,7 @@ export const Dashboard = () => {
         isDark ? "bg-gray-900 dark" : "bg-gray-50"
       }`}
     >
-      {" "}
       <div className="flex h-screen">
-        {" "}
         <DashboardSidebar
           isOpen={sidebarOpen}
           activeTab={activeTab}
@@ -82,25 +71,17 @@ export const Dashboard = () => {
           onClose={() => setSidebarOpen(false)}
           isDark={isDark}
           toggleTheme={() => setIsDark(!isDark)}
+          onNotificationsOpen={() => setNotificationsOpen(true)}
           onSettingsOpen={() => setSettingsOpen(true)}
           onShortcutsOpen={() => setShortcutsOpen(true)}
           onWidgetsOpen={() => setWidgetsOpen(true)}
         />
         {/* Main content area - add left margin for sidebar on large screens */}
-        <div className="flex-1 flex flex-col overflow-auto scrollable-area lg:ml-64">
-          {/* Header */}
-          <DashboardHeader
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            notificationsOpen={notificationsOpen}
-            setNotificationsOpen={setNotificationsOpen}
-            unreadCount={unreadCount}
-            pageTitle={pageTitle}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            isDark={isDark}
-          />
-
+        <div
+          className={`flex-1 flex flex-col overflow-auto scrollable-area transition-[margin] duration-300 ${
+            sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+          }`}
+        >
           {/* Content */}
           <ContentRenderer activeTab={activeTab} />
         </div>
@@ -126,9 +107,9 @@ export const Dashboard = () => {
         onClose={() => setSettingsOpen(false)}
         isDark={isDark}
         setIsDark={setIsDark}
-      />{" "}
+      />
       {/* Toast Container */}
-      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />{" "}
+      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       {/* Widgets Dialog */}
       <WidgetsDialog
         isOpen={widgetsOpen}

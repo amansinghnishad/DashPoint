@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Modal, Button, Input } from "../../ui";
 import { useToast } from "../../../hooks/useToast";
@@ -16,11 +16,18 @@ export const AddItemModal = ({
   onClose,
   collectionId,
   onItemAdded,
+  initialItemType = "youtube",
 }) => {
-  const [itemType, setItemType] = useState("youtube");
+  const [itemType, setItemType] = useState(initialItemType);
   const [itemData, setItemData] = useState({ url: "", title: "", content: "" });
   const [loading, setLoading] = useState(false);
   const { success, error } = useToast();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setItemType(initialItemType);
+    setItemData({ url: "", title: "", content: "" });
+  }, [initialItemType, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,13 +47,24 @@ export const AddItemModal = ({
           throw new Error("Failed to fetch video details");
         }
 
-        // Then create/save the video
+        const d = videoDetailsResponse.data;
+        const thumbnail =
+          d?.thumbnail?.medium || d?.thumbnail?.default || d?.thumbnail?.high;
+        if (!thumbnail || !d?.embedUrl || !d?.url) {
+          throw new Error("Video details are incomplete");
+        }
+
+        // Then create/save the video (payload must match server validation)
         const response = await youtubeAPI.create({
-          ...videoDetailsResponse.data,
-          title:
-            itemData.title ||
-            videoDetailsResponse.data.title ||
-            "YouTube Video",
+          videoId: d.id,
+          title: itemData.title || d?.title || "YouTube Video",
+          thumbnail,
+          embedUrl: d.embedUrl,
+          url: d.url,
+          duration: d.duration,
+          channelTitle: d.channelTitle,
+          description: d.description,
+          viewCount: d.viewCount,
         });
 
         if (response.success) {
@@ -120,59 +138,48 @@ export const AddItemModal = ({
       maxWidth="max-w-lg"
       showCloseButton={true}
     >
-      <div className="p-6 border-b border-gray-200/50">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
-          Add New Item
-        </h2>
-        <p className="text-gray-600 mt-1">
-          Expand your collection with fresh content
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">Add item</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Choose a type and fill in the details.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Choose Item Type
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Type
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {[
               {
                 value: "youtube",
-                label: "YouTube Video",
-                icon: "🎥",
-                color: "from-red-500 to-red-600",
+                label: "YouTube",
               },
               {
                 value: "content",
-                label: "Web Content",
-                icon: "📄",
-                color: "from-blue-500 to-blue-600",
+                label: "Web content",
               },
               {
                 value: "sticky-note",
                 label: "Note",
-                icon: "📝",
-                color: "from-yellow-500 to-yellow-600",
               },
               {
                 value: "todo",
                 label: "Todo",
-                icon: "✅",
-                color: "from-green-500 to-green-600",
               },
             ].map((type) => (
               <button
                 key={type.value}
                 type="button"
                 onClick={() => setItemType(type.value)}
-                className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
                   itemType === type.value
-                    ? `border-transparent bg-gradient-to-r ${type.color} text-white shadow-lg`
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-gray-300 bg-gray-50 text-gray-900"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                <div className="text-2xl mb-2">{type.icon}</div>
-                <div className="text-sm font-medium">{type.label}</div>
+                {type.label}
               </button>
             ))}
           </div>
@@ -180,7 +187,7 @@ export const AddItemModal = ({
 
         {itemType === "youtube" && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               YouTube URL
             </label>
             <Input
@@ -193,16 +200,15 @@ export const AddItemModal = ({
               required
             />
             <p className="text-xs text-gray-500 mt-2">
-              Paste any YouTube video URL and we'll extract the details
-              automatically
+              We’ll fetch the video details automatically.
             </p>
           </div>
         )}
 
         {itemType === "content" && (
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Content URL
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              URL
             </label>
             <Input
               type="url"
@@ -214,7 +220,7 @@ export const AddItemModal = ({
               required
             />
             <p className="text-xs text-gray-500 mt-2">
-              We'll extract and save the content from any web page
+              We’ll extract and save the content from the page.
             </p>
           </div>
         )}
@@ -222,7 +228,7 @@ export const AddItemModal = ({
         {(itemType === "sticky-note" || itemType === "todo") && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Title
               </label>
               <Input
@@ -238,7 +244,7 @@ export const AddItemModal = ({
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {itemType === "sticky-note" ? "Content" : "Description"}
               </label>
               <textarea
@@ -255,13 +261,13 @@ export const AddItemModal = ({
                     : "todo description"
                 }`}
                 rows={4}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
               />
             </div>
           </div>
         )}
 
-        <div className="flex space-x-3 pt-6 border-t border-gray-200/50">
+        <div className="flex space-x-3 pt-6 border-t border-gray-200">
           <Button
             type="button"
             variant="outline"
@@ -278,14 +284,11 @@ export const AddItemModal = ({
             className="flex-1"
           >
             {loading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Adding...</span>
-              </div>
+              "Adding…"
             ) : (
               <>
                 <Plus size={18} />
-                <span>Add to Collection</span>
+                <span>Add</span>
               </>
             )}
           </Button>

@@ -1,9 +1,8 @@
-import React from "react";
 import { Download, Smartphone } from "lucide-react";
 import { Button } from "../ui";
 import { usePWA } from "../../hooks/usePWA";
 
-export const InstallButton = ({ className = "" }) => {
+export const InstallButton = ({ className = "", compact = false }) => {
   const { isInstallable, isInstalled, installApp } = usePWA();
 
   // Don't show the button if already installed or not installable
@@ -24,8 +23,8 @@ export const InstallButton = ({ className = "" }) => {
       title="Install DashPoint as an app"
     >
       <Download className="w-4 h-4" />
-      <span className="hidden sm:inline">Install App</span>
-      <Smartphone className="w-4 h-4 sm:hidden" />
+      {!compact && <span className="hidden sm:inline">Install App</span>}
+      <Smartphone className={`w-4 h-4 sm:hidden ${compact ? "hidden" : ""}`} />
     </Button>
   );
 };

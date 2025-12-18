@@ -56,6 +56,10 @@ router.use(auth);
 // GET /api/collections?page=1&limit=20&search=query
 router.get('/', collectionController.getCollections);
 
+// Get collections containing specific item
+// GET /api/collections/item/:itemType/:itemId
+router.get('/item/:itemType/:itemId', collectionController.getCollectionsForItem);
+
 // Get single collection
 // GET /api/collections/:id
 router.get('/:id', collectionController.getCollection);
@@ -83,9 +87,5 @@ router.post('/:id/items', addItemValidation, collectionController.addItemToColle
 // Remove item from collection
 // DELETE /api/collections/:id/items/:itemType/:itemId
 router.delete('/:id/items/:itemType/:itemId', collectionController.removeItemFromCollection);
-
-// Get collections containing specific item
-// GET /api/collections/item/:itemType/:itemId
-router.get('/item/:itemType/:itemId', collectionController.getCollectionsForItem);
 
 module.exports = router;

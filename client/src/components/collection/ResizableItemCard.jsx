@@ -8,65 +8,172 @@ import {
   CheckSquare,
   ExternalLink,
   Copy,
-  Maximize2,
-  Minimize2,
   Move,
 } from "lucide-react";
 import { useToast } from "../../hooks/useToast";
 import { copyToClipboard } from "../../utils/helpers";
-import { YouTubeItem, ContentItem, StickyNoteItem, TodoItem } from "./items";
+import {
+  YouTubeItem,
+  ContentItem,
+  StickyNoteItem,
+  TodoItem,
+  FileItem,
+} from "./items";
 
 export const ResizableItemCard = ({
   item,
-  onEdit,
   onDelete,
   onView,
   initialSize,
+  layout,
+  onLayoutChange,
+  containerRef,
 }) => {
-  const [size, setSize] = useState(initialSize || { width: 320, height: 240 });
   const [isResizing, setIsResizing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const cardRef = useRef(null);
-  const { success, error } = useToast();
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef(null);
+  const resizeStartRef = useRef(null);
+  const { success } = useToast();
+
+  const currentLayout = layout || {
+    x: 0,
+    y: 0,
+    width: initialSize?.width ?? 320,
+    height: initialSize?.height ?? 240,
+  };
+
+  const clampLayout = useCallback(
+    (next) => {
+      const minWidth = 280;
+      const minHeight = 200;
+
+      let width = Math.max(minWidth, next.width ?? currentLayout.width);
+      let height = Math.max(minHeight, next.height ?? currentLayout.height);
+      let x = next.x ?? currentLayout.x;
+      let y = next.y ?? currentLayout.y;
+
+      const containerEl = containerRef?.current;
+      if (containerEl) {
+        const containerRect = containerEl.getBoundingClientRect();
+
+        width = Math.min(width, Math.max(minWidth, containerRect.width));
+        height = Math.min(height, Math.max(minHeight, containerRect.height));
+
+        const maxX = Math.max(0, containerRect.width - width);
+        const maxY = Math.max(0, containerRect.height - height);
+        x = Math.min(Math.max(0, x), maxX);
+        y = Math.min(Math.max(0, y), maxY);
+      }
+
+      return { x, y, width, height };
+    },
+    [
+      containerRef,
+      currentLayout.height,
+      currentLayout.width,
+      currentLayout.x,
+      currentLayout.y,
+    ]
+  );
+
+  const commitLayout = useCallback(
+    (next) => {
+      const clamped = clampLayout(next);
+      onLayoutChange?.(clamped);
+    },
+    [clampLayout, onLayoutChange]
+  );
 
   // Handle resize drag
-  const handleResizeStart = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleResizeStart = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const startData = {
-      x: e.clientX,
-      y: e.clientY,
-      width: rect.width,
-      height: rect.height,
-    };
+      resizeStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        width: currentLayout.width,
+        height: currentLayout.height,
+      };
 
-    setIsResizing(true);
+      setIsResizing(true);
 
-    const handleMouseMove = (moveEvent) => {
-      const deltaX = moveEvent.clientX - startData.x;
-      const deltaY = moveEvent.clientY - startData.y;
+      const handleMouseMove = (moveEvent) => {
+        const startData = resizeStartRef.current;
+        if (!startData) return;
 
-      const newWidth = Math.max(280, startData.width + deltaX);
-      const newHeight = Math.max(200, startData.height + deltaY);
+        const deltaX = moveEvent.clientX - startData.x;
+        const deltaY = moveEvent.clientY - startData.y;
 
-      setSize({ width: newWidth, height: newHeight });
-    };
+        commitLayout({
+          ...currentLayout,
+          width: startData.width + deltaX,
+          height: startData.height + deltaY,
+        });
+      };
 
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
+      const handleMouseUp = () => {
+        setIsResizing(false);
+        resizeStartRef.current = null;
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.body.style.cursor = "se-resize";
-    document.body.style.userSelect = "none";
-  }, []);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "se-resize";
+      document.body.style.userSelect = "none";
+    },
+    [commitLayout, currentLayout]
+  );
+
+  const handleDragStart = useCallback(
+    (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      dragStartRef.current = {
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        startX: currentLayout.x,
+        startY: currentLayout.y,
+      };
+
+      setIsDragging(true);
+
+      const handleMouseMove = (moveEvent) => {
+        const startData = dragStartRef.current;
+        if (!startData) return;
+
+        const dx = moveEvent.clientX - startData.mouseX;
+        const dy = moveEvent.clientY - startData.mouseY;
+        commitLayout({
+          ...currentLayout,
+          x: startData.startX + dx,
+          y: startData.startY + dy,
+        });
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        dragStartRef.current = null;
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "move";
+      document.body.style.userSelect = "none";
+    },
+    [commitLayout, currentLayout]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -85,6 +192,8 @@ export const ResizableItemCard = ({
         return <StickyNote size={16} className="text-yellow-500" />;
       case "todo":
         return <CheckSquare size={16} className="text-green-500" />;
+      case "file":
+        return <FileText size={16} className="text-gray-700" />;
       default:
         return <FileText size={16} className="text-gray-500" />;
     }
@@ -113,6 +222,8 @@ export const ResizableItemCard = ({
         return <StickyNoteItem item={item} />;
       case "todo":
         return <TodoItem item={item} />;
+      case "file":
+        return <FileItem item={item} />;
       default:
         return (
           <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
@@ -126,24 +237,27 @@ export const ResizableItemCard = ({
   };
   return (
     <div
-      ref={cardRef}
-      className={`group relative bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg transition-all duration-300 overflow-hidden ${
-        isResizing
-          ? "shadow-2xl ring-2 ring-blue-500/50 scale-105"
-          : "hover:shadow-xl hover:transform hover:scale-[1.02] hover:border-blue-200/50"
+      className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-shadow ${
+        isResizing || isDragging
+          ? "ring-2 ring-blue-500/30 shadow-md"
+          : "hover:shadow-md"
       }`}
       style={{
-        width: size.width,
-        height: size.height,
+        position: "absolute",
+        left: currentLayout.x,
+        top: currentLayout.y,
+        width: currentLayout.width,
+        height: currentLayout.height,
         minWidth: 280,
         minHeight: 200,
       }}
     >
-      {/* Gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-
-      {/* Header with enhanced styling */}
-      <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 rounded-t-2xl p-3 flex items-center justify-between z-10">
+      {/* Header */}
+      <div
+        className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 p-3 flex items-center justify-between z-10 cursor-move"
+        onMouseDown={handleDragStart}
+        title="Drag to move"
+      >
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="flex-shrink-0">{getIcon()}</div>
           <h3 className="text-sm font-semibold text-gray-900 truncate">
@@ -152,16 +266,9 @@ export const ResizableItemCard = ({
         </div>
 
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-            title={isExpanded ? "Minimize" : "Maximize"}
-          >
-            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-
           {(item.itemData?.url || item.itemData?.embedUrl) && (
             <button
+              onMouseDown={(ev) => ev.stopPropagation()}
               onClick={handleExternalOpen}
               className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
               title="Open in new tab"
@@ -172,6 +279,7 @@ export const ResizableItemCard = ({
 
           {(item.itemData?.content || item.itemData?.text) && (
             <button
+              onMouseDown={(ev) => ev.stopPropagation()}
               onClick={() =>
                 handleCopy(item.itemData.content || item.itemData.text)
               }
@@ -183,6 +291,7 @@ export const ResizableItemCard = ({
           )}
 
           <button
+            onMouseDown={(ev) => ev.stopPropagation()}
             onClick={() => onView(item)}
             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
             title="View details"
@@ -191,6 +300,7 @@ export const ResizableItemCard = ({
           </button>
 
           <button
+            onMouseDown={(ev) => ev.stopPropagation()}
             onClick={() => onDelete(item)}
             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
             title="Remove from collection"
@@ -201,11 +311,7 @@ export const ResizableItemCard = ({
       </div>
 
       {/* Content area with improved styling */}
-      <div
-        className={`absolute top-16 left-0 right-0 bottom-6 p-2 ${
-          isExpanded ? "z-20" : ""
-        }`}
-      >
+      <div className="absolute top-16 left-0 right-0 bottom-6 p-2">
         <div className="w-full h-full rounded-xl overflow-hidden">
           {renderContent()}
         </div>
@@ -213,50 +319,15 @@ export const ResizableItemCard = ({
 
       {/* Enhanced resize handle */}
       <div
-        className="absolute bottom-2 right-2 w-6 h-6 cursor-se-resize bg-gradient-to-br from-gray-300 to-gray-400 hover:from-blue-400 hover:to-indigo-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:shadow-md"
+        className="absolute bottom-2 right-2 w-6 h-6 cursor-se-resize bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-colors duration-200"
         onMouseDown={handleResizeStart}
       >
-        <Move size={12} className="text-white" />
+        <Move size={12} className="text-gray-600" />
       </div>
 
       {/* Loading indicator during resize */}
       {isResizing && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-t-2xl animate-pulse" />
-      )}
-
-      {/* Enhanced expanded modal */}
-      {isExpanded && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-6xl max-h-[90vh] overflow-auto shadow-2xl border border-white/20">
-            <div className="p-6 border-b border-gray-200/50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                  {getIcon()}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {item.itemData?.title || `${item.itemType} item`}
-                  </h3>
-                  <p className="text-sm text-gray-600 capitalize">
-                    {item.itemType.replace("-", " ")} • Collection Item
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200"
-              >
-                <Minimize2 size={20} />
-              </button>
-            </div>
-            <div
-              className="p-6"
-              style={{ minHeight: "500px", minWidth: "700px" }}
-            >
-              {renderContent()}
-            </div>
-          </div>
-        </div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500/60" />
       )}
     </div>
   );

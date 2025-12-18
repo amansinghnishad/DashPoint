@@ -12,10 +12,11 @@ import {
   Moon,
   Keyboard,
   Grid3X3,
+  Bell,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { WidgetsDialog } from "../../../components/widgets-dialog";
+import { InstallButton } from "../../../components/install-button";
 
 export const Sidebar = ({
   activeTab,
@@ -24,15 +25,17 @@ export const Sidebar = ({
   onClose,
   isDark,
   toggleTheme,
+  onNotificationsOpen,
   onSettingsOpen,
   onShortcutsOpen,
   onWidgetsOpen,
 }) => {
   const { user, logoutUser } = useAuth();
-  const [widgetsDialogOpen, setWidgetsDialogOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const isExpanded = isOpen || isHovered;
   const menuItems = [
-    { id: "overview", label: "Overview", icon: Home },
-    { id: "collections", label: "Collections", icon: Folder },
+    { id: "collections", label: "Home", icon: Home },
     { id: "youtube", label: "YouTube", icon: Youtube },
     { id: "content", label: "Content Extractor", icon: FileText },
     { id: "files", label: "File Manager", icon: Upload },
@@ -49,18 +52,22 @@ export const Sidebar = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full w-64 transform transition-all duration-300 ease-in-out z-50 lg:translate-x-0 ${
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed left-0 top-0 h-full transform transition-all duration-300 ease-in-out z-50 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
+        } lg:translate-x-0 ${
           isDark
             ? "bg-gray-800/95 backdrop-blur-sm border-r border-gray-700 shadow-2xl shadow-gray-900/20"
             : "bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-xl"
-        }`}
+        } ${isExpanded ? "w-64" : "w-64 lg:w-16"}`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div
-            className={`p-6 border-b transition-colors duration-200 ${
+            className={`${
+              isExpanded ? "p-6" : "p-3"
+            } border-b transition-colors duration-200 ${
               isDark ? "border-gray-700" : "border-gray-200"
             }`}
           >
@@ -68,7 +75,9 @@ export const Sidebar = ({
               <img
                 src="/logo-vertical.png"
                 alt="DashPoint Logo"
-                className="h-16"
+                className={`transition-all duration-200 ${
+                  isExpanded ? "h-16" : "h-10 lg:h-8"
+                } ${isExpanded ? "" : "lg:mx-auto"}`}
               />
               <button
                 onClick={onClose}
@@ -85,7 +94,11 @@ export const Sidebar = ({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 overflow-y-auto scrollable-area">
+          <nav
+            className={`flex-1 overflow-y-auto scrollable-area ${
+              isExpanded ? "p-4" : "p-2"
+            }`}
+          >
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -97,7 +110,7 @@ export const Sidebar = ({
                         setActiveTab(item.id);
                         onClose();
                       }}
-                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 relative ${
+                      className={`w-full flex items-center rounded-xl transition-all duration-200 relative ${
                         isActive
                           ? isDark
                             ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
@@ -105,13 +118,26 @@ export const Sidebar = ({
                           : isDark
                           ? "text-gray-300 hover:bg-gray-700/80 hover:text-white"
                           : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                      } ${
+                        isExpanded
+                          ? "space-x-3 px-4 py-3 text-left"
+                          : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
                       }`}
+                      title={!isExpanded ? item.label : undefined}
                     >
                       <Icon size={20} />
-                      <span className="font-medium">{item.label}</span>
+                      <span
+                        className={`font-medium transition-all duration-200 ${
+                          isExpanded
+                            ? "opacity-100"
+                            : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
 
                       {/* Active indicator */}
-                      {isActive && (
+                      {isActive && isExpanded && (
                         <div
                           className={`absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-8 rounded-l-full ${
                             isDark ? "bg-blue-400" : "bg-blue-600"
@@ -122,60 +148,123 @@ export const Sidebar = ({
                   </li>
                 );
               })}
-            </ul>{" "}
+            </ul>
             {/* Help Section */}
             <div
-              className={`mt-6 pt-4 border-t transition-colors duration-200 ${
+              className={`transition-colors duration-200 ${
                 isDark ? "border-gray-700" : "border-gray-200"
-              }`}
+              } ${isExpanded ? "mt-6 pt-4 border-t" : "mt-3 pt-2"}`}
             >
-              {" "}
               <button
                 onClick={() => {
-                  if (onWidgetsOpen) {
-                    onWidgetsOpen();
-                  } else {
-                    setWidgetsDialogOpen(true);
-                  }
+                  if (onNotificationsOpen) onNotificationsOpen();
                   onClose();
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2 ${
+                className={`w-full flex items-center px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2 ${
                   isDark
                     ? "text-gray-300 hover:bg-gray-700/80 hover:text-white"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                } ${
+                  isExpanded
+                    ? "space-x-3"
+                    : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
                 }`}
+                title={!isExpanded ? "Notifications" : undefined}
+              >
+                <Bell size={20} />
+                <span
+                  className={`font-medium transition-all duration-200 ${
+                    isExpanded
+                      ? "opacity-100"
+                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                  }`}
+                >
+                  Notifications
+                </span>
+              </button>
+              <div className="mb-2">
+                <InstallButton
+                  compact={!isExpanded}
+                  className={
+                    isExpanded
+                      ? "w-full justify-center"
+                      : "lg:w-12 lg:h-12 lg:p-0 lg:mx-auto lg:justify-center"
+                  }
+                />
+              </div>
+              <button
+                onClick={() => {
+                  if (onWidgetsOpen) onWidgetsOpen();
+                  onClose();
+                }}
+                className={`w-full flex items-center px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2 ${
+                  isDark
+                    ? "text-gray-300 hover:bg-gray-700/80 hover:text-white"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                } ${
+                  isExpanded
+                    ? "space-x-3"
+                    : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
+                }`}
+                title={!isExpanded ? "Widgets" : undefined}
               >
                 <Grid3X3 size={20} />
-                <span className="font-medium">Widgets</span>
+                <span
+                  className={`font-medium transition-all duration-200 ${
+                    isExpanded
+                      ? "opacity-100"
+                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                  }`}
+                >
+                  Widgets
+                </span>
               </button>
               <button
                 onClick={() => {
                   onShortcutsOpen();
                   onClose();
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                className={`w-full flex items-center px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                   isDark
                     ? "text-gray-300 hover:bg-gray-700/80 hover:text-white"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                } ${
+                  isExpanded
+                    ? "space-x-3"
+                    : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
                 }`}
+                title={!isExpanded ? "Keyboard Shortcuts" : undefined}
               >
                 <Keyboard size={20} />
-                <span className="font-medium">Keyboard Shortcuts</span>
+                <span
+                  className={`font-medium transition-all duration-200 ${
+                    isExpanded
+                      ? "opacity-100"
+                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                  }`}
+                >
+                  Keyboard Shortcuts
+                </span>
               </button>
             </div>
           </nav>
 
           {/* User Profile */}
           <div
-            className={`p-4 border-t transition-colors duration-200 ${
+            className={`${
+              isExpanded ? "p-4" : "p-3"
+            } border-t transition-colors duration-200 ${
               isDark ? "border-gray-700" : "border-gray-200"
             }`}
           >
             {/* User Info */}
             <div
-              className={`flex items-center space-x-3 mb-4 p-3 rounded-xl transition-all duration-200 ${
+              className={`flex items-center mb-4 p-3 rounded-xl transition-all duration-200 ${
                 isDark ? "bg-gray-700/50" : "bg-gray-50"
-              }`}
+              } ${isExpanded ? "space-x-3" : "mb-3 lg:justify-center"}`}
+              title={
+                !isExpanded ? user?.name || user?.email || "User" : undefined
+              }
             >
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
@@ -183,7 +272,13 @@ export const Sidebar = ({
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
               </div>
-              <div className="flex-1 min-w-0">
+              <div
+                className={`flex-1 min-w-0 transition-all duration-200 ${
+                  isExpanded
+                    ? "opacity-100"
+                    : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                }`}
+              >
                 <p
                   className={`font-medium truncate transition-colors duration-200 ${
                     isDark ? "text-gray-100" : "text-gray-900"
@@ -202,7 +297,13 @@ export const Sidebar = ({
             </div>
             {/* Action Buttons */}
             <div className="space-y-2">
-              <div className="flex space-x-2">
+              <div
+                className={`flex ${
+                  isExpanded
+                    ? "space-x-2"
+                    : "lg:flex-col lg:space-x-0 lg:space-y-2"
+                }`}
+              >
                 <button
                   onClick={toggleTheme}
                   className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
@@ -221,39 +322,58 @@ export const Sidebar = ({
                     onSettingsOpen();
                     onClose();
                   }}
-                  className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 ${
                     isDark
                       ? "bg-gray-700/80 hover:bg-gray-600 text-gray-300 hover:text-white"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900"
+                  } ${
+                    isExpanded
+                      ? "space-x-2"
+                      : "lg:flex-initial lg:w-10 lg:h-10 lg:px-0 lg:py-0"
                   }`}
+                  title={!isExpanded ? "Settings" : undefined}
                 >
                   <Settings size={16} />
-                  <span className="text-sm font-medium">Settings</span>
+                  <span
+                    className={`text-sm font-medium transition-all duration-200 ${
+                      isExpanded
+                        ? "opacity-100"
+                        : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                    }`}
+                  >
+                    Settings
+                  </span>
                 </button>
               </div>
 
               <button
                 onClick={logoutUser}
-                className={`w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                className={`flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                   isDark
                     ? "bg-red-900/50 hover:bg-red-800 text-red-300 hover:text-red-200 border border-red-800"
                     : "bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800 border border-red-200"
+                } ${
+                  isExpanded
+                    ? "w-full"
+                    : "lg:w-10 lg:h-10 lg:mx-auto lg:px-0 lg:py-0"
                 }`}
+                title={!isExpanded ? "Logout" : undefined}
               >
                 <LogOut size={16} />
-                <span className="text-sm font-medium">Logout</span>
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    isExpanded
+                      ? "opacity-100"
+                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                  }`}
+                >
+                  Logout
+                </span>
               </button>
-            </div>{" "}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Widgets Dialog */}
-      <WidgetsDialog
-        isOpen={widgetsDialogOpen}
-        onClose={() => setWidgetsDialogOpen(false)}
-        isDark={isDark}
-      />
     </>
   );
 };

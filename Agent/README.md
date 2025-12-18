@@ -1,224 +1,147 @@
 # DashPoint AI Agent
 
-Advanced AI-powered content processing and analysis service that provides intelligent summarization, content extraction, and YouTube video analysis capabilities.
+An AI-assisted content processing service that powers DashPoint with Gemini function-calling, extractive summarisation, and YouTube transcript analysis.
 
-## Features
+## Highlights
 
-- **Intelligent Chat Interface**: Natural language processing with function calling capabilities
-- **YouTube Video Analysis**: Extract metadata and generate comprehensive summaries using YouTube Data API v3
-- **Web Content Extraction**: Smart content extraction from web pages with AI analysis
-- **Text Summarization**: Advanced text summarization with customizable length
-- **Function Calling**: Gemini-powered intelligent task routing and execution
+- **Gemini-backed chat** – routes free-form prompts to purpose-built tools.
+- **Fast text summarisation** – lightweight extractive summariser with adjustable length.
+- **YouTube transcript insights** – fetches captions, scores segments, and returns concise recaps.
+- **Web content helper** – optional utility for metadata and body extraction.
+- **Conversational command agent** – pattern + LLM hybrid that maps natural language to DashPoint actions.
 
-## Quick Start
+## Requirements
 
-### Prerequisites
+- Python 3.9 or newer.
+- A Gemini API key (`GEMINI_API_KEY`) for full functionality.
+- Optional: a YouTube Data API key (`YOUTUBE_API_KEY`) if you extend beyond transcript-based summaries.
 
-- Python 3.8 or higher
-- Gemini API key (optional but recommended for advanced features)
+## Getting Started
 
-### Installation
+> All commands below assume you run them from the `Agent/` directory.
 
-1. **Clone and setup**:
-   ```bash
-   cd Agent
-   ```
+### One-command bootstrap
 
-2. **Run the setup script**:
-   
-   **On Windows**:
-   ```batch
-   start_agent.bat
-   ```
-   
-   **On Linux/Mac**:
-   ```bash
-   chmod +x start_agent.sh
-   ./start_agent.sh
-   ```
+- **Windows**: double-click `start_agent.bat` or run it in `cmd.exe`.
+- **macOS / Linux**:
+  ```bash
+  chmod +x start_agent.sh
+  ./start_agent.sh
+  ```
 
-3. **Configure environment**:
-   - Edit the `.env` file created by the setup script
-   - Add your Gemini API key for advanced features
+Both scripts create `venv/`, install dependencies from `requirements.txt`, seed `app/.env` from the template, and launch Uvicorn on `http://localhost:8000`.
 
-### Manual Installation
+### Manual setup
 
-1. **Create virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+```bash
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+cp app/.env.example app/.env
+# edit app/.env with GEMINI_API_KEY (and optional extras)
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
-
-4. **Start the agent**:
-   ```bash
-   cd app
-   python main.py
-   ```
-
-## API Endpoints
-
-The agent runs on `http://localhost:8000` by default.
-
-### Core Endpoints
-
-- `GET /` - Service information and available endpoints
-- `POST /chat` - Intelligent chat with function calling
-- `POST /summarize-text` - Direct text summarization
-- `POST /summarize-youtube` - YouTube video analysis
-- `POST /extract-content` - Web content extraction
-- `GET /health` - Service health check
-
-### Chat Endpoint
-
-The chat endpoint supports natural language requests and automatically calls appropriate functions:
-
-```json
-POST /chat
-{
-  "prompt": "Summarize this YouTube video: https://youtube.com/watch?v=example",
-  "context": "Optional context for better understanding"
-}
-```
-
-### Direct Endpoints
-
-For direct API calls:
-
-```json
-POST /summarize-text
-{
-  "text_content": "Your text here...",
-  "summary_length": "medium"
-}
-
-POST /summarize-youtube
-{
-  "youtube_url": "https://youtube.com/watch?v=example",
-  "summary_length": "medium"
-}
-
-POST /extract-content
-{
-  "url": "https://example.com",
-  "generate_summary": true,
-  "summary_length": "medium"
-}
+cd app
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 ## Configuration
 
-### Environment Variables
+Edit `app/.env` to provide the keys and runtime defaults you need:
 
-- `GEMINI_API_KEY` - Gemini API key for advanced AI features
-- `YOUTUBE_API_KEY` - YouTube Data API v3 key for video analysis
-- `HOST` - Server host (default: 0.0.0.0)
-- `PORT` - Server port (default: 8000)
-- `LOG_LEVEL` - Logging level (default: INFO)
+```
+GEMINI_API_KEY=your_gemini_key
+YOUTUBE_API_KEY=optional_if_needed
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=info
+```
 
-### Summary Lengths
+The service runs without keys, but Gemini-specific routes fall back to safe error responses.
 
-- `short` - ~75 words
-- `medium` - ~200 words (default)
-- `long` - ~400 words
+## API Surface
 
-## Integration
+Base URL: `http://localhost:8000`
 
-The agent is designed to work with the DashPoint application but can be used independently. It provides:
+| Endpoint | Method | Purpose |
+| -------- | ------ | ------- |
+| `/` | GET | Service metadata and available routes. |
+| `/chat` | POST | Free-form chat prompt routed through Gemini tools. |
+| `/analyze-content` | POST | Keyword/topic/sentiment or summary extraction. |
+| `/summarize-text` | POST | Direct text summarisation. |
+| `/summarize-youtube` | POST | YouTube transcript summarisation. |
+| `/extract-content` | POST | Determines content type and returns a suggested action. |
+| `/conversational` | POST | Structured command parser for DashPoint UI actions. |
+| `/agent-info` | GET | Gemini tool registry and schemas. |
+| `/capabilities` | GET | Conversational command catalog with regex patterns. |
+| `/health` | GET | Basic readiness probe. |
 
-- **Fallback Processing**: Works without Gemini API key with basic functionality
-- **Error Handling**: Graceful fallbacks when services are unavailable
-- **CORS Support**: Configurable cross-origin resource sharing
-- **Structured Responses**: Consistent JSON response format
+Sample `curl` calls:
 
-## Architecture
+```bash
+# Text summary
+curl -X POST http://localhost:8000/summarize-text \
+  -H "Content-Type: application/json" \
+  -d '{"text_content": "Long text...", "summary_length": "medium"}'
+
+# Gemini-driven analysis
+curl -X POST http://localhost:8000/analyze-content \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Explain sentiment analysis", "analysis_type": "keywords"}'
+
+# Conversational command routing
+curl -X POST http://localhost:8000/conversational \
+  -H "Content-Type: application/json" \
+  -d '{"command": "add note \"Buy groceries\""}'
+```
+
+## Development Notes
+
+- `app/main.py` – FastAPI application wired to the Gemini and conversational agents.
+- `utils/agents/gemini_client.py` – central function-calling agent; exposes tool metadata via `FUNCTION_DEFINITIONS`.
+- `utils/agents/conversational_agent.py` – regex + LLM command interpreter.
+- `utils/models/textsum_client.py` – extractive summariser used by both APIs and legacy helpers.
+- `utils/models/youtube_client.py` – caption retrieval, scoring, and summary selection.
+- `utils/agents/web_extractor.py` – HTML scraping helper used by some conversational flows.
+
+### Adding a new Gemini tool
+
+1. Implement the handler method on `ContentProcessingAgent`.
+2. Extend `FUNCTION_DEFINITIONS` with the schema.
+3. Register the handler in `available_functions` and expose it via an endpoint if needed.
+
+### Local testing tips
+
+- Use `./run_server.sh` for a one-off launch without modifying the main startup script.
+- When iterating on the API, run `uvicorn main:app --reload` from `app/` inside the virtual environment.
+- Logs appear in the terminal; FastAPI auto-docs are available at `/docs` and `/redoc`.
+
+## Troubleshooting
+
+- **Missing API key** – Gemini endpoints return `503` until `GEMINI_API_KEY` is set and valid.
+- **Transcript errors** – Some videos disable captions; the service responds with a descriptive error string.
+- **Dependency install issues** – Re-run the startup script after ensuring internet access; pip output is visible for debugging.
+- **Port already in use** – Override `PORT` in `app/.env` or pass `--port` to `uvicorn` manually.
+
+## Repository Layout (agent module)
 
 ```
 Agent/
 ├── app/
-│   ├── main.py              # FastAPI application
+│   ├── main.py
 │   └── utils/
 │       ├── agents/
-│       │   ├── gemini_client.py    # Gemini AI integration
-│       │   └── web_extractor.py    # Web content extraction
+│       │   ├── conversational_agent.py
+│       │   ├── gemini_client.py
+│       │   └── web_extractor.py
 │       └── models/
-│           ├── textsum_client.py   # Text summarization
-│           └── youtube_client.py   # YouTube processing
-├── requirements.txt         # Python dependencies
-├── .env.example            # Environment template
-├── start_agent.sh          # Linux/Mac startup script
-└── start_agent.bat         # Windows startup script
+│           ├── textsum_client.py
+│           └── youtube_client.py
+├── requirements.txt
+├── run_server.sh
+├── start_agent.sh
+├── start_agent.bat
+└── README.md
 ```
 
-## Development
-
-### Adding New Functions
-
-1. Create function implementation in appropriate module
-2. Add function declaration to `gemini_client.py`
-3. Register function in `register_functions()`
-4. Update main.py endpoints as needed
-
-### Testing
-
-The agent includes comprehensive error handling and fallback mechanisms. Test with:
-
-```bash
-# Health check
-curl http://localhost:8000/health
-
-# Chat test
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Test message"}'
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Import Errors**: Ensure all dependencies are installed
-2. **API Key Issues**: Check `.env` file configuration
-3. **Port Conflicts**: Change PORT in `.env` file
-4. **YouTube Transcript Issues**: Some videos may not have transcripts available
-
-### Logs
-
-The agent provides detailed logging. Check console output for:
-- Service startup messages
-- API request/response details
-- Error messages and stack traces
-
-## Version History
-
-- **v2.0.0**: New agent-based architecture with Gemini integration
-- **v1.x.x**: Legacy implementation (deprecated)
-
-### Getting YouTube Data API v3 Key
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the YouTube Data API v3:
-   - Go to APIs & Services > Library
-   - Search for "YouTube Data API v3"
-   - Click on it and press "Enable"
-4. Create credentials:
-   - Go to APIs & Services > Credentials
-   - Click "Create Credentials" > "API Key"
-   - Copy the generated API key
-5. Add the API key to your `.env` file:
-   ```bash
-   YOUTUBE_API_KEY=your_youtube_api_v3_key_here
-   ```
-
-**Note**: YouTube transcript extraction has been replaced with metadata-based analysis to avoid rate limiting issues. The agent now uses video title, description, tags, and statistics to generate summaries.
+DashPoint’s web and server applications live alongside the agent in sibling directories; only the files above are required to run the AI microservice.

@@ -52,10 +52,11 @@ const makeTextRazorRequest = async (text, extractors = ['entities', 'topics', 'w
     throw new Error('TextRazor API key not configured');
   }
 
-  const response = await axios.post(`${TEXTRAZOR_BASE_URL}/`, {
-    text,
-    extractors: extractors.join(',')
-  }, {
+  const formBody = new URLSearchParams();
+  formBody.append('text', text);
+  formBody.append('extractors', extractors.join(','));
+
+  const response = await axios.post(`${TEXTRAZOR_BASE_URL}/`, formBody.toString(), {
     headers: {
       'x-textrazor-key': TEXTRAZOR_API_KEY,
       'Content-Type': 'application/x-www-form-urlencoded',

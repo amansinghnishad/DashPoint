@@ -1,33 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   ArrowLeft,
-  Plus,
-  Search,
-  Grid3X3,
-  List,
   FolderOpen,
+  Youtube,
+  StickyNote,
+  CheckSquare,
+  Image,
+  FileText,
 } from "lucide-react";
 import { collectionsAPI } from "../../services/api";
 import { useToast } from "../../hooks/useToast";
-import { ResizableItemCard, AddItemModal, ItemDetailsModal } from "./index";
+import {
+  AddFileToCollectionModal,
+  AddItemModal,
+  AddYouTubeToCollectionModal,
+  ItemDetailsModal,
+  ResizableItemCard,
+} from "./index";
 
 export const CollectionView = ({ collectionId, onBack }) => {
   const [collection, setCollection] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addInitialType, setAddInitialType] = useState("youtube");
+  const [showAddFileModal, setShowAddFileModal] = useState(false);
+  const [addFileMode, setAddFileMode] = useState("file");
+  const [showAddYouTubeModal, setShowAddYouTubeModal] = useState(false);
+  const [activeTool, setActiveTool] = useState("youtube");
   const [selectedItem, setSelectedItem] = useState(null);
-  const [viewMode, setViewMode] = useState("grid");
   const { success, error } = useToast();
 
-  useEffect(() => {
-    if (collectionId) {
-      loadCollection();
-    }
+  const canvasSurfaceRef = useRef(null);
+
+  const layoutStorageKey = useMemo(() => {
+    if (!collectionId) return null;
+    return `dashpoint:collection-layout:${collectionId}`;
   }, [collectionId]);
 
-  const loadCollection = async () => {
+  const [layoutsByItemId, setLayoutsByItemId] = useState({});
+  const latestLayoutsRef = useRef({});
+
+  const getItemKey = useCallback((it) => {
+    if (!it) return "";
+    // Always prefer the logical identity (stable across fetches)
+    if (it.itemType && it.itemId) return `${it.itemType}:${it.itemId}`;
+    // Fallbacks
+    if (it._id) return String(it._id);
+    if (it.itemId) return String(it.itemId);
+    return "";
+  }, []);
+
+  const getCanvasRect = useCallback(() => {
+    const el = canvasSurfaceRef.current;
+    if (!el) return null;
+    return el.getBoundingClientRect();
+  }, []);
+
+  // Keep a live reference for flush-on-exit saves
+  useEffect(() => {
+    latestLayoutsRef.current = layoutsByItemId;
+  }, [layoutsByItemId]);
+
+  const loadCollection = useCallback(async () => {
     try {
       setLoading(true);
       const response = await collectionsAPI.getCollectionWithItems(
@@ -47,7 +82,12 @@ export const CollectionView = ({ collectionId, onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [collectionId, error]);
+
+  useEffect(() => {
+    if (collectionId) loadCollection();
+  }, [collectionId, loadCollection]);
+
   const handleDeleteItem = async (item) => {
     if (!window.confirm("Remove this item from the collection?")) return;
 
@@ -60,7 +100,7 @@ export const CollectionView = ({ collectionId, onBack }) => {
 
       if (response.success) {
         success("Item removed from collection");
-        loadCollection(); // Reload the collection
+        loadCollection();
       } else {
         throw new Error(response.message || "Failed to remove item");
       }
@@ -87,37 +127,143 @@ export const CollectionView = ({ collectionId, onBack }) => {
   };
 
   const handleItemAdded = () => {
-    loadCollection(); // Reload the collection after adding an item
+    loadCollection();
   };
 
-  // Filter items based on search query
-  const filteredItems = items.filter((item) => {
-    if (!searchQuery.trim()) return true;
+  const openAddTool = useCallback(
+    (tool) => {
+      setActiveTool(tool);
 
-    const query = searchQuery.toLowerCase();
-    const title = item.itemData?.title?.toLowerCase() || "";
-    const content = item.itemData?.content?.toLowerCase() || "";
-    const description = item.itemData?.description?.toLowerCase() || "";
-    const itemType = item.itemType?.toLowerCase() || "";
+      if (tool === "youtube") {
+        setShowAddYouTubeModal(true);
+        return;
+      }
 
-    return (
-      title.includes(query) ||
-      content.includes(query) ||
-      description.includes(query) ||
-      itemType.includes(query)
-    );
-  });
+      if (tool === "photo" || tool === "file") {
+        setAddFileMode(tool);
+        setShowAddFileModal(true);
+        return;
+      }
+
+      const typeMap = {
+        youtube: "youtube",
+        note: "sticky-note",
+        todo: "todo",
+      };
+
+      setAddInitialType(typeMap[tool] || "youtube");
+      setShowAddModal(true);
+    },
+    [setActiveTool]
+  );
+
+  // Load saved layout when collection changes
+  useEffect(() => {
+    if (!layoutStorageKey) return;
+    try {
+      const raw = window.localStorage.getItem(layoutStorageKey);
+      const parsed = raw ? JSON.parse(raw) : {};
+      setLayoutsByItemId(parsed && typeof parsed === "object" ? parsed : {});
+    } catch {
+      setLayoutsByItemId({});
+    }
+  }, [layoutStorageKey]);
+
+  // Ensure every item has a layout; remove stale entries
+  useEffect(() => {
+    setLayoutsByItemId((prev) => {
+      const next = { ...prev };
+      const existingIds = new Set(
+        items.map(getItemKey).filter((k) => typeof k === "string" && k.length)
+      );
+
+      Object.keys(next).forEach((key) => {
+        if (!existingIds.has(key)) delete next[key];
+      });
+
+      const cardW = 320;
+      const cardH = 240;
+      const gap = 16;
+
+      const rect = getCanvasRect();
+      const canvasW = rect?.width ?? 1200;
+      const canvasH = rect?.height ?? 700;
+      const cols = Math.max(1, Math.floor((canvasW - gap) / (cardW + gap)));
+
+      items.forEach((it, index) => {
+        const itemKey = getItemKey(it);
+        if (!itemKey) return;
+        if (next[itemKey]) return;
+
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        let x = col * (cardW + gap) + gap;
+        let y = row * (cardH + gap) + gap;
+
+        if (x + cardW > canvasW - gap) x = gap;
+        if (y + cardH > canvasH - gap) {
+          x = gap;
+          y = gap;
+        }
+
+        next[itemKey] = { x, y, width: cardW, height: cardH };
+      });
+
+      return next;
+    });
+  }, [items, getCanvasRect, getItemKey]);
+
+  // Persist layout (debounced)
+  useEffect(() => {
+    if (!layoutStorageKey) return;
+    const t = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          layoutStorageKey,
+          JSON.stringify(layoutsByItemId)
+        );
+      } catch {
+        // ignore
+      }
+    }, 200);
+
+    return () => window.clearTimeout(t);
+  }, [layoutStorageKey, layoutsByItemId]);
+
+  // Flush layouts immediately when leaving (back/refresh/tab close)
+  useEffect(() => {
+    if (!layoutStorageKey) return;
+
+    const flush = () => {
+      try {
+        window.localStorage.setItem(
+          layoutStorageKey,
+          JSON.stringify(latestLayoutsRef.current || {})
+        );
+      } catch {
+        // ignore
+      }
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      flush();
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [layoutStorageKey]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative mb-6">
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 mx-auto"></div>
-            <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-600 border-t-transparent absolute inset-0 mx-auto"></div>
-          </div>
-          <p className="text-gray-600 font-medium text-lg">
-            Loading collection...
-          </p>
+      <div className="fixed inset-0 z-[60] bg-gray-50">
+        <div className="h-full flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
         </div>
       </div>
     );
@@ -125,169 +271,171 @@ export const CollectionView = ({ collectionId, onBack }) => {
 
   if (!collection) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-32 h-32 mx-auto bg-gradient-to-br from-red-100 to-red-200 rounded-3xl flex items-center justify-center mb-6">
-            <FolderOpen size={64} className="text-red-400" />
+      <div className="fixed inset-0 z-[60] bg-gray-50">
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center px-6">
+            <FolderOpen size={40} className="mx-auto text-gray-300" />
+            <h3 className="mt-4 text-base font-semibold text-gray-900">
+              Collection not found
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              It may have been deleted.
+            </p>
+            <button
+              onClick={onBack}
+              className="mt-5 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              Back
+            </button>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
-            Collection not found
-          </h3>
-          <p className="text-gray-600 mb-6">
-            This collection may have been deleted or moved.
-          </p>
-          <button
-            onClick={onBack}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
-          >
-            Go Back
-          </button>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="collection-view min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {" "}
-        {/* Header with Glassmorphism */}
-        <div className="backdrop-blur-sm bg-white/80 rounded-2xl border border-white/20 shadow-xl p-6 mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={onBack}
-                className="group flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-all duration-200"
-              >
-                <ArrowLeft
-                  size={20}
-                  className="group-hover:-translate-x-1 transition-transform duration-200"
-                />
-                <span className="font-medium">Back</span>
-              </button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent">
-                {collection?.name || "Collection"}
-              </h1>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              {/* Search */}
-              <div className="relative group">
-                <Search
-                  size={20}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200"
-                />
-                <input
-                  type="text"
-                  placeholder="Search items..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 text-gray-700 placeholder-gray-500 min-w-[300px]"
-                />
-              </div>
-
-              {/* View Mode Toggle */}
-              <div className="flex items-center space-x-1 bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-200/50">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-3 rounded-lg transition-all duration-200 ${
-                    viewMode === "grid"
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                      : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                  }`}
-                  title="Grid view"
-                >
-                  <Grid3X3 size={16} />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-3 rounded-lg transition-all duration-200 ${
-                    viewMode === "list"
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
-                      : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                  }`}
-                  title="List view"
-                >
-                  <List size={16} />
-                </button>
-              </div>
-
-              {/* Add Item Button */}
-              <button
-                onClick={handleAddItem}
-                className="group flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Plus
-                  size={18}
-                  className="group-hover:rotate-90 transition-transform duration-200"
-                />
-                <span className="font-semibold">Add Item</span>
-              </button>
-            </div>{" "}
-          </div>
-        </div>
-        {/* Items Section */}
-        {filteredItems.length === 0 ? (
-          <div className="backdrop-blur-sm bg-white/80 rounded-2xl border border-white/20 shadow-xl p-12 text-center">
-            <div className="mb-8">
-              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mb-6">
-                <FolderOpen size={64} className="text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                {searchQuery.trim()
-                  ? "No items match your search"
-                  : "Ready to add some content?"}
-              </h3>
-              <p className="text-gray-600 text-lg leading-relaxed max-w-md mx-auto">
-                {searchQuery.trim()
-                  ? "Try adjusting your search terms or explore different keywords"
-                  : "Start building your collection by adding your first item"}
-              </p>
-            </div>
-            {!searchQuery.trim() && (
-              <button
-                onClick={handleAddItem}
-                className="group inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
-              >
-                <Plus
-                  size={20}
-                  className="group-hover:rotate-90 transition-transform duration-200"
-                />
-                <span>Add Your First Item</span>
-              </button>
-            )}
-          </div>
-        ) : (
-          <div
-            className={`${
-              viewMode === "grid"
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-            }`}
+    <div className="fixed inset-0 z-[60] bg-gray-50">
+      <div className="h-full flex flex-col">
+        <div className="shrink-0 bg-white border-b border-gray-200 px-4 py-3">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            {filteredItems.map((item, index) => (
-              <div
-                key={item._id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
+            <ArrowLeft size={18} />
+            Back
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-hidden">
+          <div
+            ref={canvasSurfaceRef}
+            className="relative bg-white w-full h-full"
+          >
+            {/* Bottom toolbar */}
+            <div className="absolute left-1/2 bottom-4 -translate-x-1/2 z-20">
+              <div className="flex items-center gap-1 rounded-2xl bg-gray-900/90 backdrop-blur-md border border-white/10 shadow-lg px-2 py-2">
+                <button
+                  type="button"
+                  onClick={() => openAddTool("note")}
+                  title="Note"
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    activeTool === "note"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <StickyNote size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openAddTool("todo")}
+                  title="Todo"
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    activeTool === "todo"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <CheckSquare size={18} />
+                </button>
+
+                <div className="w-px h-6 bg-white/10 mx-1" />
+
+                <button
+                  type="button"
+                  onClick={() => openAddTool("photo")}
+                  title="Photo"
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    activeTool === "photo"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Image size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openAddTool("youtube")}
+                  title="YouTube"
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    activeTool === "youtube"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Youtube size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openAddTool("file")}
+                  title="File"
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                    activeTool === "file"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <FileText size={18} />
+                </button>
+              </div>
+            </div>
+
+            {items.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center px-6">
+                  <FolderOpen size={40} className="mx-auto text-gray-300" />
+                  <h3 className="mt-4 text-base font-semibold text-gray-900">
+                    Empty canvas
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Add a widget and place it anywhere.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              items.map((item) => (
                 <ResizableItemCard
+                  key={getItemKey(item)}
                   item={item}
-                  onEdit={handleViewItem}
                   onDelete={handleDeleteItem}
                   onView={handleViewItem}
-                  initialSize={
-                    viewMode === "list"
-                      ? { width: "100%", height: 200 }
-                      : { width: 320, height: 240 }
+                  containerRef={canvasSurfaceRef}
+                  layout={layoutsByItemId[getItemKey(item)]}
+                  onLayoutChange={(nextLayout) =>
+                    setLayoutsByItemId((prev) => ({
+                      ...prev,
+                      [getItemKey(item)]: nextLayout,
+                    }))
                   }
                 />
-              </div>
-            ))}
+              ))
+            )}
           </div>
-        )}
-        {/* Modals */}
+        </div>
+
         <AddItemModal
           isOpen={showAddModal}
           onClose={handleCloseAddModal}
+          collectionId={collectionId}
+          onItemAdded={handleItemAdded}
+          initialItemType={addInitialType}
+        />
+
+        <AddFileToCollectionModal
+          isOpen={showAddFileModal}
+          onClose={() => setShowAddFileModal(false)}
+          collectionId={collectionId}
+          onItemAdded={handleItemAdded}
+          mode={addFileMode}
+        />
+
+        <AddYouTubeToCollectionModal
+          isOpen={showAddYouTubeModal}
+          onClose={() => setShowAddYouTubeModal(false)}
           collectionId={collectionId}
           onItemAdded={handleItemAdded}
         />
