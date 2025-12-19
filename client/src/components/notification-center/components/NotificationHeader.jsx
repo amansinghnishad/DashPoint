@@ -7,7 +7,6 @@ export const NotificationHeader = ({
   filter,
   setFilter,
   totalCount,
-  unreadOnly,
 }) => {
   return (
     <div className="p-6 border-b border-gray-200/50 bg-gradient-to-r from-blue-50 to-purple-50">

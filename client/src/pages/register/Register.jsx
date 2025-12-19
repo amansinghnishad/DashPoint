@@ -21,8 +21,8 @@ export const Register = () => {
     confirmPassword: "",
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [_showPassword, _setShowPassword] = useState(false);
+  const [_showConfirmPassword, _setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [backendErrors, setBackendErrors] = useState([]);

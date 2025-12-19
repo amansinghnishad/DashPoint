@@ -118,10 +118,6 @@ export const CollectionView = ({ collectionId, onBack }) => {
     setSelectedItem(null);
   };
 
-  const handleAddItem = () => {
-    setShowAddModal(true);
-  };
-
   const handleCloseAddModal = () => {
     setShowAddModal(false);
   };

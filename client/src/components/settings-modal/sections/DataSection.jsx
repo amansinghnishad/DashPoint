@@ -1,7 +1,7 @@
 import { Button } from "../../ui";
 import { SettingsSection } from "../components/SettingsSection";
 
-export const DataSection = ({ settings, updateSetting }) => {
+export const DataSection = () => {
   return (
     <SettingsSection title="Data Management">
       <div className="space-y-4">

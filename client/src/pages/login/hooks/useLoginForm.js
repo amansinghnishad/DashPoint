@@ -60,7 +60,7 @@ export const useLoginForm = () => {
       } else {
         setErrors({ general: result.error });
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "An unexpected error occurred" });
     } finally {
       setIsLoading(false);

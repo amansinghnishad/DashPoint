@@ -40,7 +40,7 @@ export const FileManagerTab = () => {
       } else {
         error(result.error || "Failed to load files");
       }
-    } catch (err) {
+    } catch {
       error("Failed to load files");
     } finally {
       setLoading(false);
@@ -70,7 +70,7 @@ export const FileManagerTab = () => {
       } else {
         error(result.error || "Failed to upload files");
       }
-    } catch (err) {
+    } catch {
       error("Failed to upload files");
     } finally {
       setUploading(false);
@@ -80,7 +80,7 @@ export const FileManagerTab = () => {
     try {
       await fileService.downloadFile(file._id, file.originalName);
       success("File downloaded successfully");
-    } catch (err) {
+    } catch {
       error("Failed to download file");
     }
   };
@@ -99,7 +99,7 @@ export const FileManagerTab = () => {
       } else {
         error(result.error || "Failed to delete file");
       }
-    } catch (err) {
+    } catch {
       error("Failed to delete file");
     }
   };

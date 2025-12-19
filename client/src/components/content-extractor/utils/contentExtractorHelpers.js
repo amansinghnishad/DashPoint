@@ -30,7 +30,6 @@ export const extractContentFromUrl = async (url, existingContents) => {
 
   // Step 1: Basic formatting using TextFormatter
   let formattedContent = TextFormatter.formatContent(rawContent);
-  const textStats = TextFormatter.getTextStats(formattedContent);
 
   // Step 2: Enhanced AI-powered formatting using DashPoint AI Agent
   let aiFormattingResult = null;

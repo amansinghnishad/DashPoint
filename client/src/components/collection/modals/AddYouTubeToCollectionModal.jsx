@@ -46,7 +46,7 @@ export const AddYouTubeToCollectionModal = ({
         } else {
           setVideos([]);
         }
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setVideos([]);
           error("Failed to load saved YouTube videos");

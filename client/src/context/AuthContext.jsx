@@ -217,7 +217,7 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: "SESSION_WARNING", payload: false });
         return true;
       }
-    } catch (error) {
+    } catch {
       logoutUser();
       return false;
     }

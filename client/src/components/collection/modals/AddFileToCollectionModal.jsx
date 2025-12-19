@@ -39,7 +39,7 @@ export const AddFileToCollectionModal = ({
         } else {
           setFiles([]);
         }
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setFiles([]);
           error("Failed to load files");

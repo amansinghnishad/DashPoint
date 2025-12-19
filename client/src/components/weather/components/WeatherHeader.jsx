@@ -1,11 +1,6 @@
 import { MapPin, RefreshCw } from "lucide-react";
 
-export const WeatherHeader = ({
-  weather,
-  onLocationToggle,
-  onRefresh,
-  showLocationInput,
-}) => {
+export const WeatherHeader = ({ weather, onLocationToggle, onRefresh }) => {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 space-y-2 sm:space-y-0">
       <div className="flex items-center space-x-2">

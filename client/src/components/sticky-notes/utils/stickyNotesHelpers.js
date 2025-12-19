@@ -71,7 +71,7 @@ export const createNewNote = () => {
 /**
  * Handle mouse down event for dragging
  */
-export const handleMouseDown = (e, note) => {
+export const handleMouseDown = (e) => {
   if (shouldIgnoreDrag(e)) {
     return { shouldStartDrag: false };
   }

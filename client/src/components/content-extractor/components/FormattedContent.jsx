@@ -24,7 +24,7 @@ export const FormattedContent = ({ content, className = "" }) => {
           <div key={index} className="fade-in-up">
             {" "}
             {section.type === "heading" && (
-              <div className="border-l-4 border-blue-500 pl-6 py-3 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-r-lg">
+              <div className="border-l-4 border-gray-300 pl-6 py-3 mb-4 bg-gray-50 rounded-r-lg">
                 <h3
                   className="text-xl font-bold text-gray-900 mb-2"
                   dangerouslySetInnerHTML={{
@@ -34,7 +34,7 @@ export const FormattedContent = ({ content, className = "" }) => {
               </div>
             )}
             {section.type === "paragraph" && (
-              <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-6 border-l-4 border-gray-300 hover:border-blue-400 transition-colors duration-300">
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
                 <p
                   className="text-gray-800 leading-relaxed text-lg"
                   dangerouslySetInnerHTML={{
@@ -44,16 +44,16 @@ export const FormattedContent = ({ content, className = "" }) => {
               </div>
             )}
             {section.type === "list" && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border-l-4 border-blue-300 hover:border-indigo-400 transition-colors duration-300">
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
                 <ul className="space-y-3">
                   {section.items.map((item, itemIndex) => (
                     <li key={itemIndex} className="flex items-start space-x-4">
-                      <span className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mt-2 flex-shrink-0 shadow-sm"></span>
+                      <span className="w-2.5 h-2.5 bg-gray-400 rounded-full mt-2 flex-shrink-0" />
                       <span
                         className="text-gray-800 flex-1 leading-relaxed"
                         dangerouslySetInnerHTML={{
                           __html: processEmphasis(
-                            item.replace(/^[•\-\*]\s*/, "")
+                            item.replace(/^(?:[•*-]|\d+\.)\s*/, "")
                           ),
                         }}
                       />
@@ -97,15 +97,15 @@ export const FormattedContent = ({ content, className = "" }) => {
                 <div key={index} className="my-6">
                   <ul className="space-y-3 list-none pl-0">
                     {items.map((item, itemIndex) => {
-                      const cleanItem = item.replace(/^[•\-\*\d+\.]\s*/, "");
+                      const cleanItem = item.replace(/^(?:[•*-]|\d+\.)\s*/, "");
                       return (
                         <li
                           key={itemIndex}
                           className="flex items-start space-x-3 py-1"
                         >
-                          <span className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full mt-3 flex-shrink-0 list-item-pulse"></span>
+                          <span className="w-2 h-2 bg-gray-400 rounded-full mt-3 flex-shrink-0" />
                           <span
-                            className="text-gray-800 flex-1 text-enhanced"
+                            className="text-gray-800 flex-1"
                             dangerouslySetInnerHTML={{
                               __html: processEmphasis(cleanItem),
                             }}
@@ -125,7 +125,7 @@ export const FormattedContent = ({ content, className = "" }) => {
               return (
                 <blockquote
                   key={index}
-                  className="border-l-4 border-blue-500 pl-6 py-4 my-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-r-lg italic text-gray-700"
+                  className="border-l-4 border-gray-300 pl-6 py-4 my-6 bg-gray-50 rounded-r-lg italic text-gray-700"
                 >
                   <p
                     className="mb-0 text-lg leading-relaxed"
@@ -138,7 +138,7 @@ export const FormattedContent = ({ content, className = "" }) => {
               return (
                 <p
                   key={index}
-                  className="mb-6 text-gray-800 leading-relaxed paragraph-hover text-enhanced"
+                  className="mb-6 text-gray-800 leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: processEmphasis(paragraph.trim()),
                   }}

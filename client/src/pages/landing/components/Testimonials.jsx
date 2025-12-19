@@ -281,7 +281,7 @@ export const Testimonials = () => {
 
         {/* Testimonials Grid */}
         <div className="testimonials-grid grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.slice(0, 6).map((testimonial, index) => (
+          {testimonials.slice(0, 6).map((testimonial) => (
             <div
               key={testimonial.id}
               className="testimonial-card glass-card bg-white p-6 rounded-2xl hover-lift group"
