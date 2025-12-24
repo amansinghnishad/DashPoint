@@ -1,7 +1,7 @@
 import Modal from "../../components/Modals/Modal";
-import CalendarWidget from "../../pages/Dashboard/Widgets/Calendar";
-import StickyNotesWidget from "../../pages/Dashboard/Widgets/StickyNotes";
-import TodoWidget from "../../pages/Dashboard/Widgets/Todo";
+import CalendarWidget from "../../pages/dashboard/Widgets/Calendar";
+import StickyNotesWidget from "../../pages/dashboard/Widgets/StickyNotes";
+import TodoWidget from "../../pages/dashboard/Widgets/Todo";
 
 function WidgetCard({ title, description, children }) {
   return (
