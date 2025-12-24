@@ -3,9 +3,9 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export const usePWAUpdates = () => {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
-  
+
   const {
-    offlineReady: [offlineReady, setOfflineReady],
+    offlineReady: [offlineReady],
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({

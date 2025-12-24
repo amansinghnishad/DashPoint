@@ -144,6 +144,13 @@ Backend API server for the MERN DashPoint application, providing comprehensive b
 - `GET /api/system/status` - Get system status
 - `GET /api/system/agent-status` - Check AI agent connection
 
+## Maintenance Notes
+
+### Cleanup (Dec 2025)
+
+- Fixed route shadowing by ordering more-specific routes before `/:id`.
+- Removed unreachable legacy “saved content” endpoints under `content-extraction`.
+
 ## Project Structure
 
 ```

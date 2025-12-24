@@ -48,7 +48,7 @@ export class TextFormatter {
       // Remove excessive whitespace
       .replace(/\s+/g, ' ')
       // Remove weird characters but keep more punctuation
-      .replace(/[^\w\s\.\,\!\?\;\:\-\'\"\(\)\[\]\n\r\&\%\$\#\@]/g, ' ')
+      .replace(/[^\w\s.,!?;:'"()\x5B\x5D\n\r&%$#@-]/g, ' ')
       // Fix common encoding issues
       .replace(/â€™/g, "'")
       .replace(/â€œ/g, '"')
@@ -72,7 +72,7 @@ export class TextFormatter {
   static structureParagraphs(text) {
     return text
       // Split on multiple line breaks or periods followed by capital letters
-      .split(/(?:\n\s*\n|\.\s+(?=[A-Z])|\?\s+(?=[A-Z])|\!\s+(?=[A-Z]))/)
+      .split(/(?:\n\s*\n|\.\s+(?=[A-Z])|\?\s+(?=[A-Z])|!\s+(?=[A-Z]))/)
       .map(paragraph => paragraph.trim())
       .filter(paragraph => paragraph.length > 15) // Remove very short fragments
       .filter(paragraph => !this.isLikelyArtifact(paragraph)) // Remove artifacts
@@ -103,7 +103,7 @@ export class TextFormatter {
       // Convert bullet points
       .replace(/•\s*/g, '• ')
       .replace(/\*\s*/g, '• ')
-      .replace(/\-\s*(?=\w)/g, '• ')
+      .replace(/-\s*(?=\w)/g, '• ')
       .replace(/→\s*/g, '• ')
       .replace(/➤\s*/g, '• ')
       // Convert numbered lists
@@ -265,7 +265,7 @@ export class TextFormatter {
   static enhanceSentences(text) {
     return text
       // Ensure sentences start with capital letters
-      .replace(/(\. |\? |\! |^)([a-z])/g, (match, punctuation, letter) => {
+      .replace(/(\. |\? |! |^)([a-z])/g, (match, punctuation, letter) => {
         return punctuation + letter.toUpperCase();
       })
       // Fix spacing after punctuation
@@ -284,7 +284,7 @@ export class TextFormatter {
    */
   static formatUrls(text) {
     // Replace long URLs with domain names
-    return text.replace(/(https?:\/\/)([^\/\s]+)([^\s]*)/g, (match, protocol, domain, path) => {
+    return text.replace(/(https?:\/\/)([^/\s]+)([^\s]*)/g, (match, protocol, domain, path) => {
       if (path.length > 30) {
         return `${domain}...`;
       }

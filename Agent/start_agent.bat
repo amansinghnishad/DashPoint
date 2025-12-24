@@ -1,98 +1,73 @@
 @echo off
+setlocal enabledelayedexpansion
+
 REM DashPoint AI Agent Startup Script for Windows
+set "ROOT_DIR=%~dp0"
+set "APP_DIR=%ROOT_DIR%app"
+set "VENV_DIR=%ROOT_DIR%venv"
 
 echo ==========================================
 echo    DashPoint AI Agent v2.0.0
 echo ==========================================
 echo.
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: Python is not installed or not in PATH
-    echo Please install Python 3.8+ and add it to your PATH
-    echo Download from: https://python.org/downloads/
+REM Verify Python availability
+where python >nul 2>&1
+if errorlevel 1 (
+    echo Error: Python is not installed or not in PATH.
+    echo Install Python 3.9 or newer from https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
-echo Python version:
-python --version
+for /f "tokens=*" %%i in ('python --version') do set "PY_VERSION=%%i"
+echo Using %PY_VERSION%
 echo.
 
-REM Check if virtual environment exists
-if not exist "venv" (
+if not exist "%VENV_DIR%" (
     echo Creating Python virtual environment...
-    python -m venv venv
-    if %errorlevel% neq 0 (
-        echo Error: Failed to create virtual environment
+    python -m venv "%VENV_DIR%"
+    if errorlevel 1 (
+        echo Error: Failed to create virtual environment.
         pause
         exit /b 1
     )
-    echo Virtual environment created successfully.
+    echo Virtual environment created.
     echo.
 )
 
-REM Activate virtual environment
 echo Activating virtual environment...
-call venv\Scripts\activate
-if %errorlevel% neq 0 (
-    echo Error: Failed to activate virtual environment
+call "%VENV_DIR%\Scripts\activate"
+if errorlevel 1 (
+    echo Error: Failed to activate virtual environment.
     pause
     exit /b 1
 )
 
-REM Upgrade pip to latest version
-echo Upgrading pip...
-python -m pip install --upgrade pip --quiet
+echo Upgrading pip (first run may take a few moments)...
+python -m pip install --upgrade pip >nul
 
-REM Install/update dependencies
-echo Installing/updating dependencies...
-pip install -r requirements.txt --quiet
-if %errorlevel% neq 0 (
-    echo Error: Failed to install dependencies
-    echo Please check your internet connection and try again
+echo Installing required packages...
+pip install -r "%ROOT_DIR%requirements.txt"
+if errorlevel 1 (
+    echo Error: Failed to install dependencies. Check your internet connection.
     pause
     exit /b 1
 )
 
-REM Check if .env file exists
-if not exist "app\.env" (
+if not exist "%APP_DIR%\.env" if exist "%APP_DIR%\.env.example" (
+    copy "%APP_DIR%\.env.example" "%APP_DIR%\.env" >nul
+    echo Created app\.env from template. Update your API keys before using production features.
     echo.
-    echo ==========================================
-    echo         CONFIGURATION REQUIRED
-    echo ==========================================
-    echo .env file not found in app directory!
-    echo.
-    echo Creating .env file from template...
-    copy "app\.env.example" "app\.env" >nul
-    echo.
-    echo Please edit app\.env and configure your API keys:
-    echo   - GEMINI_API_KEY: Required for AI features
-    echo   - YOUTUBE_API_KEY: Required for YouTube video analysis
-    echo.
-    echo The agent will continue starting, but some features may not work
-    echo without proper API key configuration.
-    echo.
-    timeout /t 5 >nul
 )
 
-REM Start the agent
+echo Starting DashPoint AI Agent...
+echo Server: http://localhost:8000
+echo Docs:   http://localhost:8000/docs
 echo.
-echo ==========================================
-echo         STARTING AGENT SERVER
-echo ==========================================
-echo.
-echo DashPoint AI Agent is starting...
-echo Server will be available at: http://localhost:8000
-echo API documentation: http://localhost:8000/docs
-echo Health check: http://localhost:8000/health
-echo.
-echo Press Ctrl+C to stop the agent
-echo.
-
-cd app
-python main.py
+pushd "%APP_DIR%"
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+popd
 
 echo.
 echo Agent stopped.

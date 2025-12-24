@@ -102,10 +102,12 @@ exports.processCommand = async (req, res, next) => {
       });
 
     } catch (agentError) {
-      console.error('Conversational agent failed:', agentError);
+      const agentStatus = agentError?.response?.status;
+      const agentDetail = agentError?.response?.data?.detail || agentError?.message;
+      console.warn(`Conversational agent unavailable${agentStatus ? ` (${agentStatus})` : ''}: ${agentDetail}`);
 
       // Fallback: try to handle simple commands locally
-      const fallbackResult = await handleSimpleCommandsFallback(command, userContext);
+      const fallbackResult = await handleSimpleCommandsFallback(command, userContext, req, res, next);
 
       if (fallbackResult.success) {
         return res.status(200).json({
@@ -115,10 +117,10 @@ exports.processCommand = async (req, res, next) => {
         });
       }
 
-      return res.status(500).json({
+      return res.status(503).json({
         success: false,
         message: 'Conversational agent is not available and command could not be processed locally',
-        error: agentError.message
+        error: agentDetail
       });
     }
 
@@ -140,12 +142,13 @@ async function executeApiCall(apiCall, req, res, next) {
       ...req,
       body: data || {},
       query: params || {},
-      params: extractParamsFromEndpoint(endpoint)
+      params: req.params || {}
     };
 
     // Route to appropriate controller based on endpoint
     if (endpoint.startsWith('/api/sticky-notes')) {
-      return await executeControllerMethod(stickyNoteController, 'createNote', mockReq, res, next);
+      // Default to create sticky note for conversational agent generated POST requests
+      return await executeControllerMethod(stickyNoteController, 'createStickyNote', mockReq, res, next);
     } else if (endpoint.startsWith('/api/todos')) {
       if (endpoint.includes('search-and-complete')) {
         return await searchAndCompleteTodo(data, mockReq.user._id);
@@ -162,15 +165,23 @@ async function executeApiCall(apiCall, req, res, next) {
         return await executeControllerMethod(contentExtractionController, 'processContentWithAI', mockReq, res, next);
       }
     } else if (endpoint.startsWith('/api/files')) {
-      return await executeControllerMethod(fileController, 'uploadFile', mockReq, res, next);
+      return await executeControllerMethod(fileController, 'uploadFiles', mockReq, res, next);
     } else if (endpoint.startsWith('/api/collections')) {
       return await executeControllerMethod(collectionController, 'createCollection', mockReq, res, next);
     } else if (endpoint.startsWith('/api/weather')) {
-      return await executeControllerMethod(weatherController, 'getWeather', mockReq, res, next);
-    } else if (endpoint.startsWith('/api/search')) {
-      return await performGlobalSearch(params.q, mockReq.user._id);
-    } else if (endpoint.startsWith('/api/ai-services')) {
-      return await handleAIAssistance(data, mockReq.user._id);
+      if (endpoint.includes('/current/city')) {
+        return await executeControllerMethod(weatherController, 'getCurrentWeatherByCity', mockReq, res, next);
+      }
+      if (endpoint.includes('/current')) {
+        return await executeControllerMethod(weatherController, 'getCurrentWeather', mockReq, res, next);
+      }
+      if (endpoint.includes('/forecast/city')) {
+        return await executeControllerMethod(weatherController, 'getForecastByCity', mockReq, res, next);
+      }
+      if (endpoint.includes('/forecast')) {
+        return await executeControllerMethod(weatherController, 'getForecast', mockReq, res, next);
+      }
+      return { success: false, message: 'Unsupported weather endpoint' };
     }
 
     return { success: false, message: 'Unknown endpoint' };
@@ -276,120 +287,29 @@ async function executeYouTubeProcessing(data, req, res, next) {
 }
 
 /**
- * Perform global search across all user content
- */
-async function performGlobalSearch(query, userId) {
-  try {
-    // Search across multiple collections
-    const Todo = require('../models/Todo');
-    const StickyNote = require('../models/StickyNote');
-    const YouTube = require('../models/YouTube');
-    const ContentExtraction = require('../models/ContentExtraction');
-
-    const searchResults = await Promise.allSettled([
-      Todo.find({
-        userId: userId,
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { description: { $regex: query, $options: 'i' } }
-        ]
-      }).limit(5),
-
-      StickyNote.find({
-        userId: userId,
-        content: { $regex: query, $options: 'i' }
-      }).limit(5),
-
-      YouTube.find({
-        userId: userId,
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { description: { $regex: query, $options: 'i' } }
-        ]
-      }).limit(5),
-
-      ContentExtraction.find({
-        userId: userId,
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { content: { $regex: query, $options: 'i' } }
-        ]
-      }).limit(5)
-    ]);
-
-    const results = {
-      todos: searchResults[0].status === 'fulfilled' ? searchResults[0].value : [],
-      notes: searchResults[1].status === 'fulfilled' ? searchResults[1].value : [],
-      videos: searchResults[2].status === 'fulfilled' ? searchResults[2].value : [],
-      content: searchResults[3].status === 'fulfilled' ? searchResults[3].value : []
-    };
-
-    const totalResults = Object.values(results).reduce((sum, arr) => sum + arr.length, 0);
-
-    return {
-      success: true,
-      message: `Found ${totalResults} results for "${query}"`,
-      data: results
-    };
-
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Handle AI assistance requests
- */
-async function handleAIAssistance(data, userId) {
-  try {
-    // This would integrate with your AI services
-    const result = {
-      success: true,
-      message: `AI assistance for: "${data.message}"`,
-      response: "This would connect to your AI service to provide an intelligent response."
-    };
-
-    return result;
-
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
- * Extract parameters from endpoint path
- */
-function extractParamsFromEndpoint(endpoint) {
-  const params = {};
-  const matches = endpoint.match(/:(\w+)/g);
-  if (matches) {
-    matches.forEach(match => {
-      const paramName = match.substring(1);
-      params[paramName] = 'extracted-value'; // This would need proper extraction logic
-    });
-  }
-  return params;
-}
-
-/**
  * Fallback handler for simple commands when agent is unavailable
  */
-async function handleSimpleCommandsFallback(command, userContext) {
+async function handleSimpleCommandsFallback(command, userContext, req, res, next) {
   const lowerCommand = command.toLowerCase();
 
   // Simple note detection
   if (lowerCommand.includes('add note') || lowerCommand.includes('note:')) {
     const noteMatch = command.match(/(?:add note|note:)\s*["\']?(.+?)["\']?$/i);
     if (noteMatch) {
+      const content = noteMatch[1];
+      const mockReq = {
+        ...req,
+        body: { content },
+        user: userContext.user
+      };
+
+      const execution = await executeControllerMethod(stickyNoteController, 'createStickyNote', mockReq, res, next);
+
       return {
         success: true,
-        message: `Would add note: "${noteMatch[1]}"`,
+        message: `Added note: "${content}"`,
         action: 'add_note',
-        api_call: {
-          endpoint: '/api/sticky-notes',
-          method: 'POST',
-          data: { content: noteMatch[1] }
-        }
+        execution_result: execution
       };
     }
   }
@@ -398,15 +318,20 @@ async function handleSimpleCommandsFallback(command, userContext) {
   if (lowerCommand.includes('add todo') || lowerCommand.includes('todo:')) {
     const todoMatch = command.match(/(?:add todo|todo:)\s*["\']?(.+?)["\']?$/i);
     if (todoMatch) {
+      const title = todoMatch[1];
+      const mockReq = {
+        ...req,
+        body: { title },
+        user: userContext.user
+      };
+
+      const execution = await executeControllerMethod(todoController, 'createTodo', mockReq, res, next);
+
       return {
         success: true,
-        message: `Would add todo: "${todoMatch[1]}"`,
+        message: `Added todo: "${title}"`,
         action: 'add_todo',
-        api_call: {
-          endpoint: '/api/todos',
-          method: 'POST',
-          data: { title: todoMatch[1] }
-        }
+        execution_result: execution
       };
     }
   }

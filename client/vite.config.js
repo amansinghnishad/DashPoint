@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'vite.svg'],
+      includeAssets: ['logo.png', 'dashpoint-icon.svg', 'icon-192.svg', 'icon-512.svg'],
       manifest: {
         name: 'DashPoint - Personal Productivity Dashboard',
         short_name: 'DashPoint',
@@ -23,23 +23,34 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
-            src: 'logo.png',
-            sizes: 'any',
+            src: 'icon-192.svg',
+            sizes: '192x192',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: 'vite.svg',
-            sizes: 'any',
-            type: 'image/svg+xml'
+            src: 'icon-512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any'
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}'],
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+        navigateFallbackDenylist: [/^\/_/, /^\/api\//, /\/[^/?]+\.[^/]+$/],
         runtimeCaching: [
+          {
+            urlPattern: /^http:\/\/(localhost|127\.0\.0\.1):5000\/api\//,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'local-api-bypass'
+            }
+          },
           {
             urlPattern: /^https:\/\/api\./,
             handler: 'NetworkFirst',

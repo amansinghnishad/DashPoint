@@ -1,48 +1,58 @@
-"""
-FastAPI server for intelligent content processing using AI agents.
-This server provides endpoints for content summarization, extraction, and analysis.
-"""
+"""FastAPI server exposing DashPoint AI agent capabilities."""
 
-import os
+from __future__ import annotations
+
 import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
 
-# Set up paths for imports
+
+API_VERSION = "2.0.0"
+
+
+# Ensure the utils package is importable when running directly
 current_dir = Path(__file__).parent
-sys.path.append(str(current_dir))
-sys.path.append(str(current_dir / "utils" / "models"))
-sys.path.append(str(current_dir / "utils" / "agents"))
+sys.path.extend(
+    [
+        str(current_dir),
+        str(current_dir / "utils" / "models"),
+        str(current_dir / "utils" / "agents"),
+    ]
+)
 
-# Load environment variables from .env file
-load_dotenv(dotenv_path=current_dir / '.env')
 
-# Import the new agent
+# Load environment variables from .env file if present
+load_dotenv(dotenv_path=current_dir / ".env")
+
+
+# Attempt to import agents; keep flags for graceful degradation
 try:
     from utils.agents.gemini_client import get_content_processing_agent
+
     agent_available = True
-except ImportError as e:
-    print(f"Warning: Failed to import content processing agent: {e}")
+except ImportError as exc:  # pragma: no cover - defensive path
+    print(f"Warning: Failed to import content processing agent: {exc}")
     agent_available = False
     get_content_processing_agent = None
 
-# Import the conversational agent
 try:
     from utils.agents.conversational_agent import get_conversational_agent
+
     conversational_agent_available = True
-except ImportError as e:
-    print(f"Warning: Failed to import conversational agent: {e}")
+except ImportError as exc:  # pragma: no cover - defensive path
+    print(f"Warning: Failed to import conversational agent: {exc}")
     conversational_agent_available = False
     get_conversational_agent = None
 
-# Create the FastAPI app
+
 app = FastAPI(
-    title="DashPoint AI Agent API", 
+    title="DashPoint AI Agent API",
     description="Intelligent content processing API using AI agents",
-    version="2.0.0"
+    version=API_VERSION,
 )
 
 # Define request models
@@ -71,12 +81,37 @@ class ConversationalRequest(BaseModel):
     context: Optional[Dict[str, Any]] = None
 
 
+def _require_content_agent():
+    if not agent_available or get_content_processing_agent is None:
+        raise HTTPException(status_code=503, detail="AI agent not available")
+    try:
+        return get_content_processing_agent()
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Failed to initialise AI agent: {exc}") from exc
+
+
+def _require_conversational_agent():
+    if not conversational_agent_available or get_conversational_agent is None:
+        raise HTTPException(status_code=503, detail="Conversational agent not available")
+    try:
+        return get_conversational_agent()
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Failed to initialise conversational agent: {exc}") from exc
+
+
+def _call_agent_function(agent, function_name: str, **kwargs):
+    function = agent.available_functions.get(function_name)
+    if not function:
+        raise HTTPException(status_code=500, detail=f"Agent function '{function_name}' not registered")
+    return function(**kwargs)
+
+
 @app.get("/")
 async def root():
     """Root endpoint with API information"""
     return {
         "message": "DashPoint AI Agent API",
-        "version": "2.0.0",
+        "version": API_VERSION,
         "agent_available": agent_available,
         "endpoints": {
             "chat": "/chat - Intelligent chat with function calling",
@@ -93,11 +128,8 @@ async def chat_with_agent(request: ChatRequest):
     """
     Intelligent chat endpoint using AI agent with function calling capabilities
     """
-    if not agent_available:
-        raise HTTPException(status_code=503, detail="AI agent not available")
-    
     try:
-        agent = get_content_processing_agent()
+        agent = _require_content_agent()
         
         # Process the user request
         user_prompt = request.prompt
@@ -106,17 +138,21 @@ async def chat_with_agent(request: ChatRequest):
         
         result = agent.process_user_request(user_prompt)
         
-        if result["success"]:
+        if result.get("success"):
             return {
                 "success": True,
                 "results": result["results"],
-                "agent_version": "2.0.0"
+                "agent_version": API_VERSION,
             }
-        else:
-            raise HTTPException(status_code=500, detail=f"Agent processing failed: {result['error']}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent processing failed: {result.get('error', 'Unknown error')}",
+        )
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing chat request: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error processing chat request: {exc}") from exc
 
 
 @app.post("/analyze-content")
@@ -124,19 +160,14 @@ async def analyze_content(request: ContentAnalysisRequest):
     """
     Analyze content using AI agent
     """
-    if not agent_available:
-        raise HTTPException(status_code=503, detail="AI agent not available")
-    
     try:
-        agent = get_content_processing_agent()
-        
-        # Use the extract_content_info function
-        function_args = {
-            "content": request.content,
-            "extract_type": request.analysis_type
-        }
-        
-        result = agent.available_functions["extract_content_info"](**function_args)
+        agent = _require_content_agent()
+        result = _call_agent_function(
+            agent,
+            "extract_content_info",
+            content=request.content,
+            extract_type=request.analysis_type,
+        )
         
         return {
             "success": result.get("success", True),
@@ -144,8 +175,10 @@ async def analyze_content(request: ContentAnalysisRequest):
             "result": result
         }
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error analyzing content: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error analyzing content: {exc}") from exc
 
 
 @app.post("/summarize-text")
@@ -153,31 +186,33 @@ async def summarize_text(request: TextSummaryRequest):
     """
     Direct text summarization endpoint using AI agent
     """
-    if not agent_available:
-        raise HTTPException(status_code=503, detail="AI agent not available")
-    
     try:
-        agent = get_content_processing_agent()
-        
-        result = agent.available_functions["summarize_text_content"](
+        agent = _require_content_agent()
+        result = _call_agent_function(
+            agent,
+            "summarize_text_content",
             text_content=request.text_content,
-            summary_length=request.summary_length
+            summary_length=request.summary_length,
         )
         
-        if result["success"]:
+        if result.get("success"):
             return {
                 "success": True,
                 "summary": result["summary"],
                 "content_type": result["content_type"],
                 "original_length": result.get("original_length", 0),
                 "summary_length": request.summary_length,
-                "agent_version": "2.0.0"
+                "agent_version": API_VERSION,
             }
-        else:
-            raise HTTPException(status_code=500, detail=f"Summarization failed: {result['error']}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Summarization failed: {result.get('error', 'Unknown error')}",
+        )
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error summarizing text: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error summarizing text: {exc}") from exc
 
 
 @app.post("/summarize-youtube")
@@ -185,31 +220,33 @@ async def summarize_youtube(request: YouTubeSummaryRequest):
     """
     Direct YouTube video summarization endpoint using AI agent
     """
-    if not agent_available:
-        raise HTTPException(status_code=503, detail="AI agent not available")
-    
     try:
-        agent = get_content_processing_agent()
-        
-        result = agent.available_functions["summarize_youtube_video"](
+        agent = _require_content_agent()
+        result = _call_agent_function(
+            agent,
+            "summarize_youtube_video",
             youtube_url=request.youtube_url,
-            summary_length=request.summary_length
+            summary_length=request.summary_length,
         )
         
-        if result["success"]:
+        if result.get("success"):
             return {
                 "success": True,
                 "summary": result["summary"],
                 "content_type": result["content_type"],
                 "video_url": result["video_url"],
                 "summary_length": request.summary_length,
-                "agent_version": "2.0.0"
+                "agent_version": API_VERSION,
             }
-        else:
-            raise HTTPException(status_code=500, detail=f"YouTube summarization failed: {result['error']}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"YouTube summarization failed: {result.get('error', 'Unknown error')}",
+        )
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error summarizing YouTube video: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error summarizing YouTube video: {exc}") from exc
 
 
 @app.post("/extract-content")
@@ -217,15 +254,12 @@ async def extract_content(request: ContentExtractionRequest):
     """
     Extract and analyze web content using AI agent
     """
-    if not agent_available:
-        raise HTTPException(status_code=503, detail="AI agent not available")
-    
     try:
-        agent = get_content_processing_agent()
-        
-        # First analyze content type
-        content_type_result = agent.available_functions["analyze_content_type"](
-            input_text=request.url
+        agent = _require_content_agent()
+        content_type_result = _call_agent_function(
+            agent,
+            "analyze_content_type",
+            input_text=request.url,
         )
         
         if not content_type_result["success"]:
@@ -233,9 +267,11 @@ async def extract_content(request: ContentExtractionRequest):
         
         # Process based on content type
         if content_type_result["content_type"] == "youtube":
-            result = agent.available_functions["summarize_youtube_video"](
+            result = _call_agent_function(
+                agent,
+                "summarize_youtube_video",
                 youtube_url=request.url,
-                summary_length="medium"
+                summary_length="medium",
             )
         elif content_type_result["content_type"] == "url":
             # For web URLs, we'd need to implement web scraping
@@ -257,11 +293,13 @@ async def extract_content(request: ContentExtractionRequest):
             "success": True,
             "content_analysis": content_type_result,
             "extraction_result": result,
-            "agent_version": "2.0.0"
+            "agent_version": API_VERSION,
         }
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error extracting content: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error extracting content: {exc}") from exc
 
 
 @app.post("/conversational")
@@ -275,11 +313,8 @@ async def conversational_command(request: ConversationalRequest):
     - "create todo 'Finish project'"
     - "what's the weather in New York?"
     """
-    if not conversational_agent_available:
-        raise HTTPException(status_code=503, detail="Conversational agent not available")
-    
     try:
-        agent = get_conversational_agent()
+        agent = _require_conversational_agent()
         
         result = agent.process_command(
             user_input=request.command,
@@ -294,11 +329,13 @@ async def conversational_command(request: ConversationalRequest):
             "method": result.get("method", "unknown"),
             "api_call": result.get("api_call"),
             "result": result.get("result"),
-            "agent_version": "2.0.0-conversational"
+            "agent_version": f"{API_VERSION}-conversational",
         }
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing conversational command: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
+        raise HTTPException(status_code=500, detail=f"Error processing conversational command: {exc}") from exc
 
 
 @app.get("/health")
@@ -307,7 +344,7 @@ async def health_check():
     return {
         "status": "healthy", 
         "service": "DashPoint AI Agent API",
-        "version": "2.0.0",
+        "version": API_VERSION,
         "agent_available": agent_available
     }
 
@@ -322,17 +359,19 @@ async def agent_info():
         }
     
     try:
-        agent = get_content_processing_agent()
+        agent = _require_content_agent()
         return {
             "agent_available": True,
-            "version": "2.0.0",
+            "version": API_VERSION,
             "available_functions": list(agent.available_functions.keys()),
-            "function_definitions": agent.function_definitions
+            "function_definitions": [spec.as_dict() for spec in agent.FUNCTION_DEFINITIONS],
         }
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
         return {
             "agent_available": False,
-            "error": str(e)
+            "error": str(exc),
         }
 
 
@@ -340,68 +379,62 @@ async def agent_info():
 async def get_capabilities():
     """Get conversational agent capabilities and supported commands"""
     try:
-        if conversational_agent_available:
-            agent = get_conversational_agent()
-            
-            return {
-                "success": True,
-                "agent_available": True,
-                "capabilities": {
-                    "supported_actions": list(agent.action_functions.keys()),
-                    "command_patterns": {
-                        action: patterns for action, patterns in agent.command_patterns.items()
-                    },
-                    "examples": {
-                        "notes": [
-                            'add note "Meeting at 3pm tomorrow"',
-                            'create note "Remember to buy groceries"',
-                            'note: Call mom later'
-                        ],
-                        "todos": [
-                            'add todo "Review project documentation"',
-                            'add task "Finish quarterly report"',
-                            'i need to submit the proposal'
-                        ],
-                        "youtube": [
-                            'summarize https://www.youtube.com/watch?v=example',
-                            'save youtube https://youtu.be/example'
-                        ],
-                        "content": [
-                            'extract content from https://example.com',
-                            'summarize this page https://news.example.com'
-                        ],
-                        "weather": [
-                            'weather for New York',
-                            'what\'s the weather in London'
-                        ],
-                        "ai": [
-                            'explain machine learning',
-                            'how to create a React component'
-                        ]
-                    }
+        agent = _require_conversational_agent()
+
+        commands = getattr(agent, "_commands", [])
+        command_patterns: Dict[str, List[str]] = {}
+        for command in commands:
+            command_patterns[command.name] = [pattern.pattern for pattern in command.patterns]
+
+        return {
+            "success": True,
+            "agent_available": True,
+            "capabilities": {
+                "supported_actions": sorted(command_patterns.keys()),
+                "command_patterns": command_patterns,
+                "examples": {
+                    "notes": [
+                        'add note "Meeting at 3pm tomorrow"',
+                        'create note "Remember to buy groceries"',
+                        'note: Call mom later',
+                    ],
+                    "todos": [
+                        'add todo "Review project documentation"',
+                        'add task "Finish quarterly report"',
+                        'i need to submit the proposal',
+                    ],
+                    "youtube": [
+                        'summarize https://www.youtube.com/watch?v=example',
+                        'save youtube https://youtu.be/example',
+                    ],
+                    "content": [
+                        'extract content from https://example.com',
+                        'summarize this page https://news.example.com',
+                    ],
+                    "weather": [
+                        'weather for New York',
+                        "what's the weather in London",
+                    ],
+                    "ai": [
+                        'explain machine learning',
+                        'how to create a React component',
+                    ],
                 },
-                "features": [
-                    "Natural language processing",
-                    "Pattern matching for quick responses", 
-                    "AI fallback for complex commands",
-                    "Automatic API call generation",
-                    "Context-aware processing"
-                ]
-            }
-        else:
-            return {
-                "success": False,
-                "agent_available": False,
-                "message": "Conversational agent not available",
-                "basic_patterns": {
-                    "notes": ['add note "content"', 'note: content'],
-                    "todos": ['add todo "content"', 'todo: content']
-                }
-            }
-    except Exception as e:
+            },
+            "features": [
+                "Natural language processing",
+                "Pattern matching for quick responses",
+                "AI fallback for complex commands",
+                "Automatic API call generation",
+                "Context-aware processing",
+            ],
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - runtime guard
         return {
             "success": False,
-            "error": str(e),
+            "error": str(exc),
             "message": "Error retrieving capabilities"
         }
 

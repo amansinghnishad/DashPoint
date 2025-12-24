@@ -25,11 +25,11 @@ router.get('/', getFiles);
 // Upload files
 router.post('/upload', upload.array('files', 10), handleMulterError, uploadFiles);
 
-// Get file by ID
-router.get('/:id', getFileById);
-
 // Download file
 router.get('/:id/download', downloadFile);
+
+// Get file by ID
+router.get('/:id', getFileById);
 
 // Update file metadata
 router.patch('/:id', updateFile);

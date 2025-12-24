@@ -219,7 +219,7 @@ class SecureAIService {
   async getServiceStatus() {
     try {
       // Try a simple sentiment analysis to test connectivity
-      const testResult = await this.analyzeSentiment('This is a test.');
+      await this.analyzeSentiment('This is a test.');
 
       return {
         available: true,

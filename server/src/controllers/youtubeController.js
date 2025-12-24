@@ -340,10 +340,9 @@ exports.getVideoDetailsWithSummary = async (req, res, next) => {
     const duration = parseDuration(video.contentDetails.duration);
 
     let aiSummary = null;
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
     if (generateSummary === 'true') {
       try {
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
         // Use the new agent chat endpoint for more intelligent processing
         const summaryResponse = await axios.post(`${process.env.DASHPOINT_AI_AGENT_URL}/chat`, {
           prompt: `Please summarize this YouTube video: ${videoUrl}`,

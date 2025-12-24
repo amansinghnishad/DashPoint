@@ -1,263 +1,388 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Edit3,
+  CheckSquare,
+  FileText,
+  Image,
+  Move,
+  Pencil,
+  StickyNote,
   Trash2,
   Youtube,
-  FileText,
-  StickyNote,
-  CheckSquare,
-  ExternalLink,
-  Copy,
-  Maximize2,
-  Minimize2,
-  Move,
 } from "lucide-react";
-import { useToast } from "../../hooks/useToast";
-import { copyToClipboard } from "../../utils/helpers";
-import { YouTubeItem, ContentItem, StickyNoteItem, TodoItem } from "./items";
 
-export const ResizableItemCard = ({
+const RESIZE_DIRECTIONS = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+
+const getCursorForResizeDir = (dir) => {
+  switch (dir) {
+    case "n":
+      return "n-resize";
+    case "s":
+      return "s-resize";
+    case "e":
+      return "e-resize";
+    case "w":
+      return "w-resize";
+    case "ne":
+      return "ne-resize";
+    case "nw":
+      return "nw-resize";
+    case "se":
+      return "se-resize";
+    case "sw":
+      return "sw-resize";
+    default:
+      return "default";
+  }
+};
+
+const getTitleForItem = (item) => {
+  const data = item?.itemData;
+  if (!data || typeof data !== "object") return "Item";
+
+  return (
+    data.title ||
+    data.name ||
+    data.filename ||
+    data.originalName ||
+    data.url ||
+    data.videoTitle ||
+    "Item"
+  );
+};
+
+const getTypeIcon = (itemType) => {
+  switch (itemType) {
+    case "youtube":
+      return Youtube;
+    case "content":
+      return FileText;
+    case "sticky-note":
+      return StickyNote;
+    case "todo":
+      return CheckSquare;
+    case "file":
+      return FileText;
+    case "photo":
+      return Image;
+    default:
+      return FileText;
+  }
+};
+
+export default function ResizableItemCard({
   item,
+  layout,
+  onLayoutChange,
+  containerRef,
   onEdit,
   onDelete,
-  onView,
-  initialSize,
-}) => {
-  const [size, setSize] = useState(initialSize || { width: 320, height: 240 });
+}) {
   const [isResizing, setIsResizing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const cardRef = useRef(null);
-  const { success, error } = useToast();
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef(null);
+  const resizeStartRef = useRef(null);
 
-  // Handle resize drag
-  const handleResizeStart = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const currentLayout = useMemo(
+    () =>
+      layout || {
+        x: 0,
+        y: 0,
+        width: 320,
+        height: 240,
+      },
+    [layout]
+  );
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const startData = {
-      x: e.clientX,
-      y: e.clientY,
-      width: rect.width,
-      height: rect.height,
-    };
+  const clampLayout = useCallback(
+    (next) => {
+      const minWidth = 280;
+      const minHeight = 200;
 
-    setIsResizing(true);
+      let width = Math.max(minWidth, next.width ?? currentLayout.width);
+      let height = Math.max(minHeight, next.height ?? currentLayout.height);
+      let x = next.x ?? currentLayout.x;
+      let y = next.y ?? currentLayout.y;
 
-    const handleMouseMove = (moveEvent) => {
-      const deltaX = moveEvent.clientX - startData.x;
-      const deltaY = moveEvent.clientY - startData.y;
+      const containerEl = containerRef?.current;
+      if (containerEl) {
+        const containerRect = containerEl.getBoundingClientRect();
 
-      const newWidth = Math.max(280, startData.width + deltaX);
-      const newHeight = Math.max(200, startData.height + deltaY);
+        width = Math.min(width, Math.max(minWidth, containerRect.width));
+        height = Math.min(height, Math.max(minHeight, containerRect.height));
 
-      setSize({ width: newWidth, height: newHeight });
-    };
+        const maxX = Math.max(0, containerRect.width - width);
+        const maxY = Math.max(0, containerRect.height - height);
+        x = Math.min(Math.max(0, x), maxX);
+        y = Math.min(Math.max(0, y), maxY);
+      }
 
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
+      return { x, y, width, height };
+    },
+    [
+      containerRef,
+      currentLayout.height,
+      currentLayout.width,
+      currentLayout.x,
+      currentLayout.y,
+    ]
+  );
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.body.style.cursor = "se-resize";
-    document.body.style.userSelect = "none";
-  }, []);
+  const commitLayout = useCallback(
+    (next) => {
+      onLayoutChange?.(clampLayout(next));
+    },
+    [clampLayout, onLayoutChange]
+  );
 
-  // Cleanup on unmount
+  const handleResizeStart = useCallback(
+    (e, dir) => {
+      if (!RESIZE_DIRECTIONS.includes(dir)) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      resizeStartRef.current = {
+        pointerId: e.pointerId,
+        x: e.clientX,
+        y: e.clientY,
+        startLayout: { ...currentLayout },
+        dir,
+      };
+
+      setIsResizing(true);
+
+      const onPointerMove = (moveEvent) => {
+        const start = resizeStartRef.current;
+        if (!start) return;
+        if (moveEvent.pointerId !== start.pointerId) return;
+
+        const dx = moveEvent.clientX - start.x;
+        const dy = moveEvent.clientY - start.y;
+
+        const next = { ...start.startLayout };
+        const d = start.dir;
+
+        // Horizontal
+        if (d.includes("e")) {
+          next.width = start.startLayout.width + dx;
+        }
+        if (d.includes("w")) {
+          next.width = start.startLayout.width - dx;
+          next.x = start.startLayout.x + dx;
+        }
+
+        // Vertical
+        if (d.includes("s")) {
+          next.height = start.startLayout.height + dy;
+        }
+        if (d.includes("n")) {
+          next.height = start.startLayout.height - dy;
+          next.y = start.startLayout.y + dy;
+        }
+
+        commitLayout(next);
+      };
+
+      const endResize = (endEvent) => {
+        const start = resizeStartRef.current;
+        if (!start) return;
+        if (endEvent.pointerId !== start.pointerId) return;
+
+        setIsResizing(false);
+        resizeStartRef.current = null;
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", endResize);
+        document.removeEventListener("pointercancel", endResize);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", endResize);
+      document.addEventListener("pointercancel", endResize);
+      document.body.style.cursor = getCursorForResizeDir(dir);
+      document.body.style.userSelect = "none";
+    },
+    [commitLayout, currentLayout]
+  );
+
+  const handleDragStart = useCallback(
+    (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      dragStartRef.current = {
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        startX: currentLayout.x,
+        startY: currentLayout.y,
+      };
+
+      setIsDragging(true);
+
+      const handleMouseMove = (moveEvent) => {
+        const start = dragStartRef.current;
+        if (!start) return;
+
+        const dx = moveEvent.clientX - start.mouseX;
+        const dy = moveEvent.clientY - start.mouseY;
+
+        commitLayout({
+          ...currentLayout,
+          x: start.startX + dx,
+          y: start.startY + dy,
+        });
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        dragStartRef.current = null;
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "move";
+      document.body.style.userSelect = "none";
+    },
+    [commitLayout, currentLayout]
+  );
+
   useEffect(() => {
     return () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
   }, []);
-  const getIcon = () => {
-    switch (item.itemType) {
-      case "youtube":
-        return <Youtube size={16} className="text-red-500" />;
-      case "content":
-        return <FileText size={16} className="text-blue-500" />;
-      case "sticky-note":
-        return <StickyNote size={16} className="text-yellow-500" />;
-      case "todo":
-        return <CheckSquare size={16} className="text-green-500" />;
-      default:
-        return <FileText size={16} className="text-gray-500" />;
-    }
-  };
 
-  const handleCopy = async (text) => {
-    const copied = await copyToClipboard(text);
-    if (copied) {
-      success("Content copied to clipboard");
-    }
-  };
+  const title = getTitleForItem(item);
+  const type = item?.itemType || "item";
+  const Icon = getTypeIcon(type);
 
-  const handleExternalOpen = () => {
-    if (item.itemData?.url || item.itemData?.embedUrl) {
-      window.open(item.itemData.url || item.itemData.embedUrl, "_blank");
-    }
-  };
-
-  const renderContent = () => {
-    switch (item.itemType) {
-      case "youtube":
-        return <YouTubeItem item={item} />;
-      case "content":
-        return <ContentItem item={item} />;
-      case "sticky-note":
-        return <StickyNoteItem item={item} />;
-      case "todo":
-        return <TodoItem item={item} />;
-      default:
-        return (
-          <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <FileText size={32} className="mx-auto mb-2" />
-              <p className="text-sm">Unknown item type</p>
-            </div>
-          </div>
-        );
-    }
-  };
   return (
     <div
-      ref={cardRef}
-      className={`group relative bg-white/90 backdrop-blur-sm border border-white/20 rounded-2xl shadow-lg transition-all duration-300 overflow-hidden ${
-        isResizing
-          ? "shadow-2xl ring-2 ring-blue-500/50 scale-105"
-          : "hover:shadow-xl hover:transform hover:scale-[1.02] hover:border-blue-200/50"
+      className={`group absolute dp-surface dp-border rounded-2xl border shadow-lg overflow-hidden ${
+        isDragging || isResizing ? "shadow-2xl" : ""
       }`}
       style={{
-        width: size.width,
-        height: size.height,
+        left: currentLayout.x,
+        top: currentLayout.y,
+        width: currentLayout.width,
+        height: currentLayout.height,
         minWidth: 280,
         minHeight: 200,
       }}
     >
-      {/* Gradient overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-
-      {/* Header with enhanced styling */}
-      <div className="absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 rounded-t-2xl p-3 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
-          <div className="flex-shrink-0">{getIcon()}</div>
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
-            {item.itemData?.title || `${item.itemType} item`}
-          </h3>
+      <div
+        className="dp-surface dp-border border-b px-3 py-2 flex items-center justify-between cursor-move select-none"
+        onMouseDown={handleDragStart}
+        title="Drag to move"
+      >
+        <div className="min-w-0 flex items-center gap-2">
+          <Icon size={16} className="dp-text-muted" />
+          <p className="dp-text text-sm font-semibold truncate">{title}</p>
         </div>
-
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="dp-text-muted flex items-center gap-1 text-xs whitespace-nowrap">
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-            title={isExpanded ? "Minimize" : "Maximize"}
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(item);
+            }}
+            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            aria-label="Edit item"
+            title="Edit"
           >
-            {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-
-          {(item.itemData?.url || item.itemData?.embedUrl) && (
-            <button
-              onClick={handleExternalOpen}
-              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-              title="Open in new tab"
-            >
-              <ExternalLink size={14} />
-            </button>
-          )}
-
-          {(item.itemData?.content || item.itemData?.text) && (
-            <button
-              onClick={() =>
-                handleCopy(item.itemData.content || item.itemData.text)
-              }
-              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
-              title="Copy content"
-            >
-              <Copy size={14} />
-            </button>
-          )}
-
-          <button
-            onClick={() => onView(item)}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-            title="View details"
-          >
-            <Edit3 size={14} />
+            <Pencil size={14} />
           </button>
 
           <button
-            onClick={() => onDelete(item)}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-            title="Remove from collection"
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(item);
+            }}
+            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            aria-label="Delete item"
+            title="Delete"
           >
             <Trash2 size={14} />
           </button>
+
+          <span className="mx-1 hidden sm:inline">{type}</span>
+          <Move size={14} />
         </div>
       </div>
 
-      {/* Content area with improved styling */}
-      <div
-        className={`absolute top-16 left-0 right-0 bottom-6 p-2 ${
-          isExpanded ? "z-20" : ""
-        }`}
-      >
-        <div className="w-full h-full rounded-xl overflow-hidden">
-          {renderContent()}
+      <div className="h-full">
+        <div className="p-3">
+          <p className="dp-text-muted text-sm line-clamp-6">
+            {item?.itemData?.description || item?.itemData?.content || ""}
+          </p>
         </div>
       </div>
 
-      {/* Enhanced resize handle */}
-      <div
-        className="absolute bottom-2 right-2 w-6 h-6 cursor-se-resize bg-gradient-to-br from-gray-300 to-gray-400 hover:from-blue-400 hover:to-indigo-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:shadow-md"
-        onMouseDown={handleResizeStart}
-      >
-        <Move size={12} className="text-white" />
+      {/* Resize handles (sides + corners) */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* Sides */}
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "n")}
+          className="pointer-events-auto absolute left-8 right-8 top-0 h-2 cursor-n-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "s")}
+          className="pointer-events-auto absolute left-8 right-8 bottom-0 h-2 cursor-s-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "w")}
+          className="pointer-events-auto absolute top-8 bottom-8 left-0 w-2 cursor-w-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "e")}
+          className="pointer-events-auto absolute top-8 bottom-8 right-0 w-2 cursor-e-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+
+        {/* Corners (small visible grab area on hover) */}
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "nw")}
+          className="pointer-events-auto absolute left-1 top-1 h-3 w-3 cursor-nw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "ne")}
+          className="pointer-events-auto absolute right-1 top-1 h-3 w-3 cursor-ne-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "sw")}
+          className="pointer-events-auto absolute left-1 bottom-1 h-3 w-3 cursor-sw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "se")}
+          className="pointer-events-auto absolute right-1 bottom-1 h-3 w-3 cursor-se-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
       </div>
-
-      {/* Loading indicator during resize */}
-      {isResizing && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-t-2xl animate-pulse" />
-      )}
-
-      {/* Enhanced expanded modal */}
-      {isExpanded && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl max-w-6xl max-h-[90vh] overflow-auto shadow-2xl border border-white/20">
-            <div className="p-6 border-b border-gray-200/50 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                  {getIcon()}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {item.itemData?.title || `${item.itemType} item`}
-                  </h3>
-                  <p className="text-sm text-gray-600 capitalize">
-                    {item.itemType.replace("-", " ")} • Collection Item
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200"
-              >
-                <Minimize2 size={20} />
-              </button>
-            </div>
-            <div
-              className="p-6"
-              style={{ minHeight: "500px", minWidth: "700px" }}
-            >
-              {renderContent()}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
+}

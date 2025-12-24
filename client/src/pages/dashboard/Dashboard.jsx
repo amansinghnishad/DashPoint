@@ -1,140 +1,173 @@
-import { useState, useEffect } from "react";
-import { NotificationCenter } from "../../components/notification-center/index";
-import {
-  KeyboardShortcuts,
-  useKeyboardShortcuts,
-} from "../../components/keyboard-shortcuts/index";
-import { SettingsModal } from "../../components/settings-modal/index";
-import { WidgetsDialog } from "../../components/widgets-dialog";
-import { useToast } from "../../hooks/useToast";
-import { useNotifications } from "../../hooks/useNotifications";
-import { ToastContainer } from "../../components/toast/index";
-import { useAuth } from "../../context/AuthContext";
-import { useLocalStorage } from "../../hooks/useCommon";
+import { useCallback, useMemo, useState } from "react";
+import { Menu } from "lucide-react";
 
-import { DashboardHeader } from "./components/DashboardHeader";
-import { ContentRenderer } from "./components/ContentRenderer";
-import { DashboardSidebar } from "./components/DashboardSidebar";
-import {
-  getPageTitle,
-  getKeyboardShortcuts,
-  handleTabChange,
-} from "./utils/dashboardHelpers";
+import { SideBar } from "../../components/Navbars/SideBar";
+import Modal from "../../components/Modals/Modal";
 
-export const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+import WidgetsLayout from "../../layouts/Dashboard/Widgets.layout";
+
+import CollectionsHome from "./Home/CollectionsHome";
+import CollectionView from "./Collection/CollectionView";
+import YoutubePage from "./Youtube";
+import AIExplainerPage from "./AI-Explainer";
+import FileManagerPage from "./FileManager";
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState("collections");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDark, setIsDark] = useLocalStorage("theme-dark-mode", false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [openCollectionId, setOpenCollectionId] = useState(null);
+
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [widgetsOpen, setWidgetsOpen] = useState(false);
 
-  // Toast functionality
-  const { toasts, removeToast, showToast } = useToast();
+  const onOpenCollection = useCallback((value) => {
+    const id =
+      typeof value === "string" || typeof value === "number"
+        ? value
+        : value?._id || value?.id;
+    if (!id) return;
+    setOpenCollectionId(String(id));
+    setSidebarOpen(false);
+  }, []);
 
-  // Notifications functionality
-  const {
-    notifications,
-    unreadCount,
-    addNotification,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-    clearAllNotifications,
-  } = useNotifications();
-  // Keyboard shortcuts handlers
-  const shortcutHandlers = {
-    setActiveTab,
-    setShortcutsOpen,
-    setSidebarOpen,
-    sidebarOpen,
-    setIsDark,
-    isDark,
-    setSettingsOpen,
-    setNotificationsOpen,
-    setWidgetsOpen,
-  };
-  const shortcuts = getKeyboardShortcuts(shortcutHandlers);
-  useKeyboardShortcuts(shortcuts);
+  const content = useMemo(() => {
+    switch (activeTab) {
+      case "youtube":
+        return <YoutubePage />;
+      case "content":
+        return <AIExplainerPage />;
+      case "files":
+        return <FileManagerPage />;
+      case "collections":
+      default:
+        return <CollectionsHome onOpenCollection={onOpenCollection} />;
+    }
+  }, [activeTab, onOpenCollection]);
 
-  // Get current page title
-  const pageTitle = getPageTitle(activeTab);
-  // Handle tab change
-  const handleTabChangeWithSidebar = (tab) => {
-    handleTabChange(tab, setActiveTab, setSidebarOpen);
-  };
+  if (openCollectionId) {
+    return (
+      <CollectionView
+        collectionId={openCollectionId}
+        onBack={() => setOpenCollectionId(null)}
+      />
+    );
+  }
 
   return (
-    <div
-      className={`min-h-screen scrollable-area ${
-        isDark ? "bg-gray-900 dark" : "bg-gray-50"
-      }`}
-    >
-      {" "}
-      <div className="flex h-screen">
-        {" "}
-        <DashboardSidebar
-          isOpen={sidebarOpen}
-          activeTab={activeTab}
-          onTabChange={handleTabChangeWithSidebar}
-          onClose={() => setSidebarOpen(false)}
-          isDark={isDark}
-          toggleTheme={() => setIsDark(!isDark)}
-          onSettingsOpen={() => setSettingsOpen(true)}
-          onShortcutsOpen={() => setShortcutsOpen(true)}
-          onWidgetsOpen={() => setWidgetsOpen(true)}
-        />
-        {/* Main content area - add left margin for sidebar on large screens */}
-        <div className="flex-1 flex flex-col overflow-auto scrollable-area lg:ml-64">
-          {/* Header */}
-          <DashboardHeader
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            notificationsOpen={notificationsOpen}
-            setNotificationsOpen={setNotificationsOpen}
-            unreadCount={unreadCount}
-            pageTitle={pageTitle}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            isDark={isDark}
-          />
+    <div className="min-h-screen dp-bg dp-text">
+      <SideBar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNotificationsOpen={() => setNotificationsOpen(true)}
+        onSettingsOpen={() => setSettingsOpen(true)}
+        onShortcutsOpen={() => setShortcutsOpen(true)}
+        onWidgetsOpen={() => setWidgetsOpen(true)}
+      />
 
-          {/* Content */}
-          <ContentRenderer activeTab={activeTab} />
+      <div className="lg:pl-16">
+        <div className="w-full max-w-6xl mx-auto">
+          <header className="p-4 lg:p-6">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="dp-btn-secondary inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden"
+                aria-label="Open sidebar"
+              >
+                <Menu size={18} />
+              </button>
+              <div className="min-w-0">
+                <p className="dp-text text-lg font-semibold truncate">
+                  Dashboard
+                </p>
+                <p className="dp-text-muted text-sm truncate">
+                  {activeTab === "collections"
+                    ? "Collections"
+                    : activeTab === "youtube"
+                    ? "YouTube"
+                    : activeTab === "content"
+                    ? "Content Extractor"
+                    : activeTab === "files"
+                    ? "File Manager"
+                    : ""}
+                </p>
+              </div>
+            </div>
+          </header>
+
+          <main className="px-4 pb-10 lg:px-6">{content}</main>
         </div>
       </div>
-      {/* Notification Center */}
-      <NotificationCenter
-        isOpen={notificationsOpen}
+
+      <Modal
+        open={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
-        notifications={notifications}
-        onMarkAsRead={markAsRead}
-        onMarkAllAsRead={markAllAsRead}
-        onRemoveNotification={removeNotification}
-        onClearAll={clearAllNotifications}
-      />
-      {/* Keyboard Shortcuts Modal */}
-      <KeyboardShortcuts
-        isOpen={shortcutsOpen}
-        onClose={() => setShortcutsOpen(false)}
-      />
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={settingsOpen}
+        title="Notifications"
+        description="This panel is not wired up yet."
+        footer={
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setNotificationsOpen(false)}
+              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        }
+      >
+        <div className="dp-text-muted text-sm">
+          Notifications UI will be added here.
+        </div>
+      </Modal>
+
+      <Modal
+        open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        isDark={isDark}
-        setIsDark={setIsDark}
-      />{" "}
-      {/* Toast Container */}
-      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />{" "}
-      {/* Widgets Dialog */}
-      <WidgetsDialog
-        isOpen={widgetsOpen}
-        onClose={() => setWidgetsOpen(false)}
-        isDark={isDark}
-      />
+        title="Settings"
+        description="This panel is not wired up yet."
+        footer={
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(false)}
+              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        }
+      >
+        <div className="dp-text-muted text-sm">Settings UI will go here.</div>
+      </Modal>
+
+      <Modal
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        title="Keyboard shortcuts"
+        description="This panel is not wired up yet."
+        footer={
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShortcutsOpen(false)}
+              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        }
+      >
+        <div className="dp-text-muted text-sm">
+          Shortcut help will be added here.
+        </div>
+      </Modal>
+
+      <WidgetsLayout open={widgetsOpen} onClose={() => setWidgetsOpen(false)} />
     </div>
   );
-};
+}

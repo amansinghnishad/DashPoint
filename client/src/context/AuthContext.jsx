@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from "react";
 import { authAPI } from "../services/api";
+import { useToast } from "../hooks/useToast";
 
 const AuthContext = createContext();
 
@@ -71,6 +72,8 @@ const initialState = {
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState); // checkAuthStatus function
+  const toast = useToast();
+
   const checkAuthStatus = async () => {
     const token = localStorage.getItem("token");
 
@@ -130,12 +133,19 @@ export const AuthProvider = ({ children }) => {
           payload: response.data.user,
         });
 
+        toast.success(
+          `Welcome back${
+            response.data.user?.name ? `, ${response.data.user.name}` : ""
+          }.`
+        );
+
         return { success: true, isFirstTimeUser };
       } else {
         dispatch({
           type: "LOGIN_FAILURE",
           payload: response.message || "Login failed",
         });
+        toast.error(response.message || "Login failed");
         return { success: false, error: response.message };
       }
     } catch (error) {
@@ -145,6 +155,7 @@ export const AuthProvider = ({ children }) => {
         type: "LOGIN_FAILURE",
         payload: errorMessage,
       });
+      toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
   }; // registerUser function
@@ -159,12 +170,14 @@ export const AuthProvider = ({ children }) => {
 
         // Don't automatically log in after registration
         dispatch({ type: "SET_LOADING", payload: false });
+        toast.success("Account created. Please sign in.");
         return { success: true };
       } else {
         dispatch({
           type: "LOGIN_FAILURE",
           payload: response.message || "Registration failed",
         });
+        toast.error(response.message || "Registration failed");
         return { success: false, error: response.message };
       }
     } catch (error) {
@@ -184,6 +197,8 @@ export const AuthProvider = ({ children }) => {
         payload: errorMessage,
       });
 
+      toast.error(errorMessage);
+
       return {
         success: false,
         error: errorDetails || errorMessage,
@@ -197,6 +212,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userData");
     localStorage.removeItem("isFirstTimeUser");
     dispatch({ type: "LOGOUT" });
+
+    toast.info("Logged out.");
   };
 
   // clearFirstTimeUser function
@@ -217,7 +234,7 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: "SESSION_WARNING", payload: false });
         return true;
       }
-    } catch (error) {
+    } catch {
       logoutUser();
       return false;
     }
