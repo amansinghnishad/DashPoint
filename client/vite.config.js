@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'dashpoint-icon.svg', 'icon-192.svg', 'icon-512.svg'],
+      includeAssets: ['logo.svg', 'DashPoint logo.svg', 'dashpoint-icon.svg', 'icon-192.svg', 'icon-512.svg'],
       manifest: {
         name: 'DashPoint - Personal Productivity Dashboard',
         short_name: 'DashPoint',
@@ -23,13 +23,13 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
-            src: 'icon-192.svg',
+            src: 'logo.svg',
             sizes: '192x192',
             type: 'image/svg+xml',
             purpose: 'any'
           },
           {
-            src: 'icon-512.svg',
+            src: 'logo.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
             purpose: 'any'
