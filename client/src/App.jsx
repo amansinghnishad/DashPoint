@@ -7,8 +7,8 @@ import { ToastProvider } from "./context/ToastContext";
 import { Toaster } from "./components/Toaster";
 import { PWAUpdatePrompt } from "./components/PWAStatus";
 import { Login, Register } from "./pages/Auths";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import { LandingPage } from "./pages/Landing";
+import Dashboard from "./pages/dashboard/Dashboard";
+import { LandingPage } from "./pages/landing";
 
 export default function App() {
   return (
