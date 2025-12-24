@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { DashboardProvider } from "./context/DashboardContext";
-import ProtectedRoute from "./context/protectedRoute";
+import ProtectedRoute from "./context/ProtectedRoute";
 import PublicRoute from "./context/PublicRoute";
 import { ToastProvider } from "./context/ToastContext";
 import { Toaster } from "./components/Toaster";
