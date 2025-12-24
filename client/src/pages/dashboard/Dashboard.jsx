@@ -5,6 +5,7 @@ import { SideBar } from "../../components/Navbars/SideBar";
 import Modal from "../../components/Modals/Modal";
 
 import WidgetsLayout from "../../layouts/Dashboard/Widgets.layout";
+import FloatingInstallDownloadButtons from "../../components/PWAStatus/FloatingInstallDownloadButtons";
 
 import CollectionsHome from "./Home/CollectionsHome";
 import CollectionView from "./Collection/CollectionView";
@@ -168,6 +169,8 @@ export default function Dashboard() {
       </Modal>
 
       <WidgetsLayout open={widgetsOpen} onClose={() => setWidgetsOpen(false)} />
+
+      <FloatingInstallDownloadButtons />
     </div>
   );
 }

@@ -16,25 +16,6 @@ import {
 import { useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import useTheme from "../../hooks/useTheme";
-import { usePWA } from "../../hooks/usePWA";
-
-const InstallButton = ({ compact, className = "" }) => {
-  const { isInstallable, isInstalled, installApp } = usePWA();
-
-  if (isInstalled || !isInstallable) return null;
-
-  return (
-    <button
-      type="button"
-      onClick={installApp}
-      className={`dp-btn-secondary inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-        compact ? "w-full" : "w-full"
-      } ${className}`}
-    >
-      Install
-    </button>
-  );
-};
 
 export const SideBar = ({
   activeTab,
@@ -189,17 +170,6 @@ export const SideBar = ({
                   Notifications
                 </span>
               </button>
-
-              <div className="mb-2">
-                <InstallButton
-                  compact={!isExpanded}
-                  className={
-                    isExpanded
-                      ? "w-full justify-center"
-                      : "lg:w-12 lg:h-12 lg:p-0 lg:mx-auto lg:justify-center"
-                  }
-                />
-              </div>
 
               <button
                 type="button"
