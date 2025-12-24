@@ -16,7 +16,7 @@ import { SessionWarning } from "./components/session-warning/index";
 import { UpdateNotification } from "./components/update-notification";
 import { OfflineIndicator } from "./components/offline-indicator";
 // import ConversationalInterface from "./components/conversational-interface";
-import { useToast } from "./hooks/useToast";
+import { ToastProvider } from "./context/ToastContext";
 import "./App.css";
 
 // Clear localStorage data that should now be stored in database
@@ -76,8 +76,6 @@ const PublicRoute = ({ children }) => {
 };
 
 function AppContent() {
-  const { toasts, removeToast } = useToast();
-
   return (
     <Router>
       <div className="App">
@@ -120,7 +118,7 @@ function AppContent() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />{" "}
         </Routes>
-        <ToastContainer toasts={toasts} removeToast={removeToast} />
+        <ToastContainer />
         <SessionWarning />
         <UpdateNotification />
         <OfflineIndicator />
@@ -137,7 +135,9 @@ function App() {
 
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

@@ -1,1 +1,0 @@
-export { WidgetsDialog } from './WidgetsDialog';

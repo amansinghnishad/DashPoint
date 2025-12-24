@@ -1,0 +1,316 @@
+/*
+	Global theme primitives.
+
+	Theme selection is controlled via:
+		document.documentElement.dataset.theme = 'dark' | 'light'
+
+	We keep this file as plain CSS (no @apply) to avoid editor warnings.
+	The actual Tailwind utility classes for each theme are applied in JS
+	during app startup (see src/utils/theme.js).
+*/
+
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Theme palette (light) */
+  --dp-bg: rgb(255 255 255);
+  --dp-fg: rgb(15 23 42); /* slate-900 */
+  --dp-fg-soft: rgb(30 41 59); /* slate-800 */
+  --dp-muted: rgb(71 85 105); /* slate-600 */
+  --dp-subtle: rgb(100 116 139); /* slate-500 */
+  --dp-border: rgb(226 232 240); /* slate-200 */
+  --dp-surface: rgb(255 255 255);
+  --dp-surface-muted: rgb(248 250 252); /* slate-50 */
+  --dp-nav-scrolled-bg: rgb(255 255 255 / 0.7);
+  --dp-nav-panel-bg: rgb(255 255 255 / 0.9);
+  --dp-glow-opacity: 0.35;
+  --dp-placeholder: rgb(148 163 184); /* slate-400 */
+
+  /* Semantic CTAs in light mode */
+  --dp-btn-primary-bg: rgb(15 23 42);
+  --dp-btn-primary-fg: rgb(255 255 255);
+  --dp-btn-primary-bg-hover: rgb(30 41 59);
+
+  /* Hero/topbar CTA */
+  --dp-btn-hero-bg: rgb(15 23 42);
+  --dp-btn-hero-fg: rgb(255 255 255);
+  --dp-btn-hero-bg-hover: rgb(30 41 59);
+  --dp-btn-hero-fg-hover: rgb(255 255 255);
+
+  /* Sidebar primitives */
+  --dp-sidebar-bg: rgb(255 255 255 / 0.96);
+  --dp-hover-bg: rgb(15 23 42 / 0.06);
+  --dp-overlay-bg: rgb(15 23 42 / 0.5);
+
+  /* Status & danger */
+  --dp-status-online: rgb(34 197 94); /* green-500 */
+  --dp-toast-success: rgb(34 197 94); /* green-500 */
+  --dp-toast-error: rgb(239 68 68); /* red-500 */
+  --dp-toast-warning: rgb(245 158 11); /* amber-500 */
+  --dp-toast-info: rgb(59 130 246); /* blue-500 */
+  --dp-danger-bg: rgb(239 68 68 / 0.1);
+  --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
+  --dp-danger-border: rgb(239 68 68 / 0.2);
+  --dp-danger-fg: rgb(127 29 29); /* red-900-ish */
+}
+
+/* Defaults for dark mode (match current Hero/Auth look) */
+:root:not([data-theme]),
+:root[data-theme="dark"] {
+  --dp-bg: rgb(2 6 23); /* slate-950 */
+  --dp-fg: rgb(255 255 255);
+  --dp-fg-soft: rgb(255 255 255 / 0.9);
+  --dp-muted: rgb(255 255 255 / 0.7);
+  --dp-subtle: rgb(255 255 255 / 0.6);
+  --dp-border: rgb(255 255 255 / 0.1);
+  --dp-surface: rgb(255 255 255 / 0.05);
+  --dp-surface-muted: rgb(255 255 255 / 0.05);
+  --dp-nav-scrolled-bg: rgb(2 6 23 / 0.4);
+  --dp-nav-panel-bg: rgb(2 6 23 / 0.6);
+  --dp-glow-opacity: 0.6;
+  --dp-placeholder: rgb(255 255 255 / 0.4);
+
+  /* Semantic CTAs in dark mode */
+  --dp-btn-primary-bg: rgb(255 255 255);
+  --dp-btn-primary-fg: rgb(15 23 42);
+  --dp-btn-primary-bg-hover: rgb(255 255 255 / 0.9);
+
+  /* Hero/topbar CTA (match existing dark Hero look) */
+  --dp-btn-hero-bg: rgb(255 255 255);
+  --dp-btn-hero-fg: rgb(79 70 229); /* indigo-600 */
+  --dp-btn-hero-bg-hover: rgb(252 211 77); /* amber-300 */
+  --dp-btn-hero-fg-hover: rgb(67 56 202); /* indigo-700 */
+
+  /* Sidebar primitives */
+  --dp-sidebar-bg: rgb(2 6 23 / 0.95);
+  --dp-hover-bg: rgb(255 255 255 / 0.1);
+  --dp-overlay-bg: rgb(0 0 0 / 0.5);
+
+  /* Status & danger */
+  --dp-status-online: rgb(34 197 94); /* green-500 */
+  --dp-toast-success: rgb(34 197 94); /* green-500 */
+  --dp-toast-error: rgb(239 68 68); /* red-500 */
+  --dp-toast-warning: rgb(252 211 77); /* amber-300 */
+  --dp-toast-info: rgb(96 165 250); /* blue-400 */
+  --dp-danger-bg: rgb(239 68 68 / 0.1);
+  --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
+  --dp-danger-border: rgb(239 68 68 / 0.2);
+  --dp-danger-fg: rgb(254 202 202); /* red-200 */
+}
+
+/* Base page colors */
+html,
+body {
+  background-color: var(--dp-bg);
+  color: var(--dp-fg);
+}
+
+::selection {
+  background-color: rgb(245 158 11 / 0.25); /* amber-500-ish, subtle */
+}
+
+/*
+  Light-mode remapping for the existing Tailwind utility classes.
+  This lets most components keep their current dark-theme classnames,
+  while rendering correctly in light mode.
+*/
+:root[data-theme="light"] .bg-slate-950 {
+  background-color: var(--dp-bg) !important;
+}
+
+:root[data-theme="light"] .bg-slate-950\/40 {
+  background-color: var(--dp-nav-scrolled-bg) !important;
+}
+
+:root[data-theme="light"] .bg-slate-950\/60 {
+  background-color: var(--dp-nav-panel-bg) !important;
+}
+
+:root[data-theme="light"] .bg-slate-950\/80 {
+  background-color: rgb(255 255 255 / 0.92) !important;
+}
+
+:root[data-theme="light"] .bg-slate-950\/95 {
+  background-color: rgb(255 255 255 / 0.96) !important;
+}
+
+:root[data-theme="light"] .text-white {
+  color: var(--dp-fg) !important;
+}
+
+:root[data-theme="light"] .text-white\/90 {
+  color: var(--dp-fg-soft) !important;
+}
+
+:root[data-theme="light"] .text-white\/70 {
+  color: var(--dp-muted) !important;
+}
+
+:root[data-theme="light"] .text-white\/60 {
+  color: var(--dp-subtle) !important;
+}
+
+:root[data-theme="light"] .border-white\/10,
+:root[data-theme="light"] .border-white\/15,
+:root[data-theme="light"] .border-white\/20 {
+  border-color: var(--dp-border) !important;
+}
+
+:root[data-theme="light"] .bg-white\/5,
+:root[data-theme="light"] .bg-white\/10,
+:root[data-theme="light"] .bg-white\/15,
+:root[data-theme="light"] .bg-white\/20 {
+  background-color: var(--dp-surface-muted) !important;
+}
+
+:root[data-theme="light"] .placeholder-white\/40::placeholder {
+  color: var(--dp-placeholder) !important;
+}
+
+/* Semantic button helpers (use these instead of hard-coded bg/text combos) */
+.dp-btn-primary {
+  background-color: var(--dp-btn-primary-bg);
+  color: var(--dp-btn-primary-fg);
+}
+
+.dp-btn-primary:hover {
+  background-color: var(--dp-btn-primary-bg-hover);
+}
+
+.dp-btn-secondary {
+  background-color: var(--dp-surface-muted);
+  border: 1px solid var(--dp-border);
+  color: var(--dp-fg);
+}
+
+.dp-btn-secondary:hover {
+  background-color: var(--dp-surface);
+}
+
+/* Small icon buttons that should inherit text color (e.g. inside selected rows) */
+.dp-btn-icon {
+  background-color: transparent;
+  border: 1px solid var(--dp-border);
+  color: currentColor;
+}
+
+.dp-btn-icon:hover {
+  background-color: var(--dp-hover-bg);
+}
+
+.dp-btn-hero {
+  background-color: var(--dp-btn-hero-bg);
+  color: var(--dp-btn-hero-fg);
+}
+
+.dp-btn-hero:hover {
+  background-color: var(--dp-btn-hero-bg-hover);
+  color: var(--dp-btn-hero-fg-hover);
+}
+
+/* Theme-driven utility classes (avoid hard-coded color utilities in components) */
+.dp-bg {
+  background-color: var(--dp-bg);
+}
+
+.dp-surface {
+  background-color: var(--dp-surface);
+}
+
+.dp-surface-muted {
+  background-color: var(--dp-surface-muted);
+}
+
+.dp-sidebar-surface {
+  background-color: var(--dp-sidebar-bg);
+}
+
+.dp-text {
+  color: var(--dp-fg);
+}
+
+.dp-text-soft {
+  color: var(--dp-fg-soft);
+}
+
+.dp-text-muted {
+  color: var(--dp-muted);
+}
+
+.dp-text-subtle {
+  color: var(--dp-subtle);
+}
+
+.dp-border {
+  border-color: var(--dp-border);
+}
+
+.dp-hover-bg:hover {
+  background-color: var(--dp-hover-bg);
+}
+
+.dp-hover-text:hover {
+  color: var(--dp-fg);
+}
+
+.dp-overlay {
+  background-color: var(--dp-overlay-bg);
+}
+
+.dp-sidebar-item-active {
+  background-color: var(--dp-btn-primary-bg);
+  color: var(--dp-btn-primary-fg);
+}
+
+.dp-status-online {
+  background-color: var(--dp-status-online);
+}
+
+.dp-border-bg {
+  border-color: var(--dp-bg);
+}
+
+/* Toast accents */
+.dp-toast-success {
+  border-left: 3px solid var(--dp-toast-success);
+}
+
+.dp-toast-error {
+  border-left: 3px solid var(--dp-toast-error);
+}
+
+.dp-toast-warning {
+  border-left: 3px solid var(--dp-toast-warning);
+}
+
+.dp-toast-info {
+  border-left: 3px solid var(--dp-toast-info);
+}
+
+.dp-danger {
+  background-color: var(--dp-danger-bg);
+  border-color: var(--dp-danger-border);
+  color: var(--dp-danger-fg);
+}
+
+.dp-danger:hover {
+  background-color: var(--dp-danger-bg-hover);
+}
+
+/* Glow backdrop intensity */
+:root[data-theme="light"] .dp-glow {
+  opacity: var(--dp-glow-opacity);
+}
+
+:root[data-theme="dark"] .dp-glow,
+:root:not([data-theme]) .dp-glow {
+  opacity: var(--dp-glow-opacity);
+}

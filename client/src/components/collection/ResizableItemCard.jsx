@@ -1,46 +1,97 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Edit3,
+  CheckSquare,
+  FileText,
+  Image,
+  Move,
+  Pencil,
+  StickyNote,
   Trash2,
   Youtube,
-  FileText,
-  StickyNote,
-  CheckSquare,
-  ExternalLink,
-  Copy,
-  Move,
 } from "lucide-react";
-import { useToast } from "../../hooks/useToast";
-import { copyToClipboard } from "../../utils/helpers";
-import {
-  YouTubeItem,
-  ContentItem,
-  StickyNoteItem,
-  TodoItem,
-  FileItem,
-} from "./items";
 
-export const ResizableItemCard = ({
+const RESIZE_DIRECTIONS = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+
+const getCursorForResizeDir = (dir) => {
+  switch (dir) {
+    case "n":
+      return "n-resize";
+    case "s":
+      return "s-resize";
+    case "e":
+      return "e-resize";
+    case "w":
+      return "w-resize";
+    case "ne":
+      return "ne-resize";
+    case "nw":
+      return "nw-resize";
+    case "se":
+      return "se-resize";
+    case "sw":
+      return "sw-resize";
+    default:
+      return "default";
+  }
+};
+
+const getTitleForItem = (item) => {
+  const data = item?.itemData;
+  if (!data || typeof data !== "object") return "Item";
+
+  return (
+    data.title ||
+    data.name ||
+    data.filename ||
+    data.originalName ||
+    data.url ||
+    data.videoTitle ||
+    "Item"
+  );
+};
+
+const getTypeIcon = (itemType) => {
+  switch (itemType) {
+    case "youtube":
+      return Youtube;
+    case "content":
+      return FileText;
+    case "sticky-note":
+      return StickyNote;
+    case "todo":
+      return CheckSquare;
+    case "file":
+      return FileText;
+    case "photo":
+      return Image;
+    default:
+      return FileText;
+  }
+};
+
+export default function ResizableItemCard({
   item,
-  onDelete,
-  onView,
-  initialSize,
   layout,
   onLayoutChange,
   containerRef,
-}) => {
+  onEdit,
+  onDelete,
+}) {
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
   const resizeStartRef = useRef(null);
-  const { success } = useToast();
 
-  const currentLayout = layout || {
-    x: 0,
-    y: 0,
-    width: initialSize?.width ?? 320,
-    height: initialSize?.height ?? 240,
-  };
+  const currentLayout = useMemo(
+    () =>
+      layout || {
+        x: 0,
+        y: 0,
+        width: 320,
+        height: 240,
+      },
+    [layout]
+  );
 
   const clampLayout = useCallback(
     (next) => {
@@ -78,53 +129,77 @@ export const ResizableItemCard = ({
 
   const commitLayout = useCallback(
     (next) => {
-      const clamped = clampLayout(next);
-      onLayoutChange?.(clamped);
+      onLayoutChange?.(clampLayout(next));
     },
     [clampLayout, onLayoutChange]
   );
 
-  // Handle resize drag
   const handleResizeStart = useCallback(
-    (e) => {
+    (e, dir) => {
+      if (!RESIZE_DIRECTIONS.includes(dir)) return;
       e.preventDefault();
       e.stopPropagation();
 
       resizeStartRef.current = {
+        pointerId: e.pointerId,
         x: e.clientX,
         y: e.clientY,
-        width: currentLayout.width,
-        height: currentLayout.height,
+        startLayout: { ...currentLayout },
+        dir,
       };
 
       setIsResizing(true);
 
-      const handleMouseMove = (moveEvent) => {
-        const startData = resizeStartRef.current;
-        if (!startData) return;
+      const onPointerMove = (moveEvent) => {
+        const start = resizeStartRef.current;
+        if (!start) return;
+        if (moveEvent.pointerId !== start.pointerId) return;
 
-        const deltaX = moveEvent.clientX - startData.x;
-        const deltaY = moveEvent.clientY - startData.y;
+        const dx = moveEvent.clientX - start.x;
+        const dy = moveEvent.clientY - start.y;
 
-        commitLayout({
-          ...currentLayout,
-          width: startData.width + deltaX,
-          height: startData.height + deltaY,
-        });
+        const next = { ...start.startLayout };
+        const d = start.dir;
+
+        // Horizontal
+        if (d.includes("e")) {
+          next.width = start.startLayout.width + dx;
+        }
+        if (d.includes("w")) {
+          next.width = start.startLayout.width - dx;
+          next.x = start.startLayout.x + dx;
+        }
+
+        // Vertical
+        if (d.includes("s")) {
+          next.height = start.startLayout.height + dy;
+        }
+        if (d.includes("n")) {
+          next.height = start.startLayout.height - dy;
+          next.y = start.startLayout.y + dy;
+        }
+
+        commitLayout(next);
       };
 
-      const handleMouseUp = () => {
+      const endResize = (endEvent) => {
+        const start = resizeStartRef.current;
+        if (!start) return;
+        if (endEvent.pointerId !== start.pointerId) return;
+
         setIsResizing(false);
         resizeStartRef.current = null;
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", endResize);
+        document.removeEventListener("pointercancel", endResize);
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
       };
 
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "se-resize";
+      document.addEventListener("pointermove", onPointerMove);
+      document.addEventListener("pointerup", endResize);
+      document.addEventListener("pointercancel", endResize);
+      document.body.style.cursor = getCursorForResizeDir(dir);
       document.body.style.userSelect = "none";
     },
     [commitLayout, currentLayout]
@@ -146,15 +221,16 @@ export const ResizableItemCard = ({
       setIsDragging(true);
 
       const handleMouseMove = (moveEvent) => {
-        const startData = dragStartRef.current;
-        if (!startData) return;
+        const start = dragStartRef.current;
+        if (!start) return;
 
-        const dx = moveEvent.clientX - startData.mouseX;
-        const dy = moveEvent.clientY - startData.mouseY;
+        const dx = moveEvent.clientX - start.mouseX;
+        const dy = moveEvent.clientY - start.mouseY;
+
         commitLayout({
           ...currentLayout,
-          x: startData.startX + dx,
-          y: startData.startY + dy,
+          x: start.startX + dx,
+          y: start.startY + dy,
         });
       };
 
@@ -175,75 +251,23 @@ export const ResizableItemCard = ({
     [commitLayout, currentLayout]
   );
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
     };
   }, []);
-  const getIcon = () => {
-    switch (item.itemType) {
-      case "youtube":
-        return <Youtube size={16} className="text-red-500" />;
-      case "content":
-        return <FileText size={16} className="text-blue-500" />;
-      case "sticky-note":
-        return <StickyNote size={16} className="text-yellow-500" />;
-      case "todo":
-        return <CheckSquare size={16} className="text-green-500" />;
-      case "file":
-        return <FileText size={16} className="text-gray-700" />;
-      default:
-        return <FileText size={16} className="text-gray-500" />;
-    }
-  };
 
-  const handleCopy = async (text) => {
-    const copied = await copyToClipboard(text);
-    if (copied) {
-      success("Content copied to clipboard");
-    }
-  };
+  const title = getTitleForItem(item);
+  const type = item?.itemType || "item";
+  const Icon = getTypeIcon(type);
 
-  const handleExternalOpen = () => {
-    if (item.itemData?.url || item.itemData?.embedUrl) {
-      window.open(item.itemData.url || item.itemData.embedUrl, "_blank");
-    }
-  };
-
-  const renderContent = () => {
-    switch (item.itemType) {
-      case "youtube":
-        return <YouTubeItem item={item} />;
-      case "content":
-        return <ContentItem item={item} />;
-      case "sticky-note":
-        return <StickyNoteItem item={item} />;
-      case "todo":
-        return <TodoItem item={item} />;
-      case "file":
-        return <FileItem item={item} />;
-      default:
-        return (
-          <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <FileText size={32} className="mx-auto mb-2" />
-              <p className="text-sm">Unknown item type</p>
-            </div>
-          </div>
-        );
-    }
-  };
   return (
     <div
-      className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden transition-shadow ${
-        isResizing || isDragging
-          ? "ring-2 ring-blue-500/30 shadow-md"
-          : "hover:shadow-md"
+      className={`group absolute dp-surface dp-border rounded-2xl border shadow-lg overflow-hidden ${
+        isDragging || isResizing ? "shadow-2xl" : ""
       }`}
       style={{
-        position: "absolute",
         left: currentLayout.x,
         top: currentLayout.y,
         width: currentLayout.width,
@@ -252,83 +276,113 @@ export const ResizableItemCard = ({
         minHeight: 200,
       }}
     >
-      {/* Header */}
       <div
-        className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 p-3 flex items-center justify-between z-10 cursor-move"
+        className="dp-surface dp-border border-b px-3 py-2 flex items-center justify-between cursor-move select-none"
         onMouseDown={handleDragStart}
         title="Drag to move"
       >
-        <div className="flex items-center space-x-3 flex-1 min-w-0">
-          <div className="flex-shrink-0">{getIcon()}</div>
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
-            {item.itemData?.title || `${item.itemType} item`}
-          </h3>
+        <div className="min-w-0 flex items-center gap-2">
+          <Icon size={16} className="dp-text-muted" />
+          <p className="dp-text text-sm font-semibold truncate">{title}</p>
         </div>
-
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          {(item.itemData?.url || item.itemData?.embedUrl) && (
-            <button
-              onMouseDown={(ev) => ev.stopPropagation()}
-              onClick={handleExternalOpen}
-              className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
-              title="Open in new tab"
-            >
-              <ExternalLink size={14} />
-            </button>
-          )}
-
-          {(item.itemData?.content || item.itemData?.text) && (
-            <button
-              onMouseDown={(ev) => ev.stopPropagation()}
-              onClick={() =>
-                handleCopy(item.itemData.content || item.itemData.text)
-              }
-              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200"
-              title="Copy content"
-            >
-              <Copy size={14} />
-            </button>
-          )}
-
+        <div className="dp-text-muted flex items-center gap-1 text-xs whitespace-nowrap">
           <button
-            onMouseDown={(ev) => ev.stopPropagation()}
-            onClick={() => onView(item)}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
-            title="View details"
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(item);
+            }}
+            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            aria-label="Edit item"
+            title="Edit"
           >
-            <Edit3 size={14} />
+            <Pencil size={14} />
           </button>
 
           <button
-            onMouseDown={(ev) => ev.stopPropagation()}
-            onClick={() => onDelete(item)}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
-            title="Remove from collection"
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(item);
+            }}
+            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            aria-label="Delete item"
+            title="Delete"
           >
             <Trash2 size={14} />
           </button>
+
+          <span className="mx-1 hidden sm:inline">{type}</span>
+          <Move size={14} />
         </div>
       </div>
 
-      {/* Content area with improved styling */}
-      <div className="absolute top-16 left-0 right-0 bottom-6 p-2">
-        <div className="w-full h-full rounded-xl overflow-hidden">
-          {renderContent()}
+      <div className="h-full">
+        <div className="p-3">
+          <p className="dp-text-muted text-sm line-clamp-6">
+            {item?.itemData?.description || item?.itemData?.content || ""}
+          </p>
         </div>
       </div>
 
-      {/* Enhanced resize handle */}
-      <div
-        className="absolute bottom-2 right-2 w-6 h-6 cursor-se-resize bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-colors duration-200"
-        onMouseDown={handleResizeStart}
-      >
-        <Move size={12} className="text-gray-600" />
-      </div>
+      {/* Resize handles (sides + corners) */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* Sides */}
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "n")}
+          className="pointer-events-auto absolute left-8 right-8 top-0 h-2 cursor-n-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "s")}
+          className="pointer-events-auto absolute left-8 right-8 bottom-0 h-2 cursor-s-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "w")}
+          className="pointer-events-auto absolute top-8 bottom-8 left-0 w-2 cursor-w-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "e")}
+          className="pointer-events-auto absolute top-8 bottom-8 right-0 w-2 cursor-e-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
 
-      {/* Loading indicator during resize */}
-      {isResizing && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-blue-500/60" />
-      )}
+        {/* Corners (small visible grab area on hover) */}
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "nw")}
+          className="pointer-events-auto absolute left-1 top-1 h-3 w-3 cursor-nw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "ne")}
+          className="pointer-events-auto absolute right-1 top-1 h-3 w-3 cursor-ne-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "sw")}
+          className="pointer-events-auto absolute left-1 bottom-1 h-3 w-3 cursor-sw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+        <div
+          role="presentation"
+          onPointerDown={(e) => handleResizeStart(e, "se")}
+          className="pointer-events-auto absolute right-1 bottom-1 h-3 w-3 cursor-se-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Resize"
+        />
+      </div>
     </div>
   );
-};
+}

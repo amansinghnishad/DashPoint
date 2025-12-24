@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" href="/logo.png" />
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -24,6 +24,18 @@
 
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileColor" content="#8B5CF6" />
+
+    <script>
+      (function () {
+        try {
+          var stored = window.localStorage.getItem("dashpoint-theme");
+          var theme = stored === "light" || stored === "dark" ? stored : "dark";
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
 
     <link rel="stylesheet" href="./src/index.css" />
     <title>DashPoint</title>

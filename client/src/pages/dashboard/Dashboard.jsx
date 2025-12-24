@@ -6,9 +6,7 @@ import {
 } from "../../components/keyboard-shortcuts/index";
 import { SettingsModal } from "../../components/settings-modal/index";
 import { WidgetsDialog } from "../../components/widgets-dialog";
-import { useToast } from "../../hooks/useToast";
 import { useNotifications } from "../../hooks/useNotifications";
-import { ToastContainer } from "../../components/toast/index";
 import { useLocalStorage } from "../../hooks/useCommon";
 
 import { ContentRenderer } from "./components/ContentRenderer";
@@ -26,9 +24,6 @@ export const Dashboard = () => {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [widgetsOpen, setWidgetsOpen] = useState(false);
-
-  // Toast functionality
-  const { toasts, removeToast } = useToast();
 
   // Notifications functionality
   const {
@@ -108,8 +103,6 @@ export const Dashboard = () => {
         isDark={isDark}
         setIsDark={setIsDark}
       />
-      {/* Toast Container */}
-      <ToastContainer toasts={toasts} onRemoveToast={removeToast} />
       {/* Widgets Dialog */}
       <WidgetsDialog
         isOpen={widgetsOpen}

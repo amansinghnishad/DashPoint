@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
-/* Import mobile-specific styles */
+/* Global theme (dark/light) */
+@import "./styles/theme.css";
+
+/* Import mobile-specific styles
 @import "./styles/widgets-mobile.css";
-@import "./styles/keyboard-shortcuts-mobile.css";
+@import "./styles/keyboard-shortcuts-mobile.css"; */
 
 /* Resizable Items Grid Styles */
 .items-grid {
