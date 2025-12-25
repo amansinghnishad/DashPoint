@@ -1,6 +1,7 @@
 const File = require('../models/File');
 const path = require('path');
 const fs = require('fs').promises;
+const { cloudinary, uploadBuffer, destroyAsset } = require('../utils/cloudinary');
 
 // Get all files for a user
 const getFiles = async (req, res) => {
@@ -94,13 +95,33 @@ const uploadFiles = async (req, res) => {
     const uploadedFiles = [];
 
     for (const file of req.files) {
+      if (!file.buffer) {
+        return res.status(400).json({ error: 'Upload is misconfigured (missing file buffer).' });
+      }
+
+      const baseFolder = process.env.CLOUDINARY_FOLDER || 'dashpoint';
+      const folder = `${baseFolder}/users/${req.user.id}`;
+
+      const isPdf = file.mimetype === 'application/pdf' || (file.originalname || '').toLowerCase().endsWith('.pdf');
+      const resourceType = isPdf ? 'raw' : 'image';
+
+      const uploadResult = await uploadBuffer(file.buffer, {
+        folder,
+        resourceType,
+        tags: ['dashpoint', `user:${req.user.id}`]
+      });
+
       const newFile = new File({
-        filename: file.filename,
+        filename: uploadResult.public_id,
         originalName: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
-        path: file.path,
-        url: `/uploads/${file.filename}`,
+        path: null,
+        url: uploadResult.secure_url,
+        storageProvider: 'cloudinary',
+        cloudinaryPublicId: uploadResult.public_id,
+        cloudinaryResourceType: uploadResult.resource_type,
+        cloudinaryAssetId: uploadResult.asset_id || null,
         userId: req.user.id,
         tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         description: description || ''
@@ -119,7 +140,18 @@ const uploadFiles = async (req, res) => {
     });
   } catch (error) {
     console.error('Error uploading files:', error);
-    res.status(500).json({ error: 'Failed to upload files' });
+
+    if (error?.code === 'CLOUDINARY_NOT_CONFIGURED') {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Cloudinary errors often include http_code.
+    if (typeof error?.http_code === 'number') {
+      const status = error.http_code >= 400 && error.http_code < 600 ? error.http_code : 500;
+      return res.status(status).json({ error: error.message || 'Cloudinary upload failed' });
+    }
+
+    res.status(500).json({ error: error?.message || 'Failed to upload files' });
   }
 };
 
@@ -159,21 +191,38 @@ const downloadFile = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Check if file exists on disk
+    // Increment download count
+    await file.incrementDownload();
+
+    // Cloudinary-backed files: redirect to a download URL.
+    if (file.storageProvider === 'cloudinary' && file.cloudinaryPublicId) {
+      const resourceType = file.cloudinaryResourceType || 'auto';
+      let downloadUrl;
+      try {
+        downloadUrl = cloudinary.url(file.cloudinaryPublicId, {
+          resource_type: resourceType,
+          secure: true,
+          flags: 'attachment'
+        });
+      } catch (error) {
+        downloadUrl = file.url;
+      }
+      return res.redirect(downloadUrl);
+    }
+
+    // Backward compatibility: legacy local uploads
+    if (!file.path) {
+      return res.status(404).json({ error: 'File has no storage path' });
+    }
+
     try {
       await fs.access(file.path);
     } catch (error) {
       return res.status(404).json({ error: 'File not found on disk' });
     }
 
-    // Increment download count
-    await file.incrementDownload();
-
-    // Set headers for download
     res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
     res.setHeader('Content-Type', file.mimetype);
-
-    // Send file
     res.sendFile(path.resolve(file.path));
   } catch (error) {
     console.error('Error downloading file:', error);
@@ -193,11 +242,19 @@ const deleteFile = async (req, res) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Delete file from disk
-    try {
-      await fs.unlink(file.path);
-    } catch (error) {
-      console.warn('File not found on disk:', file.path);
+    // Delete from Cloudinary (or disk for legacy records)
+    if (file.storageProvider === 'cloudinary' && file.cloudinaryPublicId) {
+      try {
+        await destroyAsset(file.cloudinaryPublicId, file.cloudinaryResourceType);
+      } catch (error) {
+        console.warn('Failed to delete Cloudinary asset:', error.message || error);
+      }
+    } else if (file.path) {
+      try {
+        await fs.unlink(file.path);
+      } catch (error) {
+        console.warn('File not found on disk:', file.path);
+      }
     }
 
     // Delete from database

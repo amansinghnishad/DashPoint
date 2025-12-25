@@ -27,9 +27,9 @@ const fileService = {
     if (options.description) formData.append('description', options.description);
 
     const response = await apiClient.post('/files/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // IMPORTANT: don't set Content-Type manually for FormData.
+      // The browser must add the boundary.
+      timeout: 10 * 60 * 1000,
     });
     return response.data;
   },

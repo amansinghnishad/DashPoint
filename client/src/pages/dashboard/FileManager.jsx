@@ -10,6 +10,12 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const SERVER_BASE_URL = API_BASE_URL.replace(/\/?api\/?$/, "");
 
+const resolveFileUrl = (serverBaseUrl, url) => {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${serverBaseUrl}${url}`;
+};
+
 const isProbablyText = (mime) => {
   if (!mime) return false;
   return (
@@ -52,7 +58,7 @@ export default function FileManagerPage() {
         subtitle: f.formattedSize || "",
         type: "file",
         mime: f.mimetype,
-        remoteUrl: f.url ? `${SERVER_BASE_URL}${f.url}` : null,
+        remoteUrl: resolveFileUrl(SERVER_BASE_URL, f.url),
         downloadUrl: f._id
           ? `${SERVER_BASE_URL}/api/files/${f._id}/download`
           : null,
@@ -76,11 +82,11 @@ export default function FileManagerPage() {
 
   const onPickFiles = useCallback(
     async (e) => {
-      const fl = e.target.files;
+      // Copy files before clearing the input. In some browsers the FileList becomes
+      // empty after resetting the input value.
+      const files = Array.from(e.target.files || []);
       // allow picking same file again
       e.target.value = "";
-
-      const files = Array.from(fl || []);
       if (!files.length) return;
 
       try {
@@ -96,7 +102,7 @@ export default function FileManagerPage() {
           subtitle: f.formattedSize || "",
           type: "file",
           mime: f.mimetype,
-          remoteUrl: f.url ? `${SERVER_BASE_URL}${f.url}` : null,
+          remoteUrl: resolveFileUrl(SERVER_BASE_URL, f.url),
           downloadUrl: f._id
             ? `${SERVER_BASE_URL}/api/files/${f._id}/download`
             : null,

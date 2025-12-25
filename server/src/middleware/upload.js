@@ -1,52 +1,21 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    const filename = file.fieldname + '-' + uniqueSuffix + extension;
-    cb(null, filename);
-  }
-});
+// Use memory storage so we can stream buffers directly to Cloudinary.
+const storage = multer.memoryStorage();
 
 // File filter function
 const fileFilter = (req, file, cb) => {
-  // Define allowed file types
-  const allowedTypes = [
-    // Images
-    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-    // Documents
-    'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain', 'text/csv', 'application/rtf',
-    // Archives
-    'application/zip', 'application/x-rar-compressed', 'application/x-tar', 'application/gzip',
-    // Audio
-    'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4',
-    // Video
-    'video/mp4', 'video/mpeg', 'video/quicktime', 'video/x-msvideo', 'video/webm',
-    // Code files
-    'text/javascript', 'text/css', 'text/html', 'application/json', 'text/xml',
-    // Other
-    'application/octet-stream'
-  ];
+  // Cloudinary-backed file storage: allow images + PDFs.
+  const isImage = typeof file.mimetype === 'string' && file.mimetype.startsWith('image/');
+  const isPdf = file.mimetype === 'application/pdf';
 
-  // Check if file type is allowed
-  if (allowedTypes.includes(file.mimetype)) {
+  // Some clients/browsers may send octet-stream; fall back to extension checks.
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  const isAllowedByExt = ['.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext);
+  const isOctetStream = file.mimetype === 'application/octet-stream';
+
+  if (isImage || isPdf || (isOctetStream && isAllowedByExt)) {
     cb(null, true);
   } else {
     cb(new Error(`File type ${file.mimetype} is not allowed`), false);

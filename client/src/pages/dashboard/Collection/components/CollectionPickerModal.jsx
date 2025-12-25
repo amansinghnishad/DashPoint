@@ -583,9 +583,9 @@ export default function CollectionPickerModal({
                   multiple
                   className="hidden"
                   onChange={(e) => {
-                    const fl = e.target.files;
+                    const files = Array.from(e.target.files || []);
                     e.target.value = "";
-                    uploadAndAddFiles(fl, "file");
+                    uploadAndAddFiles(files, "file");
                   }}
                 />
                 <input
@@ -595,9 +595,9 @@ export default function CollectionPickerModal({
                   accept="image/*"
                   className="hidden"
                   onChange={(e) => {
-                    const fl = e.target.files;
+                    const files = Array.from(e.target.files || []);
                     e.target.value = "";
-                    uploadAndAddFiles(fl, "photo");
+                    uploadAndAddFiles(files, "photo");
                   }}
                 />
               </div>
