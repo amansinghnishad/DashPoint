@@ -1,15 +1,15 @@
 import Modal from "../../components/Modals/Modal";
-import CalendarWidget from "../../pages/Dashboard/Widgets/Calendar";
-import PlannerAppointmentsWidget from "../../pages/Dashboard/Widgets/PlannerAppointments";
-import PlannerCallsEmailsWidget from "../../pages/Dashboard/Widgets/PlannerCallsEmails";
-import PlannerDailyScheduleWidget from "../../pages/Dashboard/Widgets/PlannerDailySchedule";
-import PlannerExpenseTrackerWidget from "../../pages/Dashboard/Widgets/PlannerExpenseTracker";
-import PlannerMealPlannerWidget from "../../pages/Dashboard/Widgets/PlannerMealPlanner";
-import PlannerNotesTomorrowWidget from "../../pages/Dashboard/Widgets/PlannerNotesTomorrow";
-import PlannerRateYourDayWidget from "../../pages/Dashboard/Widgets/PlannerRateYourDay";
-import PlannerTodoListWidget from "../../pages/Dashboard/Widgets/PlannerTodoList";
-import PlannerTopPrioritiesWidget from "../../pages/Dashboard/Widgets/PlannerTopPriorities";
-import PlannerWaterTrackerWidget from "../../pages/Dashboard/Widgets/PlannerWaterTracker";
+import CalendarWidget from "../../pages/dashboard/Widgets/Calendar";
+import PlannerAppointmentsWidget from "../../pages/dashboard/Widgets/PlannerAppointments";
+import PlannerCallsEmailsWidget from "../../pages/dashboard/Widgets/PlannerCallsEmails";
+import PlannerDailyScheduleWidget from "../../pages/dashboard/Widgets/PlannerDailySchedule";
+import PlannerExpenseTrackerWidget from "../../pages/dashboard/Widgets/PlannerExpenseTracker";
+import PlannerMealPlannerWidget from "../../pages/dashboard/Widgets/PlannerMealPlanner";
+import PlannerNotesTomorrowWidget from "../../pages/dashboard/Widgets/PlannerNotesTomorrow";
+import PlannerRateYourDayWidget from "../../pages/dashboard/Widgets/PlannerRateYourDay";
+import PlannerTodoListWidget from "../../pages/dashboard/Widgets/PlannerTodoList";
+import PlannerTopPrioritiesWidget from "../../pages/dashboard/Widgets/PlannerTopPriorities";
+import PlannerWaterTrackerWidget from "../../pages/dashboard/Widgets/PlannerWaterTracker";
 
 function WidgetCard({ title, description, children }) {
   return (
