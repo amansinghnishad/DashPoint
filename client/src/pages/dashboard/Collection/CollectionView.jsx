@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FolderOpen } from "lucide-react";
-import { collectionsAPI } from "../../../services/api";
+import { collectionsAPI, plannerWidgetsAPI } from "../../../services/api";
 import { useToast } from "../../../hooks/useToast";
 import BottomBar from "../../../components/Navbars/BottomBar";
 import ResizableItemCard from "../../../components/collection/ResizableItemCard";
 import DeleteConfirmModal from "../../../components/Modals/DeleteConfirmModal";
-import CollectionPickerModal from "../../dashboard/Collection/components/CollectionPickerModal";
-import useCollectionLayouts from "../../dashboard/Collection/hooks/useCollectionLayouts";
-import useCollectionData from "../../dashboard/Collection/hooks/useCollectionData";
+import CollectionPickerModal from "./components/CollectionPickerModal";
+import useCollectionLayouts from "./hooks/useCollectionLayouts";
+import useCollectionData from "./hooks/useCollectionData";
+import {
+  getDefaultPlannerWidgetData,
+  getPlannerWidgetLabel,
+  PLANNER_WIDGET_MENU_OPTIONS,
+} from "./utils/plannerWidgetDefaults";
 
 const getItemKey = (it) => {
   if (!it) return "";
@@ -55,6 +60,57 @@ export default function CollectionView({ collectionId, onBack }) {
     setPickerOpen(true);
   }, []);
 
+  const [creatingPlanner, setCreatingPlanner] = useState(false);
+
+  const createPlannerAndAdd = useCallback(
+    async (widgetType) => {
+      const type = String(widgetType || "").trim();
+      if (!type) return;
+
+      try {
+        setCreatingPlanner(true);
+        setActiveTool("planner");
+
+        const createRes = await plannerWidgetsAPI.create({
+          widgetType: type,
+          title: getPlannerWidgetLabel(type),
+          data: getDefaultPlannerWidgetData(type),
+        });
+        if (!createRes?.success) {
+          throw new Error(
+            createRes?.message || "Failed to create planner widget"
+          );
+        }
+
+        const created = createRes.data;
+        if (!created?._id) throw new Error("Create succeeded but missing id");
+
+        const addRes = await collectionsAPI.addItemToCollection(
+          collectionId,
+          "planner",
+          String(created._id)
+        );
+        if (!addRes?.success) {
+          throw new Error(
+            addRes?.message || "Failed to add item to collection"
+          );
+        }
+
+        toast.success("Planner widget added.");
+        await reload();
+      } catch (err) {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to create planner widget";
+        toast.error(message);
+      } finally {
+        setCreatingPlanner(false);
+      }
+    },
+    [collectionId, reload, toast]
+  );
+
   const confirmRemove = useCallback(async () => {
     const itemType = deleteCanvasItem?.itemType;
     const itemId = deleteCanvasItem?.itemId;
@@ -95,6 +151,7 @@ export default function CollectionView({ collectionId, onBack }) {
   const handleSelectTool = useCallback(
     (toolId) => {
       setActiveTool(toolId);
+      if (toolId === "planner") return;
       openPicker(toolId);
     },
     [openPicker]
@@ -136,6 +193,11 @@ export default function CollectionView({ collectionId, onBack }) {
             <BottomBar
               activeTool={activeTool}
               onSelectTool={handleSelectTool}
+              plannerOptions={PLANNER_WIDGET_MENU_OPTIONS}
+              onPlannerSelect={(type) => {
+                if (creatingPlanner) return;
+                createPlannerAndAdd(type);
+              }}
             />
 
             <CollectionPickerModal

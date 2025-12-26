@@ -5,8 +5,6 @@ Backend API server for the MERN DashPoint application, providing comprehensive b
 ## Features
 
 - **Authentication**: JWT-based user authentication with registration, login, and profile management
-- **Sticky Notes**: CRUD operations with drag-and-drop positioning, colors, tags, and archiving
-- **Todo Management**: Full todo functionality with priorities, due dates, categories, and bulk operations
 - **Content Extraction**: Website content extraction with cheerio for scraping titles, content, and metadata
 - **Weather API**: Integration with OpenWeatherMap for current weather and forecasts
 - **YouTube Integration**: Save, organize, and analyze YouTube videos
@@ -54,32 +52,6 @@ Backend API server for the MERN DashPoint application, providing comprehensive b
 - `PUT /api/auth/profile` - Update user profile
 - `PUT /api/auth/password` - Change password
 - `GET /api/auth/verify` - Verify JWT token
-
-### Sticky Notes
-- `GET /api/sticky-notes` - Get user's sticky notes
-- `POST /api/sticky-notes` - Create new sticky note
-- `GET /api/sticky-notes/search` - Search sticky notes
-- `GET /api/sticky-notes/archived` - Get archived notes
-- `GET /api/sticky-notes/:id` - Get specific sticky note
-- `PUT /api/sticky-notes/:id` - Update sticky note
-- `DELETE /api/sticky-notes/:id` - Delete sticky note
-- `PATCH /api/sticky-notes/:id/archive` - Archive sticky note
-- `PATCH /api/sticky-notes/:id/restore` - Restore sticky note
-- `POST /api/sticky-notes/bulk` - Bulk operations
-
-### Todos
-- `GET /api/todos` - Get user's todos
-- `POST /api/todos` - Create new todo
-- `GET /api/todos/stats` - Get todo statistics
-- `GET /api/todos/search` - Search todos
-- `GET /api/todos/overdue` - Get overdue todos
-- `GET /api/todos/upcoming` - Get upcoming todos
-- `GET /api/todos/:id` - Get specific todo
-- `PUT /api/todos/:id` - Update todo
-- `DELETE /api/todos/:id` - Delete todo
-- `PATCH /api/todos/:id/complete` - Mark todo as complete
-- `PATCH /api/todos/:id/incomplete` - Mark todo as incomplete
-- `POST /api/todos/bulk` - Bulk operations
 
 ### Content Extraction
 - `POST /api/content-extraction/extract` - Extract content from URL
@@ -164,8 +136,6 @@ src/
 │   ├── collectionController.js  # Collections management
 │   ├── contentExtractionController.js # Content extraction
 │   ├── fileController.js        # File uploads and management
-│   ├── stickyNoteController.js  # Sticky notes operations
-│   ├── todoController.js        # Todo management
 │   ├── weatherController.js     # Weather API integration
 │   └── youtubeController.js     # YouTube operations
 ├── middleware/
@@ -178,8 +148,6 @@ src/
 │   ├── Content.js           # Content schema
 │   ├── ContentExtraction.js # Extracted content schema
 │   ├── File.js              # File schema
-│   ├── StickyNote.js        # Sticky note schema
-│   ├── Todo.js              # Todo schema
 │   ├── User.js              # User schema
 │   └── YouTube.js           # YouTube video schema
 ├── routes/
@@ -188,8 +156,6 @@ src/
 │   ├── collectionRoutes.js  # Collections routes
 │   ├── contentExtractionRoutes.js # Content extraction routes
 │   ├── fileRoutes.js        # File management routes
-│   ├── stickyNoteRoutes.js  # Sticky notes routes
-│   ├── todoRoutes.js        # Todo routes
 │   ├── weatherRoutes.js     # Weather routes
 │   └── youtubeRoutes.js     # YouTube routes
 ├── services/
@@ -237,18 +203,6 @@ The server supports Progressive Web App functionality with:
 - Profile information
 - Account timestamps
 - Preferences storage
-
-### StickyNote
-- User-specific notes
-- Positioning data
-- Colors and tags
-- Archive functionality
-
-### Todo
-- Task management
-- Priorities and due dates
-- Categories and completion status
-- Bulk operations support
 
 ### ContentExtraction
 - URL extraction history

@@ -1,12 +1,10 @@
 import {
   Calendar,
-  CheckSquare,
   CloudSun,
   FileText,
   Globe,
   LayoutGrid,
   Lock,
-  StickyNote,
   Timer,
   Youtube,
   Zap,
@@ -18,16 +16,6 @@ const features = [
     icon: LayoutGrid,
     title: "Custom dashboard",
     description: "Arrange widgets the way you work best.",
-  },
-  {
-    icon: StickyNote,
-    title: "Notes",
-    description: "Capture quick ideas and keep them visible.",
-  },
-  {
-    icon: CheckSquare,
-    title: "Todos",
-    description: "Stay on top of tasks with simple tracking.",
   },
   {
     icon: FileText,

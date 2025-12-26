@@ -58,16 +58,6 @@
   overflow: hidden;
 }
 
-/* Sticky notes drag and drop */
-.sticky-note {
-  user-select: none;
-  cursor: move;
-}
-
-.sticky-note:hover {
-  transform: scale(1.02);
-}
-
 /* Focus styles */
 input:focus,
 textarea:focus,
@@ -94,13 +84,6 @@ select:focus {
 
 /* Responsive utilities */
 @media (max-width: 768px) {
-  .sticky-note {
-    position: relative !important;
-    left: auto !important;
-    top: auto !important;
-    margin-bottom: 1rem;
-  }
-
   /* Better mobile scrolling */
   html,
   body {

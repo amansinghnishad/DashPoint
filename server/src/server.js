@@ -11,8 +11,6 @@ const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-const stickyNoteRoutes = require('./routes/stickyNoteRoutes');
-const todoRoutes = require('./routes/todoRoutes');
 const contentExtractionRoutes = require('./routes/contentExtractionRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
@@ -20,6 +18,7 @@ const collectionRoutes = require('./routes/collectionRoutes');
 const aiServicesRoutes = require('./routes/aiServicesRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const conversationalRoutes = require('./routes/conversationalRoutes');
+const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
 
 const app = express();
 
@@ -121,8 +120,6 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
-      'sticky-notes': '/api/sticky-notes',
-      todos: '/api/todos',
       'content-extraction': '/api/content-extraction', weather: '/api/weather',
       youtube: '/api/youtube',
       collections: '/api/collections',
@@ -136,8 +133,6 @@ app.get('/', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/sticky-notes', stickyNoteRoutes);
-app.use('/api/todos', todoRoutes);
 app.use('/api/content-extraction', contentExtractionRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/youtube', youtubeRoutes);
@@ -145,6 +140,7 @@ app.use('/api/collections', collectionRoutes);
 app.use('/api/ai', aiServicesRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/conversational', conversationalRoutes);
+app.use('/api/planner-widgets', plannerWidgetRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

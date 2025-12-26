@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'DashPoint - Personal Productivity Dashboard',
         short_name: 'DashPoint',
-        description: 'Your all-in-one personal productivity dashboard with sticky notes, todos, weather, and more',
+        description: 'Your all-in-one personal productivity dashboard with planner widgets, weather, and content tools',
         theme_color: '#8B5CF6',
         background_color: '#ffffff',
         display: 'standalone',

@@ -229,6 +229,10 @@ body {
   background-color: var(--dp-surface-muted);
 }
 
+.dp-nav-panel {
+  background-color: var(--dp-nav-panel-bg);
+}
+
 .dp-sidebar-surface {
   background-color: var(--dp-sidebar-bg);
 }

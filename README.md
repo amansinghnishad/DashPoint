@@ -25,8 +25,7 @@ DashPoint/
 ## ✨ Features
 
 ### Core Productivity Features
-- **📝 Sticky Notes**: Create, edit, drag & drop colorful sticky notes
-- **✅ Todo Management**: Task management with priorities, due dates, and categories
+- **🗓️ Planner Widgets**: Planner-style widgets for daily planning
 - **🎥 YouTube Player**: Save, organize, and analyze YouTube videos with AI summaries
 - **📄 Content Extractor**: Extract readable content from websites with AI analysis
 - **🌤️ Weather Widget**: Real-time weather and 3-day forecasts
@@ -138,8 +137,6 @@ Client runs on `http://localhost:5173`
 - `PUT /api/auth/profile` - Update user profile
 
 ### Core Feature Endpoints
-- `GET/POST /api/sticky-notes` - Sticky notes management
-- `GET/POST /api/todos` - Todo list operations
 - `GET/POST /api/collections` - Collections management
 - `POST /api/content-extraction/extract` - Extract web content
 - `GET /api/weather/current` - Current weather data
@@ -236,8 +233,6 @@ Agent/
 client/
 ├── src/
 │   ├── components/          # React components
-│   │   ├── sticky-notes/    # Sticky notes widget
-│   │   ├── todo/           # Todo management
 │   │   ├── youtube-player/ # YouTube integration
 │   │   ├── content-extractor/ # Content extraction
 │   │   ├── weather/        # Weather widget

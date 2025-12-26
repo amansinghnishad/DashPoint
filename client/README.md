@@ -4,9 +4,8 @@ A comprehensive MERN stack dashboard application with multiple productivity feat
 
 ## Features
 
-- **Conversational Interface**: Natural language commands for all dashboard actions - just type "add note..." or "create task..." and let AI handle it
-- **Sticky Notes**: Create, edit, drag & drop colorful sticky notes
-- **Todo List**: Manage tasks with priorities, due dates, and completion tracking
+- **Conversational Interface**: Natural language commands for dashboard actions (e.g. summarize a YouTube link or extract a web page)
+- **Planner Widgets**: Planner-style widgets for daily planning
 - **YouTube Player**: Add YouTube videos to playlist and watch them in the dashboard
 - **Content Extractor**: Extract readable content from any website URL
 - **Weather Widget**: Display current weather and 3-day forecast with location support
@@ -46,9 +45,7 @@ src/
 │   ├── pwa-status/               # PWA status indicators
 │   ├── session-warning/          # Session expiration warnings
 │   ├── settings-modal/           # User settings
-│   ├── sticky-notes/             # Sticky notes widget
 │   ├── toast/                    # Toast notifications
-│   ├── todo/                     # Todo list management
 │   ├── ui/                       # Shared UI components
 │   ├── update-notification/      # App update notifications
 │   ├── weather/                  # Weather widget
@@ -116,25 +113,11 @@ npm run dev
 
 ### Conversational Interface (Ask DashPoint)
 - Natural language commands for all actions
-- "add note..." "create task..." "weather for..." 
+- "summarize https://youtube.com/..." "extract https://..." "weather for..." 
 - AI-powered command understanding
 - Automatic dashboard updates after actions
 - Real-time conversation history
 - Confidence scoring for command interpretation
-
-### Sticky Notes
-- Create colorful sticky notes
-- Drag and drop positioning
-- Edit in-place
-- Multiple color options
-- Auto-save to local storage
-
-### Todo List
-- Add tasks with descriptions
-- Set due dates and priorities
-- Mark as completed
-- Filter by status (all/active/completed)
-- Priority-based color coding
 
 ### YouTube Player
 - Paste YouTube URLs to create playlist
@@ -166,7 +149,7 @@ npm run dev
 
 ### Collections
 - Create and manage content collections
-- Add extracted content, notes, and links
+- Add extracted content, files, and YouTube videos
 - Organize collections by categories
 - Search within collections
 - Share collections (coming soon)

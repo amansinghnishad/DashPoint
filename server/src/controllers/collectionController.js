@@ -71,7 +71,8 @@ exports.getCollectionWithItems = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
 
-    const collection = await Collection.findOne({ _id: id, userId }); if (!collection) {
+    const collection = await Collection.findOne({ _id: id, userId });
+    if (!collection) {
       return res.status(404).json({
         success: false,
         message: 'Collection not found'
@@ -81,7 +82,9 @@ exports.getCollectionWithItems = async (req, res, next) => {
     // Populate item data for each item in the collection
     const populatedItems = await Promise.all(
       collection.items.map(async (item) => {
-        let itemData = null; try {
+        let itemData = null;
+
+        try {
           switch (item.itemType) {
             case 'youtube':
               const YouTube = require('../models/YouTube');
@@ -91,17 +94,13 @@ exports.getCollectionWithItems = async (req, res, next) => {
               const ContentExtraction = require('../models/ContentExtraction');
               itemData = await ContentExtraction.findOne({ _id: item.itemId, userId });
               break;
-            case 'sticky-note':
-              const StickyNote = require('../models/StickyNote');
-              itemData = await StickyNote.findOne({ _id: item.itemId, userId });
-              break;
-            case 'todo':
-              const Todo = require('../models/Todo');
-              itemData = await Todo.findOne({ _id: item.itemId, userId });
-              break;
             case 'file':
               const File = require('../models/File');
               itemData = await File.findOne({ _id: item.itemId, userId });
+              break;
+            case 'planner':
+              const PlannerWidget = require('../models/PlannerWidget');
+              itemData = await PlannerWidget.findOne({ _id: item.itemId, userId });
               break;
             default:
               itemData = null;

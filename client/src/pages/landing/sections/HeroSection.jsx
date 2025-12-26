@@ -60,14 +60,12 @@ export default function HeroSection() {
           <div>
             <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl text-white">
               One place for your
-              <span className="block text-white/90">
-                tasks, notes, and content
-              </span>
+              <span className="block text-white/90">tasks and content</span>
             </h1>
             <p className="mt-5 text-base leading-7 sm:text-lg text-white/70">
               DashPoint brings your daily tools into a fast, clean workspace.
-              Capture ideas, manage todos, extract content, and stay
-              organized—without juggling tabs.
+              Plan your day, extract content, and stay organized—without
+              juggling tabs.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -153,7 +151,7 @@ export default function HeroSection() {
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   <p className="text-sm font-semibold text-white">Widgets</p>
                   <p className="mt-1 text-sm text-white/70">
-                    Calendar, notes, todos, YouTube.
+                    Calendar, planner, YouTube.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">

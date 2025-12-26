@@ -4,8 +4,6 @@ const { validationResult } = require('express-validator');
 const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
 // Import all the controllers for executing actions
-const stickyNoteController = require('./stickyNoteController');
-const todoController = require('./todoController');
 const youtubeController = require('./youtubeController');
 const contentExtractionController = require('./contentExtractionController');
 const fileController = require('./fileController');
@@ -146,15 +144,7 @@ async function executeApiCall(apiCall, req, res, next) {
     };
 
     // Route to appropriate controller based on endpoint
-    if (endpoint.startsWith('/api/sticky-notes')) {
-      // Default to create sticky note for conversational agent generated POST requests
-      return await executeControllerMethod(stickyNoteController, 'createStickyNote', mockReq, res, next);
-    } else if (endpoint.startsWith('/api/todos')) {
-      if (endpoint.includes('search-and-complete')) {
-        return await searchAndCompleteTodo(data, mockReq.user._id);
-      }
-      return await executeControllerMethod(todoController, 'createTodo', mockReq, res, next);
-    } else if (endpoint.startsWith('/api/youtube')) {
+    if (endpoint.startsWith('/api/youtube')) {
       if (endpoint.includes('process-with-ai')) {
         return await executeYouTubeProcessing(data, mockReq, res, next);
       } else if (endpoint.includes('videos-enhanced')) {
@@ -193,76 +183,6 @@ async function executeApiCall(apiCall, req, res, next) {
 }
 
 /**
- * Execute a controller method with proper error handling
- */
-async function executeControllerMethod(controller, methodName, req, res, next) {
-  return new Promise((resolve, reject) => {
-    // Create a mock response object to capture the result
-    const mockRes = {
-      status: (code) => ({
-        json: (data) => {
-          resolve({ statusCode: code, data });
-        }
-      }),
-      json: (data) => {
-        resolve({ statusCode: 200, data });
-      }
-    };
-
-    // Execute the controller method
-    try {
-      controller[methodName](req, mockRes, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve({ success: true, message: 'Method executed successfully' });
-        }
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-/**
- * Search and complete a todo item
- */
-async function searchAndCompleteTodo(data, userId) {
-  try {
-    const Todo = require('../models/Todo');
-
-    // Search for the todo item
-    const todos = await Todo.find({
-      userId: userId,
-      title: { $regex: data.search_term, $options: 'i' },
-      completed: false
-    }).limit(1);
-
-    if (todos.length === 0) {
-      return {
-        success: false,
-        message: `No uncompleted todo found matching: "${data.search_term}"`
-      };
-    }
-
-    // Update the todo
-    const todo = todos[0];
-    todo.completed = true;
-    todo.completedAt = new Date();
-    await todo.save();
-
-    return {
-      success: true,
-      message: `Completed todo: "${todo.title}"`,
-      data: todo
-    };
-
-  } catch (error) {
-    throw error;
-  }
-}
-
-/**
  * Execute YouTube processing
  */
 async function executeYouTubeProcessing(data, req, res, next) {
@@ -291,50 +211,6 @@ async function executeYouTubeProcessing(data, req, res, next) {
  */
 async function handleSimpleCommandsFallback(command, userContext, req, res, next) {
   const lowerCommand = command.toLowerCase();
-
-  // Simple note detection
-  if (lowerCommand.includes('add note') || lowerCommand.includes('note:')) {
-    const noteMatch = command.match(/(?:add note|note:)\s*["\']?(.+?)["\']?$/i);
-    if (noteMatch) {
-      const content = noteMatch[1];
-      const mockReq = {
-        ...req,
-        body: { content },
-        user: userContext.user
-      };
-
-      const execution = await executeControllerMethod(stickyNoteController, 'createStickyNote', mockReq, res, next);
-
-      return {
-        success: true,
-        message: `Added note: "${content}"`,
-        action: 'add_note',
-        execution_result: execution
-      };
-    }
-  }
-
-  // Simple todo detection
-  if (lowerCommand.includes('add todo') || lowerCommand.includes('todo:')) {
-    const todoMatch = command.match(/(?:add todo|todo:)\s*["\']?(.+?)["\']?$/i);
-    if (todoMatch) {
-      const title = todoMatch[1];
-      const mockReq = {
-        ...req,
-        body: { title },
-        user: userContext.user
-      };
-
-      const execution = await executeControllerMethod(todoController, 'createTodo', mockReq, res, next);
-
-      return {
-        success: true,
-        message: `Added todo: "${title}"`,
-        action: 'add_todo',
-        execution_result: execution
-      };
-    }
-  }
 
   return {
     success: false,
@@ -377,18 +253,6 @@ exports.getCapabilities = async (req, res, next) => {
       message: 'Agent capabilities retrieved',
       capabilities: capabilitiesResponse.data,
       fallback_patterns: {
-        note_patterns: [
-          'add note "content"',
-          'create note "content"',
-          'note: content',
-          'remind me to ...'
-        ],
-        todo_patterns: [
-          'add todo "content"',
-          'add task "content"',
-          'todo: content',
-          'i need to ...'
-        ],
         youtube_patterns: [
           'summarize https://youtube.com/...',
           'save youtube https://youtube.com/...'
@@ -406,18 +270,6 @@ exports.getCapabilities = async (req, res, next) => {
       message: 'Basic capabilities (agent unavailable)',
       agent_available: false,
       fallback_patterns: {
-        note_patterns: [
-          'add note "content" - Add a sticky note',
-          'create note "content" - Create a sticky note',
-          'note: content - Quick note creation',
-          'remind me to ... - Add reminder note'
-        ],
-        todo_patterns: [
-          'add todo "content" - Add a todo item',
-          'add task "content" - Add a task',
-          'todo: content - Quick todo creation',
-          'i need to ... - Add task from natural language'
-        ],
         youtube_patterns: [
           'summarize https://youtube.com/... - Summarize a YouTube video',
           'save youtube https://youtube.com/... - Save a YouTube video'
@@ -432,7 +284,7 @@ exports.getCapabilities = async (req, res, next) => {
         ]
       },
       supported_actions: [
-        'add_note', 'add_todo', 'complete_todo', 'save_youtube',
+        'save_youtube',
         'summarize_youtube', 'extract_content', 'get_weather',
         'create_collection', 'search', 'ask_ai'
       ]

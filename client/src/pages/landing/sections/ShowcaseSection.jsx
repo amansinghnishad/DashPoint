@@ -3,7 +3,7 @@ import SectionHeader from "../components/SectionHeader";
 
 const bullets = [
   "Save content and revisit it later.",
-  "Keep notes and todos visible together.",
+  "Keep your planner widgets visible together.",
   "Open the dashboard and start working immediately.",
 ];
 

@@ -79,60 +79,6 @@ export const authAPI = {
   }
 };
 
-// Sticky Notes API
-export const stickyNotesAPI = {
-  // getAllNotes function
-  getAll: async () => {
-    const response = await apiClient.get('/sticky-notes');
-    return response.data;
-  },
-
-  // createNote function
-  create: async (noteData) => {
-    const response = await apiClient.post('/sticky-notes', noteData);
-    return response.data;
-  },
-
-  // updateNote function
-  update: async (id, noteData) => {
-    const response = await apiClient.put(`/sticky-notes/${id}`, noteData);
-    return response.data;
-  },
-
-  // deleteNote function
-  delete: async (id) => {
-    const response = await apiClient.delete(`/sticky-notes/${id}`);
-    return response.data;
-  }
-};
-
-// Todo API
-export const todoAPI = {
-  // getAllTodos function
-  getAll: async () => {
-    const response = await apiClient.get('/todos');
-    return response.data;
-  },
-
-  // createTodo function
-  create: async (todoData) => {
-    const response = await apiClient.post('/todos', todoData);
-    return response.data;
-  },
-
-  // updateTodo function
-  update: async (id, todoData) => {
-    const response = await apiClient.put(`/todos/${id}`, todoData);
-    return response.data;
-  },
-
-  // deleteTodo function
-  delete: async (id) => {
-    const response = await apiClient.delete(`/todos/${id}`);
-    return response.data;
-  }
-};
-
 // Weather API
 export const weatherAPI = {
   // getCurrentWeather function
@@ -277,6 +223,39 @@ export const collectionsAPI = {
   // getCollectionsForItem function
   getCollectionsForItem: async (itemType, itemId) => {
     const response = await apiClient.get(`/collections/item/${itemType}/${itemId}`);
+    return response.data;
+  }
+};
+
+// Planner Widgets API
+export const plannerWidgetsAPI = {
+  // Get all planner widgets
+  getAll: async (page = 1, limit = 50) => {
+    const response = await apiClient.get(`/planner-widgets?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  // Get a single planner widget
+  getById: async (id) => {
+    const response = await apiClient.get(`/planner-widgets/${id}`);
+    return response.data;
+  },
+
+  // Create a planner widget
+  create: async (widgetData) => {
+    const response = await apiClient.post('/planner-widgets', widgetData);
+    return response.data;
+  },
+
+  // Update a planner widget
+  update: async (id, widgetData) => {
+    const response = await apiClient.put(`/planner-widgets/${id}`, widgetData);
+    return response.data;
+  },
+
+  // Delete a planner widget
+  delete: async (id) => {
+    const response = await apiClient.delete(`/planner-widgets/${id}`);
     return response.data;
   }
 };

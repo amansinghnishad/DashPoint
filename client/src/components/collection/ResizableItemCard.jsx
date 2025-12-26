@@ -1,39 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
-  CheckSquare,
   FileText,
   Image,
+  LayoutGrid,
   Move,
   Pencil,
-  StickyNote,
   Trash2,
   Youtube,
 } from "lucide-react";
 
-const RESIZE_DIRECTIONS = ["n", "s", "e", "w", "ne", "nw", "se", "sw"];
+import { PlannerWidgetBody } from "./plannerWidgets";
 
-const getCursorForResizeDir = (dir) => {
-  switch (dir) {
-    case "n":
-      return "n-resize";
-    case "s":
-      return "s-resize";
-    case "e":
-      return "e-resize";
-    case "w":
-      return "w-resize";
-    case "ne":
-      return "ne-resize";
-    case "nw":
-      return "nw-resize";
-    case "se":
-      return "se-resize";
-    case "sw":
-      return "sw-resize";
-    default:
-      return "default";
-  }
-};
+import { useResizableCard } from "./useResizableCard";
 
 const getTitleForItem = (item) => {
   const data = item?.itemData;
@@ -56,14 +34,12 @@ const getTypeIcon = (itemType) => {
       return Youtube;
     case "content":
       return FileText;
-    case "sticky-note":
-      return StickyNote;
-    case "todo":
-      return CheckSquare;
     case "file":
       return FileText;
     case "photo":
       return Image;
+    case "planner":
+      return LayoutGrid;
     default:
       return FileText;
   }
@@ -77,186 +53,13 @@ export default function ResizableItemCard({
   onEdit,
   onDelete,
 }) {
-  const [isResizing, setIsResizing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef(null);
-  const resizeStartRef = useRef(null);
-
-  const currentLayout = useMemo(
-    () =>
-      layout || {
-        x: 0,
-        y: 0,
-        width: 320,
-        height: 240,
-      },
-    [layout]
-  );
-
-  const clampLayout = useCallback(
-    (next) => {
-      const minWidth = 280;
-      const minHeight = 200;
-
-      let width = Math.max(minWidth, next.width ?? currentLayout.width);
-      let height = Math.max(minHeight, next.height ?? currentLayout.height);
-      let x = next.x ?? currentLayout.x;
-      let y = next.y ?? currentLayout.y;
-
-      const containerEl = containerRef?.current;
-      if (containerEl) {
-        const containerRect = containerEl.getBoundingClientRect();
-
-        width = Math.min(width, Math.max(minWidth, containerRect.width));
-        height = Math.min(height, Math.max(minHeight, containerRect.height));
-
-        const maxX = Math.max(0, containerRect.width - width);
-        const maxY = Math.max(0, containerRect.height - height);
-        x = Math.min(Math.max(0, x), maxX);
-        y = Math.min(Math.max(0, y), maxY);
-      }
-
-      return { x, y, width, height };
-    },
-    [
-      containerRef,
-      currentLayout.height,
-      currentLayout.width,
-      currentLayout.x,
-      currentLayout.y,
-    ]
-  );
-
-  const commitLayout = useCallback(
-    (next) => {
-      onLayoutChange?.(clampLayout(next));
-    },
-    [clampLayout, onLayoutChange]
-  );
-
-  const handleResizeStart = useCallback(
-    (e, dir) => {
-      if (!RESIZE_DIRECTIONS.includes(dir)) return;
-      e.preventDefault();
-      e.stopPropagation();
-
-      resizeStartRef.current = {
-        pointerId: e.pointerId,
-        x: e.clientX,
-        y: e.clientY,
-        startLayout: { ...currentLayout },
-        dir,
-      };
-
-      setIsResizing(true);
-
-      const onPointerMove = (moveEvent) => {
-        const start = resizeStartRef.current;
-        if (!start) return;
-        if (moveEvent.pointerId !== start.pointerId) return;
-
-        const dx = moveEvent.clientX - start.x;
-        const dy = moveEvent.clientY - start.y;
-
-        const next = { ...start.startLayout };
-        const d = start.dir;
-
-        // Horizontal
-        if (d.includes("e")) {
-          next.width = start.startLayout.width + dx;
-        }
-        if (d.includes("w")) {
-          next.width = start.startLayout.width - dx;
-          next.x = start.startLayout.x + dx;
-        }
-
-        // Vertical
-        if (d.includes("s")) {
-          next.height = start.startLayout.height + dy;
-        }
-        if (d.includes("n")) {
-          next.height = start.startLayout.height - dy;
-          next.y = start.startLayout.y + dy;
-        }
-
-        commitLayout(next);
-      };
-
-      const endResize = (endEvent) => {
-        const start = resizeStartRef.current;
-        if (!start) return;
-        if (endEvent.pointerId !== start.pointerId) return;
-
-        setIsResizing(false);
-        resizeStartRef.current = null;
-        document.removeEventListener("pointermove", onPointerMove);
-        document.removeEventListener("pointerup", endResize);
-        document.removeEventListener("pointercancel", endResize);
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-      };
-
-      document.addEventListener("pointermove", onPointerMove);
-      document.addEventListener("pointerup", endResize);
-      document.addEventListener("pointercancel", endResize);
-      document.body.style.cursor = getCursorForResizeDir(dir);
-      document.body.style.userSelect = "none";
-    },
-    [commitLayout, currentLayout]
-  );
-
-  const handleDragStart = useCallback(
-    (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-
-      dragStartRef.current = {
-        mouseX: e.clientX,
-        mouseY: e.clientY,
-        startX: currentLayout.x,
-        startY: currentLayout.y,
-      };
-
-      setIsDragging(true);
-
-      const handleMouseMove = (moveEvent) => {
-        const start = dragStartRef.current;
-        if (!start) return;
-
-        const dx = moveEvent.clientX - start.mouseX;
-        const dy = moveEvent.clientY - start.mouseY;
-
-        commitLayout({
-          ...currentLayout,
-          x: start.startX + dx,
-          y: start.startY + dy,
-        });
-      };
-
-      const handleMouseUp = () => {
-        setIsDragging(false);
-        dragStartRef.current = null;
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        document.body.style.cursor = "";
-        document.body.style.userSelect = "";
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "move";
-      document.body.style.userSelect = "none";
-    },
-    [commitLayout, currentLayout]
-  );
-
-  useEffect(() => {
-    return () => {
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, []);
+  const {
+    currentLayout,
+    isDragging,
+    isResizing,
+    handleDragStart,
+    handleResizeStart,
+  } = useResizableCard({ layout, onLayoutChange, containerRef });
 
   const title = getTitleForItem(item);
   const type = item?.itemType || "item";
@@ -277,8 +80,8 @@ export default function ResizableItemCard({
       }}
     >
       <div
-        className="dp-surface dp-border border-b px-3 py-2 flex items-center justify-between cursor-move select-none"
-        onMouseDown={handleDragStart}
+        className="dp-surface dp-border border-b px-3 py-2 flex items-center justify-between cursor-move select-none touch-none"
+        onPointerDown={handleDragStart}
         title="Drag to move"
       >
         <div className="min-w-0 flex items-center gap-2">
@@ -323,9 +126,13 @@ export default function ResizableItemCard({
 
       <div className="h-full">
         <div className="p-3">
-          <p className="dp-text-muted text-sm line-clamp-6">
-            {item?.itemData?.description || item?.itemData?.content || ""}
-          </p>
+          {type === "planner" ? (
+            <PlannerWidgetBody widget={item?.itemData} />
+          ) : (
+            <p className="dp-text-muted text-sm line-clamp-6">
+              {item?.itemData?.description || item?.itemData?.content || ""}
+            </p>
+          )}
         </div>
       </div>
 
@@ -335,25 +142,25 @@ export default function ResizableItemCard({
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "n")}
-          className="pointer-events-auto absolute left-8 right-8 top-0 h-2 cursor-n-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute left-8 right-8 top-0 h-2 cursor-n-resize opacity-0 group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "s")}
-          className="pointer-events-auto absolute left-8 right-8 bottom-0 h-2 cursor-s-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute left-8 right-8 bottom-0 h-2 cursor-s-resize opacity-0 group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "w")}
-          className="pointer-events-auto absolute top-8 bottom-8 left-0 w-2 cursor-w-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute top-8 bottom-8 left-0 w-2 cursor-w-resize opacity-0 group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "e")}
-          className="pointer-events-auto absolute top-8 bottom-8 right-0 w-2 cursor-e-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute top-8 bottom-8 right-0 w-2 cursor-e-resize opacity-0 group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
 
@@ -361,25 +168,25 @@ export default function ResizableItemCard({
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "nw")}
-          className="pointer-events-auto absolute left-1 top-1 h-3 w-3 cursor-nw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute left-0 top-0 h-5 w-5 sm:left-1 sm:top-1 sm:h-3 sm:w-3 cursor-nw-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "ne")}
-          className="pointer-events-auto absolute right-1 top-1 h-3 w-3 cursor-ne-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute right-0 top-0 h-5 w-5 sm:right-1 sm:top-1 sm:h-3 sm:w-3 cursor-ne-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "sw")}
-          className="pointer-events-auto absolute left-1 bottom-1 h-3 w-3 cursor-sw-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute left-0 bottom-0 h-5 w-5 sm:left-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-sw-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "se")}
-          className="pointer-events-auto absolute right-1 bottom-1 h-3 w-3 cursor-se-resize rounded-sm dp-hover-bg opacity-0 group-hover:opacity-100 transition-opacity"
+          className="pointer-events-auto absolute right-0 bottom-0 h-5 w-5 sm:right-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-se-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
       </div>
