@@ -68,7 +68,9 @@ export const SideBar = ({
 
     if (!isInstallable) {
       if (isIOS()) {
-        toast.info("On iPhone/iPad: tap Share → Add to Home Screen to install.");
+        toast.info(
+          "On iPhone/iPad: tap Share → Add to Home Screen to install."
+        );
       } else {
         toast.info(
           "Install prompt isn’t available yet. Use the browser menu (⋯) → Install app. If you’re on a non-HTTPS URL (or a network IP), install won’t show until you deploy to HTTPS."
@@ -340,17 +342,16 @@ export const SideBar = ({
   );
 };
 
-
-              <li className="lg:hidden">
-                <button
-                  type="button"
-                  onClick={onInstallClick}
-                  className={`w-full flex items-center rounded-xl transition-all duration-200 relative ${itemBaseClass} space-x-3 px-4 py-3 text-left`}
-                >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl dp-hover-bg">
-                    <Download size={18} className={mutedTextClass} />
-                  </span>
-                  <span className="text-sm font-medium">Download app</span>
-                </button>
-              </li>
+<li className="lg:hidden">
+  <button
+    type="button"
+    onClick={onInstallClick}
+    className={`w-full flex items-center rounded-xl transition-all duration-200 relative ${itemBaseClass} space-x-3 px-4 py-3 text-left`}
+  >
+    <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl dp-hover-bg">
+      <Download size={18} className={mutedTextClass} />
+    </span>
+    <span className="text-sm font-medium">Download app</span>
+  </button>
+</li>;
 export default SideBar;
