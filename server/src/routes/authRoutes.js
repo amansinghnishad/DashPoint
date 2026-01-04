@@ -20,6 +20,7 @@ const authLimiter = rateLimit({
 // Validation rules
 const registerValidation = [
   body('username')
+    .optional()
     .trim()
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
@@ -34,14 +35,21 @@ const registerValidation = [
     .withMessage('Password must be at least 6 characters long')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
   body('firstName')
+    .optional()
     .trim()
     .isLength({ min: 1, max: 50 })
-    .withMessage('First name is required and must be less than 50 characters'),
+    .withMessage('First name must be less than 50 characters'),
   body('lastName')
+    .optional()
     .trim()
     .isLength({ min: 1, max: 50 })
-    .withMessage('Last name is required and must be less than 50 characters')
+    .withMessage('Last name must be less than 50 characters')
 ];
 
 const loginValidation = [
@@ -88,6 +96,7 @@ const updateProfileValidation = [
 // Routes
 router.post('/register', authLimiter, registerValidation, authController.register);
 router.post('/login', authLimiter, loginValidation, authController.login);
+router.post('/google', authLimiter, authController.googleAuth);
 router.post('/logout', auth, authController.logout);
 router.get('/profile', auth, authController.getProfile);
 router.put('/profile', auth, updateProfileValidation, authController.updateProfile);

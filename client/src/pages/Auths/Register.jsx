@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Gift, Lock, Mail, Star, User, Zap } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AuthLayout from "../../layouts/Auth/AuthLayout";
+import { GoogleLogin } from "@react-oauth/google";
 
 const isValidEmail = (value) => {
   const v = String(value || "").trim();
@@ -11,7 +12,8 @@ const isValidEmail = (value) => {
 
 export default function Register() {
   const navigate = useNavigate();
-  const { registerUser, loading, error, clearError } = useAuth();
+  const { registerUser, loginWithGoogle, loading, error, clearError } =
+    useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -301,6 +303,34 @@ export default function Register() {
         >
           {loading ? "Creating…" : "Create account"}
         </button>
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-xs text-white/50">OR</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                const cred = credentialResponse?.credential;
+                if (!cred) {
+                  setFormError("Google sign-up failed. Please try again.");
+                  return;
+                }
+
+                const result = await loginWithGoogle?.(cred);
+                if (result?.success) {
+                  navigate("/", { replace: true });
+                } else {
+                  setFormError(result?.error || "Google sign-up failed.");
+                }
+              }}
+              onError={() =>
+                setFormError("Google sign-up failed. Please try again.")
+              }
+            />
+          </div>
+        ) : null}
 
         <p className={`text-center text-sm ${subtleClass}`}>
           Already have an account?{" "}

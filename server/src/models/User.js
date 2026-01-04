@@ -2,7 +2,17 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const userSchema = new mongoose.Schema({  username: {
+const userSchema = new mongoose.Schema({
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
+  googleId: {
+    type: String,
+    default: null
+  },
+  username: {
     type: String,
     required: [true, 'Username is required'],
     trim: true,
@@ -19,7 +29,9 @@ const userSchema = new mongoose.Schema({  username: {
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function () {
+      return this.authProvider !== 'google';
+    },
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false // Don't include password in queries by default
   },
@@ -98,12 +110,14 @@ const userSchema = new mongoose.Schema({  username: {
       delete ret.emailVerificationToken;
       delete ret.__v;
       return ret;
-    }  }
+    }
+  }
 });
 
 // Index definitions - using explicit index() calls for better control
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 userSchema.index({ createdAt: -1 });
 
 // Virtual for full name
@@ -114,6 +128,7 @@ userSchema.virtual('fullName').get(function () {
 // Pre-save middleware to hash password
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
+  if (!this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);
@@ -126,6 +141,7 @@ userSchema.pre('save', async function (next) {
 
 // Method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

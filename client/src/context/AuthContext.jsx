@@ -141,7 +141,9 @@ export const AuthProvider = ({ children }) => {
 
         toast.success(
           `Welcome back${
-            response.data.user?.name ? `, ${response.data.user.name}` : ""
+            response.data.user?.firstName
+              ? `, ${response.data.user.firstName}`
+              : ""
           }.`
         );
 
@@ -212,6 +214,60 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
+
+  // loginWithGoogle function
+  const loginWithGoogle = async (credential) => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const response = await authAPI.googleAuth(credential);
+
+      if (response.success) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userData", JSON.stringify(response.data.user));
+
+        if (response.data.isNewUser) {
+          localStorage.setItem("isFirstTimeUser", "true");
+        } else {
+          localStorage.removeItem("isFirstTimeUser");
+        }
+
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: response.data.user,
+          isFirstTimeUser: Boolean(response.data.isNewUser),
+        });
+
+        toast.success(
+          `Welcome${
+            response.data.user?.firstName
+              ? `, ${response.data.user.firstName}`
+              : ""
+          }.`
+        );
+
+        return {
+          success: true,
+          isFirstTimeUser: Boolean(response.data.isNewUser),
+        };
+      }
+
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: response.message || "Google login failed",
+      });
+      toast.error(response.message || "Google login failed");
+      return { success: false, error: response.message };
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || error.message || "Google login failed";
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: errorMessage,
+      });
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
   // logoutUser function
   const logoutUser = useCallback(() => {
     localStorage.removeItem("token");
@@ -276,6 +332,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     ...state,
     loginUser,
+    loginWithGoogle,
     registerUser,
     logoutUser,
     clearError,

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, Mail, Zap, Gift, Star } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import AuthLayout from "../../layouts/Auth/AuthLayout";
+import { GoogleLogin } from "@react-oauth/google";
 
 const isValidEmail = (value) => {
   const v = String(value || "").trim();
@@ -11,7 +12,7 @@ const isValidEmail = (value) => {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { loginUser, loading, error, clearError } = useAuth();
+  const { loginUser, loginWithGoogle, loading, error, clearError } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -207,6 +208,35 @@ export default function Login() {
         >
           {loading ? "Signing in…" : "Sign in"}
         </button>
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-xs text-white/50">OR</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                const cred = credentialResponse?.credential;
+                if (!cred) {
+                  setFormError("Google sign-in failed. Please try again.");
+                  return;
+                }
+
+                const result = await loginWithGoogle?.(cred);
+                if (result?.success) {
+                  navigate("/", { replace: true });
+                } else {
+                  setFormError(result?.error || "Google sign-in failed.");
+                }
+              }}
+              onError={() =>
+                setFormError("Google sign-in failed. Please try again.")
+              }
+              useOneTap
+            />
+          </div>
+        ) : null}
 
         <p className={`text-center text-sm ${subtleClass}`}>
           Don’t have an account?{" "}
