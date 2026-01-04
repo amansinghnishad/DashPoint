@@ -76,6 +76,12 @@ export const authAPI = {
   verifyToken: async () => {
     const response = await apiClient.get('/auth/verify');
     return response.data;
+  },
+
+  // googleAuth function
+  googleAuth: async (credential) => {
+    const response = await apiClient.post('/auth/google', { credential });
+    return response.data;
   }
 };
 
