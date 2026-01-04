@@ -25,7 +25,13 @@ const getCursorForResizeDir = (dir) => {
   }
 };
 
-export function useResizableCard({ layout, onLayoutChange, containerRef }) {
+export function useResizableCard({
+  layout,
+  onLayoutChange,
+  containerRef,
+  viewportScale = 1,
+  constrainToContainer = true,
+}) {
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -63,29 +69,44 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
       let x = next.x ?? currentLayout.x;
       let y = next.y ?? currentLayout.y;
 
-      const containerEl = containerRef?.current;
-      const containerRect =
-        containerRectOverride || (containerEl ? containerEl.getBoundingClientRect() : null);
+      if (constrainToContainer) {
+        const containerEl = containerRef?.current;
+        const rawContainerRect =
+          containerRectOverride ||
+          (containerEl ? containerEl.getBoundingClientRect() : null);
 
-      if (containerRect) {
+        const safeScale =
+          typeof viewportScale === "number" && viewportScale > 0
+            ? viewportScale
+            : 1;
+        const containerRect = rawContainerRect
+          ? {
+            width: rawContainerRect.width / safeScale,
+            height: rawContainerRect.height / safeScale,
+          }
+          : null;
 
-        width = Math.min(width, Math.max(minWidth, containerRect.width));
-        height = Math.min(height, Math.max(minHeight, containerRect.height));
+        if (containerRect) {
+          width = Math.min(width, Math.max(minWidth, containerRect.width));
+          height = Math.min(height, Math.max(minHeight, containerRect.height));
 
-        const maxX = Math.max(0, containerRect.width - width);
-        const maxY = Math.max(0, containerRect.height - height);
-        x = Math.min(Math.max(0, x), maxX);
-        y = Math.min(Math.max(0, y), maxY);
+          const maxX = Math.max(0, containerRect.width - width);
+          const maxY = Math.max(0, containerRect.height - height);
+          x = Math.min(Math.max(0, x), maxX);
+          y = Math.min(Math.max(0, y), maxY);
+        }
       }
 
       return { x, y, width, height };
     },
     [
+      constrainToContainer,
       containerRef,
       currentLayout.height,
       currentLayout.width,
       currentLayout.x,
       currentLayout.y,
+      viewportScale,
     ]
   );
 
@@ -133,6 +154,7 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
         startLayout: { ...currentLayout },
         dir,
         containerRect,
+        scale: typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1,
       };
 
       setIsResizing(true);
@@ -146,8 +168,8 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
 
         moveEvent.preventDefault?.();
 
-        const dx = moveEvent.clientX - start.x;
-        const dy = moveEvent.clientY - start.y;
+        const dx = (moveEvent.clientX - start.x) / (start.scale || 1);
+        const dy = (moveEvent.clientY - start.y) / (start.scale || 1);
 
         const next = { ...start.startLayout };
         const d = start.dir;
@@ -196,7 +218,14 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
       document.body.style.cursor = getCursorForResizeDir(dir);
       document.body.style.userSelect = "none";
     },
-    [clampLayout, commitLayout, containerRef, currentLayout, scheduleLiveLayout]
+    [
+      clampLayout,
+      commitLayout,
+      containerRef,
+      currentLayout,
+      scheduleLiveLayout,
+      viewportScale,
+    ]
   );
 
   const handleDragStart = useCallback(
@@ -223,6 +252,7 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
         y: e.clientY,
         startLayout: { ...currentLayout },
         containerRect,
+        scale: typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1,
       };
 
       setIsDragging(true);
@@ -238,8 +268,8 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
 
         moveEvent.preventDefault?.();
 
-        const dx = moveEvent.clientX - start.x;
-        const dy = moveEvent.clientY - start.y;
+        const dx = (moveEvent.clientX - start.x) / (start.scale || 1);
+        const dy = (moveEvent.clientY - start.y) / (start.scale || 1);
 
         scheduleLiveLayout(
           clampLayout(
@@ -276,7 +306,14 @@ export function useResizableCard({ layout, onLayoutChange, containerRef }) {
       document.body.style.cursor = e.pointerType === "mouse" ? "move" : "";
       document.body.style.userSelect = "none";
     },
-    [clampLayout, commitLayout, containerRef, currentLayout, scheduleLiveLayout]
+    [
+      clampLayout,
+      commitLayout,
+      containerRef,
+      currentLayout,
+      scheduleLiveLayout,
+      viewportScale,
+    ]
   );
 
   useEffect(() => {

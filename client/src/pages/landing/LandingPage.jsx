@@ -1,5 +1,5 @@
 import TopBar from "../../components/Navbars/TopBar";
-import Footer from "../../components/Footer";
+import Footer from "../../components/Footer/Footer";
 import HeroSection from "./sections/HeroSection";
 import FeaturesSection from "./sections/FeaturesSection";
 import ShowcaseSection from "./sections/ShowcaseSection";

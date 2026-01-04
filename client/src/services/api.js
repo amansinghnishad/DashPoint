@@ -281,8 +281,13 @@ export const dashPointAIAPI = {
   },
 
   // Intelligent chat with DashPoint AI Agent (supports function calling)
-  chat: async (chatRequest) => {
-    const response = await apiClient.post('/ai/dashpoint/chat', chatRequest);
+  chat: async (promptOrRequest) => {
+    const payload =
+      typeof promptOrRequest === 'string'
+        ? { prompt: promptOrRequest }
+        : promptOrRequest;
+
+    const response = await apiClient.post('/ai/dashpoint/chat', payload);
     return response.data;
   },
 

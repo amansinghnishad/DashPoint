@@ -18,7 +18,7 @@ export function usePlannerWidgetAutosave({
     }
 
     lastSavedRef.current = JSON.stringify(data ?? {});
-  }, [baselineSerialized, widgetId]);
+  }, [baselineSerialized, data, widgetId]);
 
   useEffect(() => {
     if (!widgetId) return;

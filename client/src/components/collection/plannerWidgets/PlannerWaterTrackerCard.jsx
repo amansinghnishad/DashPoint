@@ -9,6 +9,7 @@ export default function PlannerWaterTrackerCard({ widget }) {
 
   const baseline = useMemo(
     () => normalizeWaterTrackerData(widget?.data),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [widgetId]
   );
 

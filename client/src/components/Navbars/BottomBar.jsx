@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CheckSquare,
   Clock,
+  Crosshair,
   DollarSign,
   Droplet,
   LayoutGrid,
@@ -19,13 +20,14 @@ import {
   Image,
   Youtube,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 
 export default function BottomBar({
   activeTool,
   onSelectTool,
   plannerOptions,
   onPlannerSelect,
+  onRecenterViewport,
   className = "",
   show = true,
 }) {
@@ -114,7 +116,7 @@ export default function BottomBar({
     >
       <div className="dp-surface dp-border rounded-2xl border shadow-lg px-2 py-2">
         <div className="flex items-center gap-1">
-          {tools.map(({ id, label, Icon }, index) => {
+          {tools.map(({ id, label, Icon }) => {
             const isActive = activeTool === id;
 
             return (
@@ -134,7 +136,7 @@ export default function BottomBar({
                           : "dp-text-muted dp-hover-bg dp-hover-text inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
                       }
                     >
-                      <Icon size={18} />
+                      {createElement(Icon, { size: 18 })}
                     </button>
 
                     {plannerMenuMounted ? (
@@ -192,12 +194,27 @@ export default function BottomBar({
                         : "dp-text-muted dp-hover-bg dp-hover-text inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
                     }
                   >
-                    <Icon size={18} />
+                    {createElement(Icon, { size: 18 })}
                   </button>
                 )}
               </div>
             );
           })}
+
+          {typeof onRecenterViewport === "function" ? (
+            <>
+              <div className="mx-1 h-6 border-l dp-border" />
+              <button
+                type="button"
+                onClick={() => onRecenterViewport()}
+                title="Re-center view"
+                aria-label="Re-center view"
+                className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
+              >
+                {createElement(Crosshair, { size: 18 })}
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
     </div>

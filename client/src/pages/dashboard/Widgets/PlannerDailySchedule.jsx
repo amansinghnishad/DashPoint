@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const newSlot = () => ({ time: "", text: "" });
+const newSlot = () => ({ time: "" });
 
 export default function PlannerDailyScheduleWidget() {
   const [slots, setSlots] = useState(() => [

@@ -6,9 +6,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import useTheme from "../../hooks/useTheme";
+import TopBarDesktop from "./TopBarDesktop";
+import TopBarMobile from "./TopBarMobile";
 
 const isReducedMotionPreferred = () => {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -20,19 +21,38 @@ const TopBar = () => {
   const menuId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isPastHero, setIsPastHero] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
-  const logoSrc =
-    theme === "dark" ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
+  const logoSrc = "/logo.png";
 
   const isAuthPage = useMemo(() => {
     return location.pathname === "/login" || location.pathname === "/register";
   }, [location.pathname]);
 
+  const isLandingPage = useMemo(() => {
+    return location.pathname === "/";
+  }, [location.pathname]);
+
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);
-  }, []);
+
+    if (!isLandingPage) {
+      setIsPastHero(false);
+      return;
+    }
+
+    const hero = document.getElementById("hero");
+    if (!hero) {
+      setIsPastHero(false);
+      return;
+    }
+
+    const navHeight = navRef.current?.getBoundingClientRect().height ?? 0;
+    const heroRect = hero.getBoundingClientRect();
+    setIsPastHero(heroRect.bottom <= navHeight + 8);
+  }, [isLandingPage]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -48,6 +68,15 @@ const TopBar = () => {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, [isMenuOpen]);
 
   const toggleMenu = useCallback(() => {
@@ -66,249 +95,90 @@ const TopBar = () => {
   }, []);
 
   const navClassName = useMemo(() => {
-    const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
+    if (isMenuOpen) {
+      return "fixed z-50";
+    }
+
+    const base =
+      "fixed top-0 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl z-50 transition-all duration-300";
+
     const scrolled = isScrolled ? "shadow-md py-2" : "py-4";
     const bg = isScrolled
-      ? "bg-slate-950/40 backdrop-blur-sm"
+      ? "dp-nav-panel-bg backdrop-blur-sm rounded-3xl top-5"
       : "bg-transparent";
 
     return `${base} ${bg} ${scrolled}`;
-  }, [isScrolled]);
+  }, [isMenuOpen, isScrolled]);
 
-  const textClass = "text-white";
+  const useDarkText =
+    theme === "dark" && isLandingPage && isPastHero && !isMenuOpen;
+  const textClass = useDarkText ? "text-black" : "text-white";
   const hoverClass = "hover:text-amber-300";
   const navItemClass = `${textClass} ${hoverClass} transition-colors duration-300`;
   const activeNavLinkClass = "text-amber-300";
-  const themeButtonClass =
-    "inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 text-white hover:bg-white/10 transition-colors duration-300";
+
+  const themeButtonClass = useDarkText
+    ? "inline-flex items-center justify-center rounded-full border border-black/15 bg-black/5 p-2 text-black hover:bg-black/10 transition-colors duration-300"
+    : "inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 text-white hover:bg-white/10 transition-colors duration-300";
+
+  const authCta = useMemo(() => {
+    if (!isAuthPage) {
+      return {
+        secondary: { to: "/login", label: "Sign In" },
+        primary: { to: "/register", label: "Start Free" },
+      };
+    }
+
+    if (location.pathname === "/login") {
+      return {
+        secondary: null,
+        primary: { to: "/register", label: "Sign Up" },
+      };
+    }
+
+    // /register
+    return {
+      secondary: { to: "/login", label: "Sign In" },
+      primary: null,
+    };
+  }, [isAuthPage, location.pathname]);
 
   return (
     <nav ref={navRef} className={navClassName} aria-label="Primary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center" aria-label="DashPoint">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            className={
+              isMenuOpen ? "hidden md:flex items-center" : "flex items-center"
+            }
+            aria-label="DashPoint"
+          >
             <img src={logoSrc} alt="DashPoint Logo" className="h-12 sm:h-14" />
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
-            {isAuthPage ? (
-              <>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    `${navItemClass} ${isActive ? activeNavLinkClass : ""}`
-                  }
-                >
-                  Home
-                </NavLink>
-                {location.pathname !== "/login" && (
-                  <NavLink
-                    to="/login"
-                    className={({ isActive }) =>
-                      `${navItemClass} ${isActive ? activeNavLinkClass : ""}`
-                    }
-                  >
-                    Sign In
-                  </NavLink>
-                )}
-                {location.pathname !== "/register" && (
-                  <NavLink
-                    to="/register"
-                    className={`dp-btn-hero px-6 py-2 rounded-full transition-colors duration-300 font-semibold`}
-                  >
-                    Sign Up
-                  </NavLink>
-                )}
+          <TopBarDesktop
+            navItemClass={navItemClass}
+            activeNavLinkClass={activeNavLinkClass}
+            scrollToSection={scrollToSection}
+            authCta={authCta}
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            themeButtonClass={themeButtonClass}
+          />
 
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className={themeButtonClass}
-                  aria-label={
-                    theme === "dark"
-                      ? "Switch to light theme"
-                      : "Switch to dark theme"
-                  }
-                >
-                  {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("features")}
-                  className={navItemClass}
-                >
-                  Features
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("showcase")}
-                  className={navItemClass}
-                >
-                  Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("pricing")}
-                  className={navItemClass}
-                >
-                  Pricing
-                </button>
-
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) =>
-                    `${navItemClass} ${isActive ? activeNavLinkClass : ""}`
-                  }
-                >
-                  Sign In
-                </NavLink>
-
-                <NavLink
-                  to="/register"
-                  className={`dp-btn-hero px-6 py-2 rounded-full transition-colors duration-300 font-semibold`}
-                >
-                  Start Free
-                </NavLink>
-
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className={themeButtonClass}
-                  aria-label={
-                    theme === "dark"
-                      ? "Switch to light theme"
-                      : "Switch to dark theme"
-                  }
-                >
-                  {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="md:hidden flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className={themeButtonClass}
-              aria-label={
-                theme === "dark"
-                  ? "Switch to light theme"
-                  : "Switch to dark theme"
-              }
-            >
-              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleMenu}
-              className={`${navItemClass}`}
-              aria-expanded={isMenuOpen}
-              aria-controls={menuId}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-
-        <div
-          id={menuId}
-          className={`md:hidden transition-all duration-300 overflow-hidden ${
-            isMenuOpen ? "max-h-screen opacity-100 mt-4" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div
-            className={`${"bg-slate-950/60 backdrop-blur-sm"} p-4 space-y-4 rounded-xl`}
-          >
-            {isAuthPage ? (
-              <>
-                <NavLink
-                  to="/"
-                  className={navItemClass}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Home
-                </NavLink>
-                {location.pathname !== "/login" && (
-                  <NavLink
-                    to="/login"
-                    className={navItemClass}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign In
-                  </NavLink>
-                )}
-                {location.pathname !== "/register" && (
-                  <NavLink
-                    to="/register"
-                    className={`block dp-btn-hero px-6 py-2 rounded-full transition-colors duration-300 text-center font-semibold`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sign Up
-                  </NavLink>
-                )}
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className={`block w-full text-left ${navItemClass}`}
-                  aria-label={
-                    theme === "dark"
-                      ? "Switch to light theme"
-                      : "Switch to dark theme"
-                  }
-                >
-                  <span className="inline-flex items-center gap-2">
-                    {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-                    Theme
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("features")}
-                  className={`block w-full text-left ${navItemClass}`}
-                >
-                  Features
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("showcase")}
-                  className={`block w-full text-left ${navItemClass}`}
-                >
-                  Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection("pricing")}
-                  className={`block w-full text-left ${navItemClass}`}
-                >
-                  Pricing
-                </button>
-                <NavLink
-                  to="/login"
-                  className={navItemClass}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </NavLink>
-                <NavLink
-                  to="/register"
-                  className={`block dp-btn-hero px-6 py-2 rounded-full transition-colors duration-300 text-center font-semibold`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Start Free
-                </NavLink>
-              </>
-            )}
-          </div>
+          <TopBarMobile
+            themeButtonClass={themeButtonClass}
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            toggleMenu={toggleMenu}
+            isMenuOpen={isMenuOpen}
+            menuId={menuId}
+            setIsMenuOpen={setIsMenuOpen}
+            scrollToSection={scrollToSection}
+            logoSrc={logoSrc}
+            authCta={authCta}
+          />
         </div>
       </div>
     </nav>

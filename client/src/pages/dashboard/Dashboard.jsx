@@ -3,6 +3,7 @@ import { Menu } from "lucide-react";
 
 import { SideBar } from "../../components/Navbars/SideBar";
 import Modal from "../../components/Modals/Modal";
+import Clock from "../../components/Clock/Clock";
 
 import WidgetsLayout from "../../layouts/Dashboard/Widgets.layout";
 import FloatingInstallDownloadButtons from "../../components/PWAStatus/FloatingInstallDownloadButtons";
@@ -12,6 +13,7 @@ import CollectionView from "./Collection/CollectionView";
 import YoutubePage from "./Youtube";
 import AIExplainerPage from "./AI-Explainer";
 import FileManagerPage from "./FileManager";
+import AIServicesBottomSearchBar from "../../components/AI/AIServicesBottomSearchBar";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("collections");
@@ -72,37 +74,43 @@ export default function Dashboard() {
       <div className="lg:pl-16">
         <div className="w-full max-w-6xl mx-auto">
           <header className="p-4 lg:p-6">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                className="dp-btn-secondary inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden"
-                aria-label="Open sidebar"
-              >
-                <Menu size={18} />
-              </button>
-              <div className="min-w-0">
-                <p className="dp-text text-lg font-semibold truncate">
-                  Dashboard
-                </p>
-                <p className="dp-text-muted text-sm truncate">
-                  {activeTab === "collections"
-                    ? "Collections"
-                    : activeTab === "youtube"
-                    ? "YouTube"
-                    : activeTab === "content"
-                    ? "Content Extractor"
-                    : activeTab === "files"
-                    ? "File Manager"
-                    : ""}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(true)}
+                  className="dp-btn-secondary inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden"
+                  aria-label="Open sidebar"
+                >
+                  <Menu size={18} />
+                </button>
+                <div className="min-w-0">
+                  <p className="dp-text text-lg font-semibold truncate">
+                    Dashboard
+                  </p>
+                  <p className="dp-text-muted text-sm truncate">
+                    {activeTab === "collections"
+                      ? "Collections"
+                      : activeTab === "youtube"
+                      ? "YouTube"
+                      : activeTab === "content"
+                      ? "Content Extractor"
+                      : activeTab === "files"
+                      ? "File Manager"
+                      : ""}
+                  </p>
+                </div>
               </div>
+
+              <Clock />
             </div>
           </header>
 
-          <main className="px-4 pb-10 lg:px-6">{content}</main>
+          <main className="px-4 pb-32 lg:px-6">{content}</main>
         </div>
       </div>
+
+      <AIServicesBottomSearchBar />
 
       <Modal
         open={notificationsOpen}

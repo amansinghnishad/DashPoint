@@ -91,7 +91,7 @@ export const DashboardProvider = ({ children }) => {
   }, []);
 
   // loadDashboardData function
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       // Load stats
       await loadStats();
@@ -99,7 +99,7 @@ export const DashboardProvider = ({ children }) => {
       console.error("Error loading dashboard data:", error);
       dispatch({ type: "SET_ERROR", payload: error.message });
     }
-  };
+  }, [loadStats]);
 
   // setWeather function
   const setWeather = (weatherData) => {
@@ -131,7 +131,7 @@ export const DashboardProvider = ({ children }) => {
   // Load dashboard data on mount
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [loadDashboardData]);
   const value = {
     ...state,
     loadDashboardData,
@@ -150,6 +150,7 @@ export const DashboardProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDashboard = () => {
   const context = useContext(DashboardContext);
   if (!context) {

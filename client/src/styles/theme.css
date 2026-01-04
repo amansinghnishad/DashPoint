@@ -60,6 +60,8 @@
   --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
   --dp-danger-border: rgb(239 68 68 / 0.2);
   --dp-danger-fg: rgb(127 29 29); /* red-900-ish */
+
+  --dp-resize-handle-bg: rgb(255 255 255 / 0.6);
 }
 
 /* Defaults for dark mode (match current Hero/Auth look) */
@@ -74,7 +76,7 @@
   --dp-surface: rgb(255 255 255 / 0.05);
   --dp-surface-muted: rgb(255 255 255 / 0.05);
   --dp-nav-scrolled-bg: rgb(2 6 23 / 0.4);
-  --dp-nav-panel-bg: rgb(2 6 23 / 0.6);
+  --dp-nav-panel-bg: rgba(2, 6, 23, 0.842);
   --dp-glow-opacity: 0.6;
   --dp-placeholder: rgb(255 255 255 / 0.4);
 
@@ -104,6 +106,8 @@
   --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
   --dp-danger-border: rgb(239 68 68 / 0.2);
   --dp-danger-fg: rgb(254 202 202); /* red-200 */
+
+  --dp-resize-handle-bg: rgb(15 23 42/ 0.8);
 }
 
 /* Base page colors */
@@ -195,6 +199,10 @@ body {
   background-color: var(--dp-surface);
 }
 
+.dp-resize-handle-bg {
+  background-color: var(--dp-resize-handle-bg);
+}
+
 /* Small icon buttons that should inherit text color (e.g. inside selected rows) */
 .dp-btn-icon {
   background-color: transparent;
@@ -251,6 +259,10 @@ body {
 
 .dp-text-subtle {
   color: var(--dp-subtle);
+}
+
+.dp-text-danger {
+  color: var(--dp-toast-error);
 }
 
 .dp-border {

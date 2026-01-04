@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   FileText,
   Image,
@@ -50,16 +49,31 @@ export default function ResizableItemCard({
   layout,
   onLayoutChange,
   containerRef,
+  viewportScale,
   onEdit,
   onDelete,
 }) {
+  // When the canvas is zoomed (Ctrl+wheel), drag/resize deltas must be scaled back
+  // into world coordinates.
+  // Default to 1 to preserve existing behavior.
+  const effectiveScale =
+    typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
+
+  const resizable = useResizableCard({
+    layout,
+    onLayoutChange,
+    containerRef,
+    viewportScale: effectiveScale,
+    constrainToContainer: false,
+  });
+
   const {
     currentLayout,
     isDragging,
     isResizing,
     handleDragStart,
     handleResizeStart,
-  } = useResizableCard({ layout, onLayoutChange, containerRef });
+  } = resizable;
 
   const title = getTitleForItem(item);
   const type = item?.itemType || "item";
@@ -67,7 +81,7 @@ export default function ResizableItemCard({
 
   return (
     <div
-      className={`group absolute dp-surface dp-border rounded-2xl border shadow-lg overflow-hidden ${
+      className={`group absolute dp-resize-handle-bg dp-border rounded-2xl border shadow-lg overflow-hidden flex flex-col ${
         isDragging || isResizing ? "shadow-2xl" : ""
       }`}
       style={{
@@ -124,12 +138,12 @@ export default function ResizableItemCard({
         </div>
       </div>
 
-      <div className="h-full">
-        <div className="p-3">
+      <div className="flex-1 min-h-0 overflow-auto touch-auto">
+        <div className="p-3 h-full">
           {type === "planner" ? (
             <PlannerWidgetBody widget={item?.itemData} />
           ) : (
-            <p className="dp-text-muted text-sm line-clamp-6">
+            <p className="dp-text-muted text-sm whitespace-pre-wrap break-words">
               {item?.itemData?.description || item?.itemData?.content || ""}
             </p>
           )}

@@ -46,7 +46,10 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-slate-950">
+    <section
+      id="hero"
+      className="relative flex min-h-[100vh] overflow-hidden bg-slate-950"
+    >
       <div
         className="dp-glow pointer-events-none absolute inset-0"
         aria-hidden="true"
@@ -55,7 +58,7 @@ export default function HeroSection() {
         <div className="absolute -bottom-24 right-[-10rem] h-72 w-[36rem] rounded-full bg-amber-400/20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pb-20">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pb-20">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
             <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl text-white">

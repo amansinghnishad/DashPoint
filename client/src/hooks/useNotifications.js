@@ -1,25 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Mock initial notifications
-  const initialNotifications = [
-    {
-      id: 1,
-      type: 'success',
-      title: 'Welcome to DashPoint',
-      message: 'Your dashboard is ready! Explore all the features available.',
-      time: new Date().toISOString(),
-      read: false,
-      category: 'welcome'
-    }
-  ];
+  const initialNotifications = useMemo(
+    () => [
+      {
+        id: 1,
+        type: 'success',
+        title: 'Welcome to DashPoint',
+        message: 'Your dashboard is ready! Explore all the features available.',
+        time: new Date().toISOString(),
+        read: false,
+        category: 'welcome',
+      },
+    ],
+    []
+  );
 
   useEffect(() => {
     setNotifications(initialNotifications);
-  }, []);
+  }, [initialNotifications]);
 
   useEffect(() => {
     const count = notifications.filter(n => !n.read).length;

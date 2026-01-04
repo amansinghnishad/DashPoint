@@ -1,9 +1,8 @@
 import {
-  Bell,
+  // Bell,
   FileText,
-  Grid3X3,
   Home,
-  Keyboard,
+  // Keyboard,
   LogOut,
   Moon,
   Settings,
@@ -22,10 +21,9 @@ export const SideBar = ({
   setActiveTab,
   isOpen,
   onClose,
-  onNotificationsOpen,
+  // onNotificationsOpen,
   onSettingsOpen,
-  onShortcutsOpen,
-  onWidgetsOpen,
+  // onShortcutsOpen,
 }) => {
   const { user, logoutUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -146,7 +144,7 @@ export const SideBar = ({
                 isExpanded ? "mt-6 pt-4 border-t" : "mt-3 pt-2"
               } border-t dp-border transition-colors duration-200`}
             >
-              <button
+              {/* <button
                 type="button"
                 onClick={() => {
                   onNotificationsOpen?.();
@@ -169,34 +167,9 @@ export const SideBar = ({
                 >
                   Notifications
                 </span>
-              </button>
+              </button> */}
 
-              <button
-                type="button"
-                onClick={() => {
-                  onWidgetsOpen?.();
-                  onClose?.();
-                }}
-                className={`w-full flex items-center px-4 py-3 rounded-xl text-left transition-all duration-200 mb-2 ${itemBaseClass} ${
-                  isExpanded
-                    ? "space-x-3"
-                    : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
-                }`}
-                title={!isExpanded ? "Widgets" : undefined}
-              >
-                <Grid3X3 size={20} />
-                <span
-                  className={`font-medium transition-all duration-200 ${
-                    isExpanded
-                      ? "opacity-100"
-                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
-                  }`}
-                >
-                  Widgets
-                </span>
-              </button>
-
-              <button
+              {/* <button
                 type="button"
                 onClick={() => {
                   onShortcutsOpen?.();
@@ -219,7 +192,7 @@ export const SideBar = ({
                 >
                   Keyboard Shortcuts
                 </span>
-              </button>
+              </button> */}
             </div>
           </nav>
 

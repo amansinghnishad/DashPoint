@@ -1,4 +1,10 @@
-import { createContext, useContext, useReducer, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from "react";
 import { authAPI } from "../services/api";
 import { useToast } from "../hooks/useToast";
 
@@ -74,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState); // checkAuthStatus function
   const toast = useToast();
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     const token = localStorage.getItem("token");
 
     if (token) {
@@ -108,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       dispatch({ type: "SET_LOADING", payload: false });
     }
-  };
+  }, [dispatch]);
   // loginUser function
   const loginUser = async (credentials) => {
     dispatch({ type: "SET_LOADING", payload: true });
@@ -207,14 +213,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
   // logoutUser function
-  const logoutUser = () => {
+  const logoutUser = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("userData");
     localStorage.removeItem("isFirstTimeUser");
     dispatch({ type: "LOGOUT" });
 
     toast.info("Logged out.");
-  };
+  }, [toast, dispatch]);
 
   // clearFirstTimeUser function
   const clearFirstTimeUser = () => {
@@ -239,20 +245,26 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
   };
+
+  // Check token once when the provider mounts.
   useEffect(() => {
     checkAuthStatus();
+  }, [checkAuthStatus]);
 
-    // Set up periodic token verification (every 10 minutes)
+  // Set up periodic token verification (every 10 minutes) only while authenticated.
+  useEffect(() => {
+    if (!state.isAuthenticated) return;
+
     const tokenCheckInterval = setInterval(async () => {
       const token = localStorage.getItem("token");
-      if (token && state.isAuthenticated) {
-        try {
-          await authAPI.verifyToken();
-        } catch (error) {
-          // Only logout if it's actually an auth error, not a network error
-          if (error.response?.status === 401) {
-            logoutUser();
-          }
+      if (!token) return;
+
+      try {
+        await authAPI.verifyToken();
+      } catch (error) {
+        // Only logout if it's actually an auth error, not a network error
+        if (error.response?.status === 401) {
+          logoutUser();
         }
       }
     }, 10 * 60 * 1000); // 10 minutes
@@ -260,7 +272,7 @@ export const AuthProvider = ({ children }) => {
     return () => {
       clearInterval(tokenCheckInterval);
     };
-  }, [state.isAuthenticated]);
+  }, [logoutUser, state.isAuthenticated]);
   const value = {
     ...state,
     loginUser,
@@ -274,6 +286,7 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -6,6 +6,7 @@ import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 export default function PlannerNotesCard({ widget }) {
   const widgetId = widget?._id;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const baseline = useMemo(() => normalizeNotesData(widget?.data), [widgetId]);
   const [text, setText] = useState(() => baseline.text);
 

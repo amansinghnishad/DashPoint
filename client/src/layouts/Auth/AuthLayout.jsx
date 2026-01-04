@@ -1,4 +1,4 @@
-import Footer from "../../components/Footer";
+import Footer from "../../components/Footer/Footer";
 import TopBar from "../../components/Navbars/TopBar";
 
 const GlowBackdrop = () => {

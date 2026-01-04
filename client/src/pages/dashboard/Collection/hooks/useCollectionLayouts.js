@@ -58,13 +58,16 @@ export default function useCollectionLayouts({
         if (!existingIds.has(key)) delete next[key];
       });
 
-      const cardW = 320;
-      const cardH = 240;
       const gap = 16;
 
       const rect = getCanvasRect();
       const canvasW = rect?.width ?? 1200;
       const canvasH = rect?.height ?? 700;
+
+      // Responsive defaults: keep cards usable on narrow screens.
+      // Maintain existing minimums from the resizable hook (280x200).
+      const cardW = Math.min(320, Math.max(280, canvasW - gap * 2));
+      const cardH = canvasW < 480 ? 220 : 240;
       const cols = Math.max(1, Math.floor((canvasW - gap) / (cardW + gap)));
 
       (items || []).forEach((it, index) => {

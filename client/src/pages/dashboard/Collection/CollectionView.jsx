@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ArrowLeft, FolderOpen } from "lucide-react";
 import { collectionsAPI, plannerWidgetsAPI } from "../../../services/api";
 import { useToast } from "../../../hooks/useToast";
 import BottomBar from "../../../components/Navbars/BottomBar";
+import Clock from "../../../components/Clock/Clock";
 import ResizableItemCard from "../../../components/collection/ResizableItemCard";
 import DeleteConfirmModal from "../../../components/Modals/DeleteConfirmModal";
 import CollectionPickerModal from "./components/CollectionPickerModal";
 import useCollectionLayouts from "./hooks/useCollectionLayouts";
 import useCollectionData from "./hooks/useCollectionData";
+import useCollectionViewport from "./hooks/useCollectionViewport";
 import {
   getDefaultPlannerWidgetData,
   getPlannerWidgetLabel,
@@ -37,6 +39,7 @@ export default function CollectionView({ collectionId, onBack }) {
   const [isRemoving, setIsRemoving] = useState(false);
 
   const canvasSurfaceRef = useRef(null);
+  const worldRef = useRef(null);
 
   const { layoutsByItemKey, setLayoutsByItemKey } = useCollectionLayouts({
     collectionId,
@@ -44,6 +47,13 @@ export default function CollectionView({ collectionId, onBack }) {
     canvasRef: canvasSurfaceRef,
     getItemKey,
   });
+
+  const { viewportScale, viewportOffset, recenterViewport } =
+    useCollectionViewport({
+      canvasRef: canvasSurfaceRef,
+      worldRef,
+      layoutsByItemKey,
+    });
 
   const title = useMemo(() => {
     return collection?.name ? String(collection.name) : "Collection";
@@ -146,7 +156,7 @@ export default function CollectionView({ collectionId, onBack }) {
     } finally {
       setIsRemoving(false);
     }
-  }, [collectionId, deleteCanvasItem, reload, toast]);
+  }, [collectionId, deleteCanvasItem, reload, setLayoutsByItemKey, toast]);
 
   const handleSelectTool = useCallback(
     (toolId) => {
@@ -163,32 +173,36 @@ export default function CollectionView({ collectionId, onBack }) {
     <div className="fixed inset-0 z-[70] dp-bg dp-text">
       <div className="h-full flex flex-col">
         <div className="shrink-0 dp-surface dp-border border-b px-4 py-3">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="dp-btn-secondary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
-              aria-label="Back"
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={onBack}
+                className="dp-btn-secondary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
+                aria-label="Back"
+              >
+                <ArrowLeft size={18} />
+                Back
+              </button>
 
-            <div className="min-w-0">
-              <p className="dp-text font-semibold truncate">{title}</p>
-              <p className="dp-text-muted text-sm">
-                {loading
-                  ? "Loading…"
-                  : `${items.length} item${items.length === 1 ? "" : "s"}`}
-              </p>
+              <div className="min-w-0">
+                <p className="dp-text font-semibold truncate">{title}</p>
+                <p className="dp-text-muted text-sm">
+                  {loading
+                    ? "Loading…"
+                    : `${items.length} item${items.length === 1 ? "" : "s"}`}
+                </p>
+              </div>
             </div>
+
+            <Clock />
           </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
           <div
             ref={canvasSurfaceRef}
-            className="relative dp-surface w-full h-full"
+            className="relative dp-surface w-full h-full overflow-hidden touch-none"
           >
             <BottomBar
               activeTool={activeTool}
@@ -198,6 +212,7 @@ export default function CollectionView({ collectionId, onBack }) {
                 if (creatingPlanner) return;
                 createPlannerAndAdd(type);
               }}
+              onRecenterViewport={recenterViewport}
             />
 
             <CollectionPickerModal
@@ -208,6 +223,38 @@ export default function CollectionView({ collectionId, onBack }) {
               existingKeys={existingKeys}
               onAdded={reload}
             />
+
+            {/* World layer (Figma-like): items are positioned in world space and the layer is transformed. */}
+            <div
+              ref={worldRef}
+              className="absolute inset-0 origin-top-left"
+              style={{
+                transform: `translate(${viewportOffset.x}px, ${viewportOffset.y}px) scale(${viewportScale})`,
+                willChange: "transform",
+              }}
+            >
+              {!loading && items.length > 0
+                ? items
+                    .map((it) => ({ key: getItemKey(it), item: it }))
+                    .filter((x) => x.key)
+                    .map(({ key, item }) => (
+                      <ResizableItemCard
+                        key={key}
+                        item={item}
+                        containerRef={canvasSurfaceRef}
+                        viewportScale={viewportScale}
+                        layout={layoutsByItemKey[key]}
+                        onLayoutChange={(nextLayout) =>
+                          setLayoutsByItemKey((prev) => ({
+                            ...prev,
+                            [key]: nextLayout,
+                          }))
+                        }
+                        onDelete={() => setDeleteCanvasItem(item)}
+                      />
+                    ))
+                : null}
+            </div>
 
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -227,26 +274,7 @@ export default function CollectionView({ collectionId, onBack }) {
                   </p>
                 </div>
               </div>
-            ) : (
-              items
-                .map((it) => ({ key: getItemKey(it), item: it }))
-                .filter((x) => x.key)
-                .map(({ key, item }) => (
-                  <ResizableItemCard
-                    key={key}
-                    item={item}
-                    containerRef={canvasSurfaceRef}
-                    layout={layoutsByItemKey[key]}
-                    onLayoutChange={(nextLayout) =>
-                      setLayoutsByItemKey((prev) => ({
-                        ...prev,
-                        [key]: nextLayout,
-                      }))
-                    }
-                    onDelete={() => setDeleteCanvasItem(item)}
-                  />
-                ))
-            )}
+            ) : null}
 
             <DeleteConfirmModal
               open={Boolean(deleteCanvasItem)}

@@ -37,8 +37,6 @@ export default function Modal({
   disableClose = false,
   size = "md",
 }) {
-  if (!open) return null;
-
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef(null);
@@ -132,6 +130,8 @@ export default function Modal({
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [canClose, closeOnEscape, onClose, open]);
+
+  if (!open) return null;
 
   return (
     <div

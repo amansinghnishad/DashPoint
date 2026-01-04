@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const newRow = () => ({ time: "", text: "" });
+const newRow = () => ({ time: "" });
 
 export default function PlannerAppointmentsWidget() {
   const [rows, setRows] = useState(() => [newRow(), newRow()]);

@@ -8,6 +8,7 @@ export default function PlannerRateYourDayCard({ widget }) {
 
   const baseline = useMemo(
     () => normalizeRateYourDayData(widget?.data),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [widgetId]
   );
 

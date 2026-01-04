@@ -3,11 +3,6 @@ export const normalizeTopPrioritiesData = (data) => {
   const items = rawItems
     .slice(0, 3)
     .map((it) => ({ done: Boolean(it?.done), text: String(it?.text || "") }));
-
-  while (items.length < 3) {
-    items.push({ done: false, text: "" });
-  }
-
   return { items };
 };
 
@@ -17,17 +12,6 @@ export const normalizeTodoListData = (data) => {
     done: Boolean(it?.done),
     text: String(it?.text || ""),
   }));
-
-  if (!items.length) {
-    return {
-      items: [
-        { done: false, text: "" },
-        { done: false, text: "" },
-        { done: false, text: "" },
-      ],
-    };
-  }
-
   return { items };
 };
 
@@ -37,15 +21,6 @@ export const normalizeAppointmentsData = (data) => {
     when: String(it?.when || ""),
     title: String(it?.title || ""),
   }));
-
-  if (!items.length) {
-    return {
-      items: [
-        { when: "", title: "" },
-        { when: "", title: "" },
-      ],
-    };
-  }
 
   return { items };
 };
@@ -57,17 +32,6 @@ export const normalizeDailyScheduleData = (data) => {
     end: String(b?.end || ""),
     title: String(b?.title || ""),
   }));
-
-  if (!blocks.length) {
-    return {
-      blocks: [
-        { start: "", end: "", title: "" },
-        { start: "", end: "", title: "" },
-        { start: "", end: "", title: "" },
-      ],
-    };
-  }
-
   return { blocks };
 };
 
@@ -78,17 +42,6 @@ export const normalizeGoalsData = (data) => {
     title: String(g?.title || ""),
     due: String(g?.due || ""),
   }));
-
-  if (!goals.length) {
-    return {
-      goals: [
-        { done: false, title: "", due: "" },
-        { done: false, title: "", due: "" },
-        { done: false, title: "", due: "" },
-      ],
-    };
-  }
-
   return { goals };
 };
 
@@ -103,16 +56,6 @@ export const normalizeMealPlannerData = (data) => {
     meal: String(it?.meal || ""),
     text: String(it?.text || ""),
   }));
-
-  if (!items.length) {
-    return {
-      items: [
-        { day: "", meal: "", text: "" },
-        { day: "", meal: "", text: "" },
-      ],
-    };
-  }
-
   return { items };
 };
 
@@ -124,11 +67,6 @@ export const normalizeWaterTrackerData = (data) => {
 export const normalizeCallsEmailsData = (data) => {
   const rawItems = Array.isArray(data?.items) ? data.items : [];
   const items = rawItems.map((it) => ({ text: String(it?.text || "") }));
-
-  if (!items.length) {
-    return { items: [{ text: "" }, { text: "" }] };
-  }
-
   return { items };
 };
 
@@ -138,16 +76,6 @@ export const normalizeExpenseTrackerData = (data) => {
     label: String(r?.label || ""),
     amount: String(r?.amount || ""),
   }));
-
-  if (!rows.length) {
-    return {
-      rows: [
-        { label: "", amount: "" },
-        { label: "", amount: "" },
-      ],
-    };
-  }
-
   return { rows };
 };
 

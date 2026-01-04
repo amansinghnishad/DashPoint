@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Github, Mail, MapPin } from "lucide-react";
-import useTheme from "../hooks/useTheme";
+import useTheme from "../../hooks/useTheme";
 
 const links = [
   { label: "Features", href: "#features" },
