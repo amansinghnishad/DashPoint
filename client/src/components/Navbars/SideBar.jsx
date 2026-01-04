@@ -1,4 +1,5 @@
 import {
+  Download,
   // Bell,
   FileText,
   Home,
@@ -15,6 +16,8 @@ import {
 import { useMemo, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import useTheme from "../../hooks/useTheme";
+import { usePWA } from "../../hooks/usePWA";
+import { useToast } from "../../hooks/useToast";
 
 export const SideBar = ({
   activeTab,
@@ -27,6 +30,8 @@ export const SideBar = ({
 }) => {
   const { user, logoutUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isInstallable, isInstalled, installApp } = usePWA();
+  const toast = useToast();
   const [isHovered, setIsHovered] = useState(false);
 
   const isExpanded = Boolean(isOpen || isHovered);
@@ -47,11 +52,39 @@ export const SideBar = ({
   const subBorderClass = "dp-border";
   const mutedTextClass = "dp-text-muted";
 
+  const isIOS = () => {
+    if (typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    const iOSDevice = /iPad|iPhone|iPod/i.test(ua);
+    const iPadOS = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+    return iOSDevice || iPadOS;
+  };
+
+  const onInstallClick = () => {
+    if (isInstalled) {
+      toast.info("DashPoint is already installed.");
+      return;
+    }
+
+    if (!isInstallable) {
+      if (isIOS()) {
+        toast.info("On iPhone/iPad: tap Share → Add to Home Screen to install.");
+      } else {
+        toast.info(
+          "Install prompt isn’t available yet. Use the browser menu (⋯) → Install app. If you’re on a non-HTTPS URL (or a network IP), install won’t show until you deploy to HTTPS."
+        );
+      }
+      return;
+    }
+
+    installApp();
+  };
+
   return (
     <>
       {isOpen ? (
         <div
-          className="fixed inset-0 dp-overlay backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 dp-overlay backdrop-blur-sm z-[84] lg:hidden transition-opacity duration-300"
           onClick={onClose}
         />
       ) : null}
@@ -59,7 +92,7 @@ export const SideBar = ({
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`fixed left-0 top-0 h-full transform transition-all duration-300 ease-in-out z-50 \
+        className={`fixed left-0 top-0 h-full transform transition-all duration-300 ease-in-out z-[85] \
 					${isOpen ? "translate-x-0" : "-translate-x-full"} \
 					lg:translate-x-0 \
 					border-r ${subBorderClass} dp-sidebar-surface backdrop-blur-sm shadow-2xl \
@@ -307,4 +340,17 @@ export const SideBar = ({
   );
 };
 
+
+              <li className="lg:hidden">
+                <button
+                  type="button"
+                  onClick={onInstallClick}
+                  className={`w-full flex items-center rounded-xl transition-all duration-200 relative ${itemBaseClass} space-x-3 px-4 py-3 text-left`}
+                >
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl dp-hover-bg">
+                    <Download size={18} className={mutedTextClass} />
+                  </span>
+                  <span className="text-sm font-medium">Download app</span>
+                </button>
+              </li>
 export default SideBar;

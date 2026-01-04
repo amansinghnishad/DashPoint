@@ -40,7 +40,7 @@ export default function FloatingInstallDownloadButtons() {
   // Keep the footprint small and avoid blocking content interactions.
   // Container is pointer-events-none; buttons re-enable pointer events.
   return (
-    <div className="fixed bottom-6 right-6 z-[60] pointer-events-none">
+    <div className="hidden lg:block fixed bottom-6 right-6 z-[60] pointer-events-none">
       <div className="pointer-events-auto dp-surface dp-border rounded-2xl border p-2 shadow-2xl backdrop-blur-sm">
         <button
           type="button"
