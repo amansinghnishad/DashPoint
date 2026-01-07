@@ -19,6 +19,7 @@ const aiServicesRoutes = require('./routes/aiServicesRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const conversationalRoutes = require('./routes/conversationalRoutes');
 const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
 const app = express();
 
@@ -141,6 +142,7 @@ app.use('/api/ai', aiServicesRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/conversational', conversationalRoutes);
 app.use('/api/planner-widgets', plannerWidgetRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
