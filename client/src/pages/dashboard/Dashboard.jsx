@@ -13,6 +13,7 @@ import CollectionView from "./Collection/CollectionView";
 import YoutubePage from "./Youtube";
 import AIExplainerPage from "./AI-Explainer";
 import FileManagerPage from "./FileManager";
+import CalendarPage from "./Calendar";
 import AIServicesBottomSearchBar from "../../components/AI/AIServicesBottomSearchBar";
 
 export default function Dashboard() {
@@ -37,6 +38,8 @@ export default function Dashboard() {
 
   const content = useMemo(() => {
     switch (activeTab) {
+      case "calendar":
+        return <CalendarPage />;
       case "youtube":
         return <YoutubePage />;
       case "content":

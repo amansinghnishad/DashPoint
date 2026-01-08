@@ -120,6 +120,9 @@ export default function AIServicesBottomSearchBar({
             Tip: Press <span className="font-semibold">Ctrl/⌘ + /</span> to
             focus.
           </p>
+          <p className="dp-text-muted mt-1 text-xs italic">
+            This is under development right now, so it may not work.
+          </p>
         </div>
       </div>
     </div>

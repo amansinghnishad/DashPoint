@@ -266,6 +266,43 @@ export const plannerWidgetsAPI = {
   }
 };
 
+// Calendar API (Google Calendar linking + events)
+export const calendarAPI = {
+  // Get connection status
+  getGoogleStatus: async () => {
+    const response = await apiClient.get('/calendar/google/status');
+    return response.data;
+  },
+
+  // Get Google OAuth URL
+  getGoogleAuthUrl: async (redirect = '/dashboard') => {
+    const response = await apiClient.get('/calendar/google/auth-url', {
+      params: { redirect }
+    });
+    return response.data;
+  },
+
+  // Disconnect Google Calendar
+  disconnectGoogleCalendar: async () => {
+    const response = await apiClient.post('/calendar/google/disconnect');
+    return response.data;
+  },
+
+  // List Google Calendar events
+  listGoogleEvents: async ({ timeMin, timeMax } = {}) => {
+    const response = await apiClient.get('/calendar/google/events', {
+      params: { timeMin, timeMax }
+    });
+    return response.data;
+  },
+
+  // Create a Google Calendar event (used for tasks/todos too)
+  createGoogleEvent: async (payload) => {
+    const response = await apiClient.post('/calendar/google/events', payload);
+    return response.data;
+  }
+};
+
 // DashPoint AI Agent API
 export const dashPointAIAPI = {
   // Summarize text using DashPoint AI Agent

@@ -224,6 +224,41 @@ body {
   color: var(--dp-btn-hero-fg-hover);
 }
 
+/* Calendar chips (use semantic variables, no hard-coded colors) */
+.dp-cal-chip {
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.dp-cal-chip-event {
+  border-left-color: var(--dp-toast-info);
+}
+
+.dp-cal-chip-task {
+  border-left-color: var(--dp-toast-warning);
+}
+
+.dp-cal-chip-todo {
+  border-left-color: var(--dp-toast-success);
+}
+
+/* Explicit color overrides (for per-item coloring) */
+.dp-cal-chip-info {
+  border-left-color: var(--dp-toast-info);
+}
+
+.dp-cal-chip-success {
+  border-left-color: var(--dp-toast-success);
+}
+
+.dp-cal-chip-warning {
+  border-left-color: var(--dp-toast-warning);
+}
+
+.dp-cal-chip-danger {
+  border-left-color: var(--dp-toast-error);
+}
+
 /* Theme-driven utility classes (avoid hard-coded color utilities in components) */
 .dp-bg {
   background-color: var(--dp-bg);

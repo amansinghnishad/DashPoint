@@ -78,7 +78,11 @@ const initialState = {
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState); // checkAuthStatus function
-  const toast = useToast();
+  const {
+    success: toastSuccess,
+    error: toastError,
+    info: toastInfo,
+  } = useToast();
 
   const checkAuthStatus = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -139,7 +143,7 @@ export const AuthProvider = ({ children }) => {
           payload: response.data.user,
         });
 
-        toast.success(
+        toastSuccess(
           `Welcome back${
             response.data.user?.firstName
               ? `, ${response.data.user.firstName}`
@@ -153,7 +157,7 @@ export const AuthProvider = ({ children }) => {
           type: "LOGIN_FAILURE",
           payload: response.message || "Login failed",
         });
-        toast.error(response.message || "Login failed");
+        toastError(response.message || "Login failed");
         return { success: false, error: response.message };
       }
     } catch (error) {
@@ -163,7 +167,7 @@ export const AuthProvider = ({ children }) => {
         type: "LOGIN_FAILURE",
         payload: errorMessage,
       });
-      toast.error(errorMessage);
+      toastError(errorMessage);
       return { success: false, error: errorMessage };
     }
   }; // registerUser function
@@ -178,14 +182,14 @@ export const AuthProvider = ({ children }) => {
 
         // Don't automatically log in after registration
         dispatch({ type: "SET_LOADING", payload: false });
-        toast.success("Account created. Please sign in.");
+        toastSuccess("Account created. Please sign in.");
         return { success: true };
       } else {
         dispatch({
           type: "LOGIN_FAILURE",
           payload: response.message || "Registration failed",
         });
-        toast.error(response.message || "Registration failed");
+        toastError(response.message || "Registration failed");
         return { success: false, error: response.message };
       }
     } catch (error) {
@@ -205,7 +209,7 @@ export const AuthProvider = ({ children }) => {
         payload: errorMessage,
       });
 
-      toast.error(errorMessage);
+      toastError(errorMessage);
 
       return {
         success: false,
@@ -237,7 +241,7 @@ export const AuthProvider = ({ children }) => {
           isFirstTimeUser: Boolean(response.data.isNewUser),
         });
 
-        toast.success(
+        toastSuccess(
           `Welcome${
             response.data.user?.firstName
               ? `, ${response.data.user.firstName}`
@@ -255,7 +259,7 @@ export const AuthProvider = ({ children }) => {
         type: "LOGIN_FAILURE",
         payload: response.message || "Google login failed",
       });
-      toast.error(response.message || "Google login failed");
+      toastError(response.message || "Google login failed");
       return { success: false, error: response.message };
     } catch (error) {
       const errorMessage =
@@ -264,7 +268,7 @@ export const AuthProvider = ({ children }) => {
         type: "LOGIN_FAILURE",
         payload: errorMessage,
       });
-      toast.error(errorMessage);
+      toastError(errorMessage);
       return { success: false, error: errorMessage };
     }
   };
@@ -275,8 +279,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("isFirstTimeUser");
     dispatch({ type: "LOGOUT" });
 
-    toast.info("Logged out.");
-  }, [toast, dispatch]);
+    toastInfo("Logged out.");
+  }, [toastInfo, dispatch]);
 
   // clearFirstTimeUser function
   const clearFirstTimeUser = () => {

@@ -99,6 +99,38 @@ const userSchema = new mongoose.Schema({
         default: true
       }
     }
+  },
+
+  // Google Calendar link (separate from Google sign-in)
+  googleCalendar: {
+    connected: {
+      type: Boolean,
+      default: false
+    },
+    calendarId: {
+      type: String,
+      default: 'primary'
+    },
+    accessToken: {
+      type: String,
+      default: null,
+      select: false
+    },
+    refreshToken: {
+      type: String,
+      default: null,
+      select: false
+    },
+    scope: {
+      type: String,
+      default: null,
+      select: false
+    },
+    tokenExpiryDate: {
+      type: Number,
+      default: null,
+      select: false
+    }
   }
 }, {
   timestamps: true,
@@ -108,6 +140,13 @@ const userSchema = new mongoose.Schema({
       delete ret.passwordResetToken;
       delete ret.passwordResetExpires;
       delete ret.emailVerificationToken;
+      // Never expose OAuth tokens to the client
+      if (ret.googleCalendar) {
+        delete ret.googleCalendar.accessToken;
+        delete ret.googleCalendar.refreshToken;
+        delete ret.googleCalendar.scope;
+        delete ret.googleCalendar.tokenExpiryDate;
+      }
       delete ret.__v;
       return ret;
     }
