@@ -4,6 +4,8 @@ import "./index.css";
 import App from "./App.jsx";
 import { initTheme } from "./utils/theme";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ToastProvider } from "./context/ToastContext";
+import { AuthProvider } from "./context/AuthContext";
 
 // Prevent duplicate custom element registration errors
 if (typeof window !== "undefined" && window.customElements) {
@@ -28,5 +30,9 @@ const AppTree = googleClientId ? (
 );
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>{AppTree}</StrictMode>
+  <StrictMode>
+    <ToastProvider>
+      <AuthProvider>{AppTree}</AuthProvider>
+    </ToastProvider>
+  </StrictMode>
 );

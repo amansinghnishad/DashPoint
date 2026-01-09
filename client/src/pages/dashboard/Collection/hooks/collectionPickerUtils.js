@@ -24,12 +24,7 @@ export const getPickerItemLabel = (tool, it) => {
       appointments: "Appointments",
       "daily-schedule": "Daily schedule",
       goals: "Goals",
-      "meal-planner": "Meal planner",
-      "water-tracker": "Water tracker",
-      "calls-emails": "Calls / emails",
-      "expense-tracker": "Expense tracker",
       "notes-tomorrow": "Notes",
-      "rate-your-day": "Rate your day",
     };
 
     const typeLabel = typeLabelByType[widgetType] || widgetType || "Planner";

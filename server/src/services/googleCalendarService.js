@@ -9,11 +9,9 @@ const getScopes = () => {
       .filter(Boolean);
   }
 
-  // Minimal scopes for calendar read + create/update events
-  return [
-    'https://www.googleapis.com/auth/calendar.readonly',
-    'https://www.googleapis.com/auth/calendar.events'
-  ];
+  // Default to full Calendar access so we can read free/busy and create/update events.
+  // You can override with GOOGLE_OAUTH_SCOPES if you want a different scope set.
+  return ['https://www.googleapis.com/auth/calendar'];
 };
 
 const getOAuth2Client = () => {
@@ -65,6 +63,33 @@ const getCalendarClient = ({ accessToken, refreshToken, tokenExpiryDate }) => {
   return { oauth2Client, calendar };
 };
 
+const queryFreeBusy = async ({
+  calendar,
+  timeMin,
+  timeMax,
+  calendarIds = ['primary'],
+  timeZone
+}) => {
+  const items = (Array.isArray(calendarIds) ? calendarIds : [calendarIds])
+    .map((id) => String(id || '').trim())
+    .filter(Boolean)
+    .map((id) => ({ id }));
+
+  if (!items.length) {
+    throw new Error('calendarIds is required');
+  }
+
+  const body = {
+    timeMin: new Date(timeMin).toISOString(),
+    timeMax: new Date(timeMax).toISOString(),
+    items,
+    ...(timeZone ? { timeZone: String(timeZone) } : null)
+  };
+
+  const res = await calendar.freebusy.query({ requestBody: body });
+  return res?.data || null;
+};
+
 const normalizeEvent = (ev) => {
   const start = ev.start?.dateTime || ev.start?.date || null;
   const end = ev.end?.dateTime || ev.end?.date || null;
@@ -100,5 +125,6 @@ module.exports = {
   buildAuthUrl,
   exchangeCodeForTokens,
   getCalendarClient,
-  normalizeEvent
+  normalizeEvent,
+  queryFreeBusy
 };

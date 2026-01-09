@@ -145,7 +145,6 @@ class ContentProcessingAgent:
 		genai.configure(api_key=api_key)
 		self._model = genai.GenerativeModel(
 			self.MODEL_NAME,
-			tools=[spec.as_dict() for spec in self.FUNCTION_DEFINITIONS],
 			generation_config=self.GENERATION_CONFIG,
 			safety_settings=self.SAFETY_SETTINGS,
 		)

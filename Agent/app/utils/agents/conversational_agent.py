@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, List, Optional, Pattern
 
-from google.generativeai import GenerativeModel
-
-from .gemini_client import get_client_and_config
+try:  # Optional dependency
+    import google.generativeai as genai
+    from google.generativeai import GenerativeModel
+except Exception:  # pragma: no cover
+    genai = None  # type: ignore
+    GenerativeModel = None  # type: ignore
 
 
 CommandHandler = Callable[[List[str], Optional[Dict[str, Any]]], Dict[str, Any]]
@@ -93,7 +97,7 @@ class ConversationalCommandAgent:
     }
 
     def __init__(self) -> None:
-        self._model: Optional[GenerativeModel] = None
+        self._model: Optional[Any] = None
         self._initialize_ai()
         self._commands = self._build_commands()
         self._command_index = {command.name: command for command in self._commands}
@@ -204,12 +208,20 @@ class ConversationalCommandAgent:
     # AI utilities
     # ------------------------------------------------------------------
     def _initialize_ai(self) -> None:
-        try:
-            model, _config = get_client_and_config()
-        except ValueError:
+        # Conversational agent can work purely via pattern matching.
+        # If Gemini is configured, we use it only for intent classification.
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key or genai is None or GenerativeModel is None:
             self._model = None
-        else:
-            self._model = model
+            return
+
+        try:
+            genai.configure(api_key=api_key)
+            model_name = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+            # No tool schema here: only JSON intent extraction.
+            self._model = GenerativeModel(model_name)
+        except Exception:
+            self._model = None
 
     @staticmethod
     def _build_ai_prompt(user_input: str) -> str:
@@ -232,6 +244,7 @@ class ConversationalCommandAgent:
             "- create_collection: Create a new collection\n"
             "- get_weather: Retrieve weather information\n"
             "- search: Search DashPoint content\n"
+            "- schedule_calendar: Schedule a focused time block on the calendar\n"
             "- ask_ai: General AI assistance\n"
             "User command: "
             f"{user_input!r}\n"
@@ -393,6 +406,17 @@ class ConversationalCommandAgent:
                 description="Search for stored content",
             ),
             CommandDefinition(
+                name="schedule_calendar",
+                handler=self.schedule_calendar_block,
+                patterns=[
+                    r"(?:schedule|book|plan)\s+(.+)",
+                    r"create\s+(?:a\s+)?(?:calendar\s+)?(?:event|block)\s+(.+)",
+                    r"set up\s+(.+)",
+                    r"(?:practice|work on)\s+(.+)",
+                ],
+                description="Schedule a focused time block on the calendar",
+            ),
+            CommandDefinition(
                 name="ask_ai",
                 handler=self.ask_ai_assistant,
                 patterns=[
@@ -408,6 +432,156 @@ class ConversationalCommandAgent:
         ]
 
         return [definition.compile() for definition in definitions]
+
+    def schedule_calendar_block(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Produce an API call for /api/calendar/google/schedule.
+
+        This is intentionally conservative: it schedules within a nearby window
+        (default: next 7 days) and relies on the server-side scheduler to find
+        an actual free slot.
+        """
+
+        from datetime import datetime, timedelta, timezone
+
+        if not parameters:
+            return {"success": False, "message": "No scheduling request provided"}
+
+        raw = (parameters[0] or "").strip()
+        if not raw:
+            return {"success": False, "message": "No scheduling request provided"}
+
+        # Duration parsing (default: 60 minutes)
+        duration_minutes = 60
+        duration_match = re.search(r"(\d+)\s*(hours?|hrs?|hr|minutes?|mins?|min)\b", raw, re.IGNORECASE)
+        if duration_match:
+            qty = int(duration_match.group(1))
+            unit = duration_match.group(2).lower()
+            if unit.startswith("hour") or unit.startswith("hr"):
+                duration_minutes = max(5, min(qty * 60, 8 * 60))
+            else:
+                duration_minutes = max(5, min(qty, 8 * 60))
+
+        # Calendar window.
+        # We intentionally generate ISO8601 without a timezone suffix so the server
+        # (running on the same machine) interprets it in local time.
+        now_local = datetime.now()
+        time_min = now_local
+        time_max = now_local + timedelta(days=7)
+
+        lower = raw.lower()
+        if "tomorrow" in lower:
+            tomorrow = (now_local + timedelta(days=1)).date()
+            time_min = datetime(tomorrow.year, tomorrow.month, tomorrow.day, 0, 0, 0)
+            time_max = time_min + timedelta(days=1)
+        elif "today" in lower:
+            today = now_local.date()
+            time_min = datetime(today.year, today.month, today.day, 0, 0, 0)
+            time_max = time_min + timedelta(days=1)
+
+        # Explicit time parsing: "at 8pm", "at 20:30", etc.
+        # If present, narrow the window to exactly the requested slot.
+        time_match = re.search(
+            r"\bat\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b",
+            lower,
+            re.IGNORECASE,
+        )
+        if time_match:
+            hh = int(time_match.group(1))
+            mm = int(time_match.group(2) or 0)
+            ampm = (time_match.group(3) or "").lower()
+            if ampm:
+                if hh == 12:
+                    hh = 0
+                if ampm == "pm":
+                    hh += 12
+
+            # Choose date: today if time is in the future, else tomorrow.
+            target_date = now_local.date()
+            if "tomorrow" in lower:
+                target_date = (now_local + timedelta(days=1)).date()
+            elif "today" in lower:
+                target_date = now_local.date()
+            else:
+                candidate_dt = datetime(target_date.year, target_date.month, target_date.day, hh, mm, 0)
+                if candidate_dt <= now_local:
+                    target_date = (now_local + timedelta(days=1)).date()
+
+            slot_start = datetime(target_date.year, target_date.month, target_date.day, hh, mm, 0)
+            slot_end = slot_start + timedelta(minutes=duration_minutes)
+            time_min = slot_start
+            time_max = slot_end
+
+        # Strategy hints
+        conflict_strategy = "auto"
+        if "split" in lower:
+            conflict_strategy = "split"
+        elif "shorten" in lower or "shorter" in lower:
+            conflict_strategy = "shorten"
+        elif "next window" in lower or "next-window" in lower:
+            conflict_strategy = "next-window"
+
+        # dashpointColor mapping from plain language.
+        dashpoint_color = None
+        if "color" in lower or "colour" in lower:
+            if re.search(r"\b(red|crimson|maroon)\b", lower):
+                dashpoint_color = "danger"
+            elif re.search(r"\b(green|emerald)\b", lower):
+                dashpoint_color = "success"
+            elif re.search(r"\b(yellow|amber|gold)\b", lower):
+                dashpoint_color = "warning"
+            elif re.search(r"\b(blue|purple|violet|indigo)\b", lower):
+                dashpoint_color = "info"
+
+        # Title extraction: prefer quoted title, else derive from the sentence.
+        title = "Focus Block"
+        quoted = re.search(r'\"([^\"]{1,200})\"', raw)
+        if quoted:
+            title = quoted.group(1)
+        else:
+            candidate = raw
+            # Drop leading verbs
+            candidate = re.sub(r"^(schedule|book|plan|create|set up|practice|work on)\s+", "", candidate, flags=re.IGNORECASE).strip()
+            # Remove explicit duration
+            candidate = re.sub(r"\b(\d+)\s*(hours?|hrs?|hr|minutes?|mins?|min)\b", "", candidate, flags=re.IGNORECASE)
+            # Remove common time hints
+            candidate = re.sub(r"\b(today|tomorrow|tonight)\b", "", candidate, flags=re.IGNORECASE)
+            candidate = re.sub(r"\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b", "", candidate, flags=re.IGNORECASE)
+            # Remove dangling connectors
+            candidate = re.sub(r"\bfor\b", " ", candidate, flags=re.IGNORECASE)
+            candidate = re.sub(r"\bcolor\b\s+\w+", " ", candidate, flags=re.IGNORECASE)
+            candidate = re.sub(r"\s+", " ", candidate).strip(" -:")
+            if candidate:
+                title = candidate[:200]
+
+        user_tz = None
+        if isinstance(user_context, dict):
+            user_tz = user_context.get("timezone")
+
+        payload: Dict[str, Any] = {
+            "title": title,
+            "durationMinutes": duration_minutes,
+            "timeMin": time_min.replace(microsecond=0).isoformat(),
+            "timeMax": time_max.replace(microsecond=0).isoformat(),
+            "conflictStrategy": conflict_strategy,
+            "createEvents": True,
+            "dashpointType": "skill-practice",
+        }
+        if dashpoint_color:
+            payload["dashpointColor"] = dashpoint_color
+        if user_tz:
+            payload["timezone"] = str(user_tz)
+
+        return {
+            "success": True,
+            "message": f"Scheduling {duration_minutes} minutes: {title}",
+            "api_call": {
+                "endpoint": "/api/calendar/google/schedule",
+                "method": "POST",
+                "data": payload,
+            },
+        }
 
     # ------------------------------------------------------------------
     # Action implementations

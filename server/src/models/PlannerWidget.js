@@ -7,12 +7,7 @@ const PLANNER_WIDGET_TYPES = [
   'daily-schedule',
   'goals',
   'notes',
-  'meal-planner',
-  'water-tracker',
-  'calls-emails',
-  'expense-tracker',
   'notes-tomorrow',
-  'rate-your-day'
 ];
 
 const plannerWidgetSchema = new mongoose.Schema(

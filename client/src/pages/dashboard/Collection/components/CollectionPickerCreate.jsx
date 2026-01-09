@@ -18,12 +18,7 @@ export default function CollectionPickerCreate({
     appointments: "Appointments",
     "daily-schedule": "Daily schedule",
     goals: "Goals",
-    "meal-planner": "Meal planner",
-    "water-tracker": "Water tracker",
-    "calls-emails": "Calls / emails",
-    "expense-tracker": "Expense tracker",
     "notes-tomorrow": "Notes",
-    "rate-your-day": "Rate your day",
   };
 
   const plannerTitlePlaceholder =
@@ -54,12 +49,7 @@ export default function CollectionPickerCreate({
                 <option value="appointments">Appointments</option>
                 <option value="daily-schedule">Daily schedule</option>
                 <option value="goals">Goals</option>
-                <option value="meal-planner">Meal planner</option>
-                <option value="water-tracker">Water tracker</option>
-                <option value="calls-emails">Calls / emails</option>
-                <option value="expense-tracker">Expense tracker</option>
                 <option value="notes-tomorrow">Notes</option>
-                <option value="rate-your-day">Rate your day</option>
               </select>
             </label>
 

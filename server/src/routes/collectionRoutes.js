@@ -6,7 +6,8 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Validation rules
-const collectionValidation = [
+// Create requires a name; update supports partial payloads.
+const collectionCreateValidation = [
   body('name')
     .trim()
     .isLength({ min: 1, max: 100 })
@@ -37,7 +38,56 @@ const collectionValidation = [
   body('isPrivate')
     .optional()
     .isBoolean()
-    .withMessage('isPrivate must be a boolean')
+    .withMessage('isPrivate must be a boolean'),
+  body('layouts')
+    .optional()
+    .custom((value) => {
+      if (value === null) return true;
+      return typeof value === 'object' && !Array.isArray(value);
+    })
+    .withMessage('layouts must be an object')
+];
+
+const collectionUpdateValidation = [
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Collection name must be between 1 and 100 characters'),
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Description cannot exceed 500 characters'),
+  body('color')
+    .optional()
+    .matches(/^#[0-9A-F]{6}$/i)
+    .withMessage('Color must be a valid hex color'),
+  body('icon')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Icon name cannot exceed 50 characters'),
+  body('tags')
+    .optional()
+    .isArray()
+    .withMessage('Tags must be an array'),
+  body('tags.*')
+    .optional()
+    .trim()
+    .isLength({ max: 30 })
+    .withMessage('Each tag cannot exceed 30 characters'),
+  body('isPrivate')
+    .optional()
+    .isBoolean()
+    .withMessage('isPrivate must be a boolean'),
+  body('layouts')
+    .optional()
+    .custom((value) => {
+      if (value === null) return true;
+      return typeof value === 'object' && !Array.isArray(value);
+    })
+    .withMessage('layouts must be an object')
 ];
 
 const addItemValidation = [
@@ -70,11 +120,11 @@ router.get('/:id/items', collectionController.getCollectionWithItems);
 
 // Create new collection
 // POST /api/collections
-router.post('/', collectionValidation, collectionController.createCollection);
+router.post('/', collectionCreateValidation, collectionController.createCollection);
 
 // Update collection
 // PUT /api/collections/:id
-router.put('/:id', collectionValidation, collectionController.updateCollection);
+router.put('/:id', collectionUpdateValidation, collectionController.updateCollection);
 
 // Delete collection
 // DELETE /api/collections/:id

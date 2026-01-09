@@ -196,7 +196,7 @@ exports.updateCollection = async (req, res, next) => {
 
     const userId = req.user._id;
     const { id } = req.params;
-    const { name, description, color, icon, tags, isPrivate } = req.body;
+    const { name, description, color, icon, tags, isPrivate, layouts } = req.body;
 
     const collection = await Collection.findOne({ _id: id, userId });
 
@@ -229,6 +229,7 @@ exports.updateCollection = async (req, res, next) => {
     if (icon !== undefined) collection.icon = icon;
     if (tags !== undefined) collection.tags = tags;
     if (isPrivate !== undefined) collection.isPrivate = isPrivate;
+    if (layouts !== undefined) collection.layouts = layouts;
 
     await collection.save();
 

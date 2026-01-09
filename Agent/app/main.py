@@ -25,8 +25,10 @@ sys.path.extend(
 )
 
 
-# Load environment variables from .env file if present
+# Load environment variables from .env file if present.
+# Support both Agent/app/.env (runtime) and Agent/.env (repo root).
 load_dotenv(dotenv_path=current_dir / ".env")
+load_dotenv(dotenv_path=current_dir.parent / ".env", override=False)
 
 
 # Attempt to import agents; keep flags for graceful degradation
@@ -86,6 +88,9 @@ def _require_content_agent():
         raise HTTPException(status_code=503, detail="AI agent not available")
     try:
         return get_content_processing_agent()
+    except ValueError as exc:
+        # Configuration error (e.g., GEMINI_API_KEY missing)
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:  # pragma: no cover - runtime guard
         raise HTTPException(status_code=500, detail=f"Failed to initialise AI agent: {exc}") from exc
 

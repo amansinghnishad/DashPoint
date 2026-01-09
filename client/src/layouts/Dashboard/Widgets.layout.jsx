@@ -1,15 +1,10 @@
 import Modal from "../../components/Modals/Modal";
 import CalendarWidget from "../../pages/dashboard/Widgets/Calendar";
 import PlannerAppointmentsWidget from "../../pages/dashboard/Widgets/PlannerAppointments";
-import PlannerCallsEmailsWidget from "../../pages/dashboard/Widgets/PlannerCallsEmails";
 import PlannerDailyScheduleWidget from "../../pages/dashboard/Widgets/PlannerDailySchedule";
-import PlannerExpenseTrackerWidget from "../../pages/dashboard/Widgets/PlannerExpenseTracker";
-import PlannerMealPlannerWidget from "../../pages/dashboard/Widgets/PlannerMealPlanner";
 import PlannerNotesTomorrowWidget from "../../pages/dashboard/Widgets/PlannerNotesTomorrow";
-import PlannerRateYourDayWidget from "../../pages/dashboard/Widgets/PlannerRateYourDay";
 import PlannerTodoListWidget from "../../pages/dashboard/Widgets/PlannerTodoList";
 import PlannerTopPrioritiesWidget from "../../pages/dashboard/Widgets/PlannerTopPriorities";
-import PlannerWaterTrackerWidget from "../../pages/dashboard/Widgets/PlannerWaterTracker";
 
 function WidgetCard({ title, description, children }) {
   return (
@@ -68,24 +63,10 @@ export default function WidgetsLayout({ open, onClose }) {
         </WidgetCard>
 
         <WidgetCard
-          title="Water tracker"
-          description="Track your water intake."
-        >
-          <PlannerWaterTrackerWidget />
-        </WidgetCard>
-
-        <WidgetCard
           title="Appointments"
           description="Meetings and time-based commitments."
         >
           <PlannerAppointmentsWidget />
-        </WidgetCard>
-
-        <WidgetCard
-          title="Calls / emails"
-          description="People to follow up with today."
-        >
-          <PlannerCallsEmailsWidget />
         </WidgetCard>
 
         <div className="md:col-span-2">
@@ -97,26 +78,11 @@ export default function WidgetsLayout({ open, onClose }) {
           </WidgetCard>
         </div>
 
-        <WidgetCard title="Meal planner" description="Plan meals for the day.">
-          <PlannerMealPlannerWidget />
-        </WidgetCard>
-
-        <WidgetCard
-          title="Expense tracker"
-          description="Quickly track small daily spend."
-        >
-          <PlannerExpenseTrackerWidget />
-        </WidgetCard>
-
         <WidgetCard
           title="Notes for tomorrow"
           description="Things you don’t want to forget."
         >
           <PlannerNotesTomorrowWidget />
-        </WidgetCard>
-
-        <WidgetCard title="Rate your day" description="A quick daily check-in.">
-          <PlannerRateYourDayWidget />
         </WidgetCard>
       </div>
     </Modal>

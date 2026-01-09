@@ -15,6 +15,8 @@ export default function AIServicesBottomSearchBar({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isSending, setIsSending] = useState(false);
   const [lastResponse, setLastResponse] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [lastPrompt, setLastPrompt] = useState("");
 
   const inputRef = useRef(null);
 
@@ -46,6 +48,8 @@ export default function AIServicesBottomSearchBar({
 
     try {
       setIsSending(true);
+      setPendingAction(null);
+      setLastPrompt(value);
       const res = await dashPointAIAPI.chat(value);
       if (!res?.success) {
         throw new Error(res?.message || "AI request failed");
@@ -57,6 +61,9 @@ export default function AIServicesBottomSearchBar({
           : res.data?.response || JSON.stringify(res.data);
 
       setLastResponse(responseText);
+      if (res.data?.requiresApproval && res.data?.pending_action) {
+        setPendingAction(res.data.pending_action);
+      }
       onResponse?.(responseText, res);
     } catch (err) {
       const message =
@@ -66,6 +73,36 @@ export default function AIServicesBottomSearchBar({
       setIsSending(false);
     }
   }, [onResponse, prompt, toast]);
+
+  const approvePending = useCallback(async () => {
+    if (!pendingAction || !lastPrompt) return;
+    try {
+      setIsSending(true);
+      const res = await dashPointAIAPI.chat({
+        prompt: lastPrompt,
+        approve: true,
+        api_call: pendingAction,
+      });
+      if (!res?.success) {
+        throw new Error(res?.message || "AI request failed");
+      }
+
+      const responseText =
+        typeof res.data === "string"
+          ? res.data
+          : res.data?.response || JSON.stringify(res.data);
+
+      setLastResponse(responseText);
+      setPendingAction(null);
+      onResponse?.(responseText, res);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || "AI request failed";
+      toast.error(message);
+    } finally {
+      setIsSending(false);
+    }
+  }, [lastPrompt, onResponse, pendingAction, toast]);
 
   if (!show) return null;
 
@@ -79,6 +116,27 @@ export default function AIServicesBottomSearchBar({
           <p className="dp-text mt-1 max-h-36 overflow-auto whitespace-pre-wrap text-sm">
             {lastResponse}
           </p>
+
+          {pendingAction ? (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => approvePending()}
+                disabled={isSending}
+                className="dp-btn-primary inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm disabled:opacity-60"
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingAction(null)}
+                disabled={isSending}
+                className="dp-btn-secondary inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

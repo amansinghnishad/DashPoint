@@ -329,7 +329,7 @@ exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
       success: true,
       data: {
         summary: response.data.summary,
-        originalLength: response.data.input_length,
+        originalLength: response.data.original_length,
         summaryLength: response.data.summary_length,
         service: 'dashpoint-ai-agent'
       }
@@ -414,29 +414,163 @@ exports.chatWithDashPointAgent = async (req, res, next) => {
       });
     }
 
-    const { prompt } = req.body;
+    const { prompt, approve, api_call: approvedApiCall } = req.body;
 
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
-      prompt
-    }, {
-      timeout: 120000,
-      headers: {
-        'Content-Type': 'application/json'
+    // If the client already approved an action, execute it directly (still allowlisted).
+    if (approve === true && approvedApiCall) {
+      const executionResult = await executeAllowedApiCall(approvedApiCall, req);
+      const responseTextParts = ['Action executed successfully.'];
+      return res.json({
+        success: true,
+        data: {
+          response: responseTextParts.join('\n'),
+          requiresApproval: false,
+          pending_action: null,
+          execution_result: executionResult,
+        },
+        service: 'dashpoint-ai-agent'
+      });
+    }
+
+    // Prefer the conversational endpoint since it can return an actionable api_call.
+    const userTimezone = req.user?.preferences?.timezone || 'UTC';
+    let agentResult = null;
+    try {
+      const agentResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/conversational`, {
+        command: prompt,
+        context: {
+          userId: req.user?._id,
+          timezone: userTimezone,
+        }
+      }, {
+        timeout: 120000,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      agentResult = agentResponse.data || {};
+    } catch (agentConvError) {
+      const status = agentConvError?.response?.status;
+      const detail = agentConvError?.response?.data?.detail || agentConvError?.response?.data?.message || agentConvError?.message;
+
+      // Only fall back to /chat if /conversational is not implemented on this agent.
+      if (status === 404) {
+        try {
+          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, { prompt }, {
+            timeout: 120000,
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const fallbackPayload = fallbackResponse.data || {};
+          const fallbackResults = Array.isArray(fallbackPayload.results) ? fallbackPayload.results : [];
+          const text = fallbackResults
+            .map((item) => {
+              if (item?.type === 'text') return item.content;
+              if (item?.type === 'function_result') return JSON.stringify(item.result);
+              return JSON.stringify(item);
+            })
+            .filter(Boolean)
+            .join('\n');
+
+          return res.json({
+            success: true,
+            data: {
+              response: text || 'AI agent responded, but no text was returned.',
+              action: 'chat',
+              api_call: null,
+              execution_result: null,
+            },
+            service: 'dashpoint-ai-agent'
+          });
+        } catch (fallbackError) {
+          const fallbackDetail = fallbackError?.response?.data?.detail || fallbackError?.message;
+          return res.status(502).json({
+            success: false,
+            message: `DashPoint AI Agent is running but failed to process requests (${fallbackError?.response?.status || 'error'}).`,
+            error: fallbackDetail,
+          });
+        }
       }
-    });
+
+      // /conversational exists but failed: surface the agent's error so we can fix it.
+      return res.status(502).json({
+        success: false,
+        message: 'DashPoint AI Agent failed to process the request.',
+        error: detail,
+      });
+    }
+
+    const responseMessage = agentResult?.message || 'Done.';
+
+    // Require explicit user approval before executing any action.
+    const hasPendingAction = Boolean(agentResult?.api_call);
+    const responseTextParts = [responseMessage];
+    if (hasPendingAction) {
+      responseTextParts.push('Proposed action ready. Click Approve to execute.');
+    }
 
     res.json({
       success: true,
-      data: response.data.response,
+      data: {
+        response: responseTextParts.join('\n'),
+        action: agentResult.action,
+        confidence: agentResult.confidence,
+        method: agentResult.method,
+        requiresApproval: hasPendingAction,
+        pending_action: hasPendingAction ? agentResult.api_call : null,
+        execution_result: null,
+      },
       service: 'dashpoint-ai-agent'
     });
 
   } catch (error) {
     console.error('DashPoint AI Agent chat error:', error);
-    res.status(500).json({
+    const isAxios = Boolean(error && (error.isAxiosError || error.response || error.request));
+    const agentUnavailable = isAxios && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT');
+    const status = agentUnavailable ? 503 : 500;
+    res.status(status).json({
       success: false,
-      message: 'Failed to process chat request',
+      message: agentUnavailable
+        ? 'DashPoint AI Agent is not available. Start the Agent service and try again.'
+        : 'Failed to process chat request',
       error: error.message
     });
   }
 };
+
+async function executeAllowedApiCall(apiCall, req) {
+  const { endpoint, method, data, params } = apiCall || {};
+
+  const allowedEndpoints = new Set([
+    '/api/calendar/google/schedule',
+    '/api/calendar/google/freebusy',
+  ]);
+
+  if (!endpoint || typeof endpoint !== 'string' || !allowedEndpoints.has(endpoint)) {
+    return {
+      success: false,
+      message: 'Action is not supported yet'
+    };
+  }
+
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (req.headers.authorization) {
+    headers.Authorization = req.headers.authorization;
+  }
+
+  const httpMethod = (method || 'POST').toLowerCase();
+
+  const response = await axios({
+    url: `${baseUrl}${endpoint}`,
+    method: httpMethod,
+    headers,
+    params: params || undefined,
+    data: data || undefined,
+    timeout: 120000,
+  });
+
+  return response.data;
+}
