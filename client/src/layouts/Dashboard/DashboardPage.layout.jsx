@@ -10,6 +10,7 @@ export default function DashboardPageLayout({
   items = [],
   selectedId,
   onSelect,
+  renderItemLeading,
   renderItemTitle,
   renderItemSubtitle,
   renderItemActions,
@@ -65,6 +66,8 @@ export default function DashboardPageLayout({
                 const id = it?.id ?? it?._id ?? it?.key;
                 const isActive = id && selectedId && id === selectedId;
 
+                const leading = renderItemLeading?.(it, { id, isActive });
+
                 const itemTitle = (
                   renderItemTitle?.(it) ??
                   it?.title ??
@@ -90,14 +93,21 @@ export default function DashboardPageLayout({
                         onClick={() => onSelect?.(it)}
                         className="min-w-0 flex-1 px-3 py-2 text-left"
                       >
-                        <p className="truncate text-sm font-semibold">
-                          {itemTitle}
-                        </p>
-                        {itemSubtitle ? (
-                          <p className="mt-0.5 truncate text-xs dp-text-subtle">
-                            {itemSubtitle}
-                          </p>
-                        ) : null}
+                        <div className="flex items-center gap-3 min-w-0">
+                          {leading ? (
+                            <div className="shrink-0">{leading}</div>
+                          ) : null}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">
+                              {itemTitle}
+                            </p>
+                            {itemSubtitle ? (
+                              <p className="mt-0.5 truncate text-xs dp-text-subtle">
+                                {itemSubtitle}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
                       </button>
 
                       {actions ? (

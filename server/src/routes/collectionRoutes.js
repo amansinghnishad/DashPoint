@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const collectionController = require('../controllers/collectionController');
 const auth = require('../middleware/auth');
+const { PLANNER_WIDGET_TYPES } = require('../models/PlannerWidget');
 
 const router = express.Router();
 
@@ -99,6 +100,21 @@ const addItemValidation = [
     .withMessage('Item ID is required')
 ];
 
+const addPlannerWidgetValidation = [
+  body('widgetType')
+    .isIn(PLANNER_WIDGET_TYPES)
+    .withMessage(`widgetType must be one of: ${PLANNER_WIDGET_TYPES.join(', ')}`),
+  body('title')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Title cannot exceed 100 characters'),
+  body('data')
+    .optional()
+    .isObject()
+    .withMessage('data must be an object')
+];
+
 // Apply auth middleware to all routes
 router.use(auth);
 
@@ -133,6 +149,10 @@ router.delete('/:id', collectionController.deleteCollection);
 // Add item to collection
 // POST /api/collections/:id/items
 router.post('/:id/items', addItemValidation, collectionController.addItemToCollection);
+
+// Create a planner widget and add it to a collection
+// POST /api/collections/:id/planner-widgets
+router.post('/:id/planner-widgets', addPlannerWidgetValidation, collectionController.addPlannerWidgetToCollection);
 
 // Remove item from collection
 // DELETE /api/collections/:id/items/:itemType/:itemId

@@ -242,6 +242,7 @@ class ConversationalCommandAgent:
             "- extract_content: Extract or summarize web content\n"
             "- upload_file: Upload or save a file\n"
             "- create_collection: Create a new collection\n"
+            "- add_planner_widget: Add a planner widget to a collection\n"
             "- get_weather: Retrieve weather information\n"
             "- search: Search DashPoint content\n"
             "- schedule_calendar: Schedule a focused time block on the calendar\n"
@@ -384,6 +385,17 @@ class ConversationalCommandAgent:
                 description="Create a new collection",
             ),
             CommandDefinition(
+                name="add_planner_widget",
+                handler=self.add_planner_widget_to_collection,
+                patterns=[
+                    r"add\s+([\w\s-]+?)\s+(?:widget|panel)\s+to\s+(?:my\s+)?collection\s+\"(.+?)\"",
+                    r"add\s+([\w\s-]+?)\s+(?:widget|panel)\s+to\s+(?:the\s+)?\"(.+?)\"\s+collection",
+                    r"add\s+([\w\s-]+?)\s+(?:widget|panel)\s+to\s+(.+?)\s+collection",
+                    r"put\s+([\w\s-]+?)\s+(?:widget|panel)\s+in\s+(.+?)\s+collection",
+                ],
+                description="Create a planner widget and attach it to a collection",
+            ),
+            CommandDefinition(
                 name="get_weather",
                 handler=self.get_weather_info,
                 patterns=[
@@ -432,6 +444,88 @@ class ConversationalCommandAgent:
         ]
 
         return [definition.compile() for definition in definitions]
+
+    @staticmethod
+    def _normalize_widget_type(raw: str) -> Optional[str]:
+        value = (raw or "").strip().lower()
+        value = re.sub(r"\s+", " ", value)
+        aliases = {
+            "top priorities": "top-priorities",
+            "top-priority": "top-priorities",
+            "priorities": "top-priorities",
+            "todo": "todo-list",
+            "to do": "todo-list",
+            "to-do": "todo-list",
+            "todo list": "todo-list",
+            "tasks": "todo-list",
+            "task list": "todo-list",
+            "appointments": "appointments",
+            "calendar": "appointments",
+            "daily schedule": "daily-schedule",
+            "schedule": "daily-schedule",
+            "goals": "goals",
+            "notes": "notes",
+            "tomorrow notes": "notes-tomorrow",
+            "notes tomorrow": "notes-tomorrow",
+        }
+        if value in aliases:
+            return aliases[value]
+
+        # already normalized (e.g. "todo-list")
+        if value in {
+            "top-priorities",
+            "todo-list",
+            "appointments",
+            "daily-schedule",
+            "goals",
+            "notes",
+            "notes-tomorrow",
+        }:
+            return value
+
+        return None
+
+    @staticmethod
+    def _resolve_collection_id(
+        user_context: Optional[Dict[str, Any]],
+        collection_hint: Optional[str],
+    ) -> Optional[str]:
+        if not isinstance(user_context, dict):
+            return None
+
+        # Prefer explicitly selected collection if client/server provides it
+        for key in ("activeCollectionId", "collectionId", "collection_id"):
+            value = user_context.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+
+        collections = user_context.get("collections")
+        if not isinstance(collections, list):
+            return None
+
+        hint = (collection_hint or "").strip().lower()
+        if not hint:
+            return None
+
+        # Exact name match (case-insensitive)
+        for c in collections:
+            if not isinstance(c, dict):
+                continue
+            name = str(c.get("name") or "").strip().lower()
+            cid = str(c.get("id") or "").strip()
+            if name and cid and name == hint:
+                return cid
+
+        # Contains match
+        for c in collections:
+            if not isinstance(c, dict):
+                continue
+            name = str(c.get("name") or "").strip().lower()
+            cid = str(c.get("id") or "").strip()
+            if name and cid and hint in name:
+                return cid
+
+        return None
 
     def schedule_calendar_block(
         self, parameters: List[str], user_context: Optional[Dict[str, Any]]
@@ -522,17 +616,32 @@ class ConversationalCommandAgent:
         elif "next window" in lower or "next-window" in lower:
             conflict_strategy = "next-window"
 
-        # dashpointColor mapping from plain language.
+        # dashpointColor + Google Calendar colorId mapping from plain language.
         dashpoint_color = None
+        color_id = None
         if "color" in lower or "colour" in lower:
-            if re.search(r"\b(red|crimson|maroon)\b", lower):
+            if re.search(r"\b(red|crimson|maroon|tomato)\b", lower):
                 dashpoint_color = "danger"
+                color_id = "11"
             elif re.search(r"\b(green|emerald)\b", lower):
                 dashpoint_color = "success"
+                color_id = "10"
             elif re.search(r"\b(yellow|amber|gold)\b", lower):
                 dashpoint_color = "warning"
+                color_id = "5"
             elif re.search(r"\b(blue|purple|violet|indigo)\b", lower):
                 dashpoint_color = "info"
+                # Prefer blue-ish id if user asked blue; otherwise purple-ish.
+                color_id = "9" if re.search(r"\bblue\b", lower) else "3"
+            elif re.search(r"\b(orange|tangerine)\b", lower):
+                dashpoint_color = "warning"
+                color_id = "6"
+            elif re.search(r"\b(pink|flamingo)\b", lower):
+                dashpoint_color = "danger"
+                color_id = "4"
+            elif re.search(r"\b(gray|grey|graphite)\b", lower):
+                dashpoint_color = "info"
+                color_id = "8"
 
         # Title extraction: prefer quoted title, else derive from the sentence.
         title = "Focus Block"
@@ -570,12 +679,30 @@ class ConversationalCommandAgent:
         }
         if dashpoint_color:
             payload["dashpointColor"] = dashpoint_color
+        if color_id:
+            payload["colorId"] = color_id
         if user_tz:
             payload["timezone"] = str(user_tz)
+
+        # A structured, UI-friendly summary of what we understood.
+        proposal: Dict[str, Any] = {
+            "type": "schedule",
+            "title": title,
+            "durationMinutes": duration_minutes,
+            "timeMin": payload["timeMin"],
+            "timeMax": payload["timeMax"],
+            "conflictStrategy": conflict_strategy,
+            "createEvents": True,
+            "dashpointType": payload["dashpointType"],
+            "dashpointColor": payload.get("dashpointColor"),
+            "colorId": payload.get("colorId"),
+            "timezone": payload.get("timezone"),
+        }
 
         return {
             "success": True,
             "message": f"Scheduling {duration_minutes} minutes: {title}",
+            "proposal": proposal,
             "api_call": {
                 "endpoint": "/api/calendar/google/schedule",
                 "method": "POST",
@@ -740,6 +867,49 @@ class ConversationalCommandAgent:
                 "data": {
                     "name": collection_name,
                     "description": "Collection created via conversational command",
+                },
+            },
+        }
+
+    def add_planner_widget_to_collection(
+        self, parameters: List[str], user_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        if not parameters or len(parameters) < 1:
+            return {"success": False, "message": "No widget type provided"}
+
+        raw_widget = parameters[0]
+        collection_hint = parameters[1] if len(parameters) > 1 else None
+
+        widget_type = self._normalize_widget_type(raw_widget)
+        if not widget_type:
+            return {
+                "success": False,
+                "message": (
+                    "Unknown widget type. Supported: top-priorities, todo-list, appointments, "
+                    "daily-schedule, goals, notes, notes-tomorrow."
+                ),
+            }
+
+        collection_id = self._resolve_collection_id(user_context, collection_hint)
+        if not collection_id:
+            return {
+                "success": False,
+                "message": (
+                    "Which collection should I add it to? "
+                    "Say e.g. 'add todo widget to \"Work\" collection'."
+                ),
+            }
+
+        return {
+            "success": True,
+            "message": f"Adding {widget_type} widget to your collection.",
+            "api_call": {
+                "endpoint": f"/api/collections/{collection_id}/planner-widgets",
+                "method": "POST",
+                "data": {
+                    "widgetType": widget_type,
+                    "title": "",
+                    "data": {},
                 },
             },
         }

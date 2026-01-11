@@ -516,6 +516,7 @@ exports.chatWithDashPointAgent = async (req, res, next) => {
         action: agentResult.action,
         confidence: agentResult.confidence,
         method: agentResult.method,
+        proposal: agentResult.proposal || null,
         requiresApproval: hasPendingAction,
         pending_action: hasPendingAction ? agentResult.api_call : null,
         execution_result: null,

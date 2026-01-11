@@ -62,6 +62,16 @@
   --dp-danger-fg: rgb(127 29 29); /* red-900-ish */
 
   --dp-resize-handle-bg: rgb(255 255 255 / 0.6);
+
+  /* Chat UI */
+  --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
+  --dp-chat-bubble-user: rgb(15 23 42);
+  --dp-chat-bubble-user-fg: rgb(255 255 255);
+  --dp-chat-bubble-ai: rgb(248 250 252);
+  --dp-chat-bubble-ai-fg: rgb(15 23 42);
+  --dp-chat-bubble-error: rgb(239 68 68 / 0.12);
+  --dp-chat-bubble-error-fg: rgb(127 29 29);
+  --dp-chat-avatar-bg: rgb(15 23 42 / 0.08);
 }
 
 /* Defaults for dark mode (match current Hero/Auth look) */
@@ -108,6 +118,80 @@
   --dp-danger-fg: rgb(254 202 202); /* red-200 */
 
   --dp-resize-handle-bg: rgb(15 23 42/ 0.8);
+
+  /* Chat UI */
+  --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
+  --dp-chat-bubble-user: rgb(255 255 255);
+  --dp-chat-bubble-user-fg: rgb(15 23 42);
+  --dp-chat-bubble-ai: rgb(255 255 255 / 0.06);
+  --dp-chat-bubble-ai-fg: rgb(255 255 255);
+  --dp-chat-bubble-error: rgb(239 68 68 / 0.18);
+  --dp-chat-bubble-error-fg: rgb(254 202 202);
+  --dp-chat-avatar-bg: rgb(255 255 255 / 0.08);
+}
+
+/* Chat UI helpers */
+.dp-chat-topfade {
+  background: linear-gradient(
+    to bottom,
+    var(--dp-chat-fade-bg) 0%,
+    transparent 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/*
+  Make chat content fade out (become transparent) near the top edge.
+  This avoids an obvious overlay strip and feels like it merges with the background.
+*/
+.dp-chat-scroll {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    rgba(0, 0, 0, 0.2) 10px,
+    rgba(0, 0, 0, 1) 32px,
+    rgba(0, 0, 0, 1) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0px,
+    rgba(0, 0, 0, 0.2) 10px,
+    rgba(0, 0, 0, 1) 32px,
+    rgba(0, 0, 0, 1) 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.dp-chat-avatar {
+  height: 32px;
+  width: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--dp-chat-avatar-bg);
+  border: 1px solid var(--dp-border);
+}
+
+.dp-chat-bubble-user {
+  background-color: var(--dp-chat-bubble-user);
+  color: var(--dp-chat-bubble-user-fg);
+}
+
+.dp-chat-bubble-assistant {
+  background-color: var(--dp-chat-bubble-ai);
+  color: var(--dp-chat-bubble-ai-fg);
+  border: 1px solid var(--dp-border);
+}
+
+.dp-chat-bubble-error {
+  background-color: var(--dp-chat-bubble-error);
+  color: var(--dp-chat-bubble-error-fg);
+  border: 1px solid var(--dp-danger-border);
 }
 
 /* Base page colors */

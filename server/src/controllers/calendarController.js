@@ -516,6 +516,26 @@ exports.scheduleGoogleBlock = async (req, res, next) => {
       : null;
     const dashpointType = String(req.body?.dashpointType || 'skill-practice').trim().toLowerCase();
 
+    // Optional: allow client to provide Google Calendar colorId (1-11).
+    // If not provided, derive from dashpointColor.
+    let colorId = null;
+    if (req.body?.colorId !== undefined && req.body?.colorId !== null) {
+      const raw = String(req.body.colorId).trim();
+      if (/^\d+$/.test(raw)) {
+        const n = parseInt(raw, 10);
+        if (n >= 1 && n <= 11) colorId = String(n);
+      }
+    }
+    if (!colorId && dashpointColor) {
+      const dashpointToGoogle = {
+        info: '9',
+        success: '10',
+        warning: '5',
+        danger: '11'
+      };
+      colorId = dashpointToGoogle[dashpointColor] || null;
+    }
+
     const user = await User.findById(req.user._id).select(
       '+googleCalendar.accessToken +googleCalendar.refreshToken +googleCalendar.tokenExpiryDate googleCalendar.connected googleCalendar.calendarId'
     );
@@ -590,6 +610,7 @@ exports.scheduleGoogleBlock = async (req, res, next) => {
         ...(description !== undefined ? { description } : null),
         start: { dateTime: start.toISOString() },
         end: { dateTime: end.toISOString() },
+        ...(colorId ? { colorId } : null),
         extendedProperties: {
           private: {
             dashpointType,

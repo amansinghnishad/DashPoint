@@ -35,6 +35,7 @@ router.post(
     body('title').optional().isString().isLength({ max: 200 }),
     body('summary').optional().isString().isLength({ max: 200 }),
     body('description').optional().isString().isLength({ max: 5000 }),
+    body('colorId').optional().isInt({ min: 1, max: 11 }).withMessage('colorId must be an integer between 1 and 11'),
     body('durationMinutes').isInt({ min: 5, max: 8 * 60 }).withMessage('durationMinutes must be between 5 and 480'),
     body('timeMin').isISO8601().withMessage('timeMin must be an ISO8601 datetime'),
     body('timeMax').isISO8601().withMessage('timeMax must be an ISO8601 datetime'),
