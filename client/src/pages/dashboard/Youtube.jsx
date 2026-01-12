@@ -110,12 +110,13 @@ export default function YoutubePage() {
   }, [loadSavedVideos]);
 
   const saveVideoById = useCallback(
-    async (videoId, urlHint) => {
+    async (videoId, urlHint, options = {}) => {
       if (!videoId) return;
 
       const already = savedItems.find((v) => v.videoId === videoId);
       if (already) {
         setSelectedId(already.id);
+        if (options?.clearSearch) setSearch("");
         toast.info("That video is already saved.");
         return;
       }
@@ -181,6 +182,7 @@ export default function YoutubePage() {
 
         setSavedItems((prev) => [savedItem, ...prev]);
         setSelectedId(savedItem.id);
+        if (options?.clearSearch) setSearch("");
         toast.success("Video saved.");
       } catch (err) {
         const status = err?.response?.status;
@@ -201,6 +203,7 @@ export default function YoutubePage() {
         if (status === 409) {
           toast.info(message);
           await loadSavedVideos();
+          if (options?.clearSearch) setSearch("");
           return;
         }
 
@@ -359,7 +362,7 @@ export default function YoutubePage() {
         title="YouTube"
         searchValue={search}
         onSearchChange={setSearch}
-        addLabel={isAdding ? (isLoading ? "Saving…" : "Save") : "Add"}
+        addLabel={isAdding ? (isLoading ? "Saving…" : "Save") : "Search"}
         onAdd={() => {
           if (!isAdding) {
             setIsAdding(true);
@@ -400,7 +403,7 @@ export default function YoutubePage() {
                   e.preventDefault();
                   e.stopPropagation();
                   if (!it?.videoId) return;
-                  saveVideoById(it.videoId, it.url);
+                  saveVideoById(it.videoId, it.url, { clearSearch: true });
                 }}
                 aria-label="Save video"
                 title="Save video"

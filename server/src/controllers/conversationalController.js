@@ -161,7 +161,7 @@ async function executeAllowedApiCall(apiCall, req) {
   const allowlist = [
     // Calendar
     { method: 'post', pattern: /^\/api\/calendar\/google\/schedule$/ },
-    { method: 'get', pattern: /^\/api\/calendar\/google\/freebusy$/ },
+    { method: 'post', pattern: /^\/api\/calendar\/google\/freebusy$/ },
 
     // Notes & todos
     { method: 'post', pattern: /^\/api\/sticky-notes$/ },

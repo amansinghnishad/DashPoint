@@ -204,67 +204,9 @@ export function useDashpointChat({
       if (res.data?.requiresApproval && res.data?.pending_action) {
         const action = res.data.pending_action;
 
-        // Auto-apply safe calendar schedule when user used schedule/meeting.
-        const cmd = parsedCommand?.meta?.id;
-        const shouldAutoApply =
-          (cmd === "schedule" || cmd === "meeting") &&
-          action?.endpoint === "/api/calendar/google/schedule";
-
-        if (shouldAutoApply) {
-          const execId = makeId("exec");
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: execId,
-              role: "assistant",
-              content: "Scheduling…",
-              ts: Date.now(),
-              isTyping: true,
-            },
-          ]);
-
-          try {
-            const execRes = await dashPointAIAPI.chat({
-              prompt: (prompt || "").trim(),
-              approve: true,
-              api_call: action,
-            });
-
-            if (!execRes?.success) {
-              throw new Error(execRes?.message || "Failed to execute action");
-            }
-
-            const execText =
-              typeof execRes.data === "string"
-                ? execRes.data
-                : execRes.data?.response || JSON.stringify(execRes.data);
-
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === execId ? { ...m, content: execText, isTyping: false } : m
-              )
-            );
-
-            setPendingAction(null);
-          } catch (execErr) {
-            const msg =
-              execErr?.response?.data?.message ||
-              execErr?.message ||
-              "Failed to execute action";
-
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === execId
-                  ? { ...m, content: msg, isTyping: false, isError: true }
-                  : m
-              )
-            );
-
-            setPendingAction(action);
-          }
-        } else {
-          setPendingAction(action);
-        }
+        // Always require explicit user approval before executing any state-changing action.
+        // (No auto-apply for scheduling.)
+        setPendingAction(action);
       }
 
       if (res.data?.proposal) {
