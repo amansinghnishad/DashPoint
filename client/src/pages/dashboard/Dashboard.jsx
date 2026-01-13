@@ -113,7 +113,18 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <AIServicesBottomSearchBar />
+      <AIServicesBottomSearchBar
+        onCommand={(cmd) => {
+          if (cmd === "schedule" || cmd === "meeting") {
+            setActiveTab("calendar");
+            return;
+          }
+          if (cmd === "todo" || cmd === "notes") {
+            setActiveTab("collections");
+            setWidgetsOpen(true);
+          }
+        }}
+      />
 
       <Modal
         open={notificationsOpen}

@@ -41,11 +41,27 @@ export default function CollectionView({ collectionId, onBack }) {
   const canvasSurfaceRef = useRef(null);
   const worldRef = useRef(null);
 
+  const persistCollectionLayouts = useCallback(
+    async (layoutsPayload) => {
+      if (!collectionId) return;
+      try {
+        await collectionsAPI.updateCollection(collectionId, {
+          layouts: layoutsPayload,
+        });
+      } catch {
+        // Keep UI responsive; localStorage still preserves layout.
+      }
+    },
+    [collectionId]
+  );
+
   const { layoutsByItemKey, setLayoutsByItemKey } = useCollectionLayouts({
     collectionId,
     items,
     canvasRef: canvasSurfaceRef,
     getItemKey,
+    initialLayouts: collection?.layouts,
+    persistLayouts: persistCollectionLayouts,
   });
 
   const { viewportScale, viewportOffset, recenterViewport } =

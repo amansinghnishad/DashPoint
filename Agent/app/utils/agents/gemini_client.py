@@ -41,7 +41,7 @@ class FunctionDefinition:
 class ContentProcessingAgent:
 	"""High-level wrapper around the Gemini function-calling workflow."""
 
-	MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+	MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
 	GENERATION_CONFIG = GenerationConfig(temperature=0.7, max_output_tokens=2048)
 	if SafetySetting is not None and HarmCategory is not None:
 		SAFETY_SETTINGS = [
@@ -145,7 +145,6 @@ class ContentProcessingAgent:
 		genai.configure(api_key=api_key)
 		self._model = genai.GenerativeModel(
 			self.MODEL_NAME,
-			tools=[spec.as_dict() for spec in self.FUNCTION_DEFINITIONS],
 			generation_config=self.GENERATION_CONFIG,
 			safety_settings=self.SAFETY_SETTINGS,
 		)

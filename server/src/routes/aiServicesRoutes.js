@@ -133,10 +133,44 @@ router.post('/dashpoint/chat',
   auth,
   rateLimit({ windowMs: 5 * 60 * 1000, max: 15 }), // 15 requests per 5 minutes
   [
+    body('approve')
+      .optional()
+      .isBoolean()
+      .withMessage('approve must be a boolean'),
     body('prompt')
+      .custom((value, { req }) => {
+        if (req.body?.approve === true) return true;
+        if (typeof value !== 'string') {
+          throw new Error('Prompt must be between 5 and 2000 characters');
+        }
+        const trimmed = value.trim();
+        if (trimmed.length < 5 || trimmed.length > 2000) {
+          throw new Error('Prompt must be between 5 and 2000 characters');
+        }
+        return true;
+      }),
+    body('api_call')
+      .optional()
+      .isObject()
+      .withMessage('api_call must be an object'),
+    body('api_call.endpoint')
+      .optional()
       .isString()
-      .isLength({ min: 5, max: 2000 })
-      .withMessage('Prompt must be between 5 and 2000 characters')
+      .isLength({ min: 1, max: 512 })
+      .withMessage('api_call.endpoint must be a string'),
+    body('api_call.method')
+      .optional()
+      .isString()
+      .isLength({ min: 1, max: 10 })
+      .withMessage('api_call.method must be a string'),
+    body('api_call.data')
+      .optional()
+      .isObject()
+      .withMessage('api_call.data must be an object'),
+    body('api_call.params')
+      .optional()
+      .isObject()
+      .withMessage('api_call.params must be an object')
   ],
   chatWithDashPointAgent
 );

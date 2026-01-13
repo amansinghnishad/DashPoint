@@ -4,7 +4,7 @@ import { useToast } from "../../hooks/useToast";
 import { youtubeAPI } from "../../services/api";
 import AddToCollectionModal from "../../components/Modals/AddToCollectionModal";
 import DeleteConfirmModal from "../../components/Modals/DeleteConfirmModal";
-import { Plus, Trash2 } from "lucide-react";
+import { BookmarkPlus, Plus, Trash2 } from "lucide-react";
 
 const parseYouTubeId = (raw) => {
   if (!raw) return null;
@@ -41,9 +41,13 @@ const parseYouTubeId = (raw) => {
 export default function YoutubePage() {
   const toast = useToast();
   const [search, setSearch] = useState("");
-  const [items, setItems] = useState([]);
+  const [savedItems, setSavedItems] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const inputRef = useRef(null);
+  const searchReqIdRef = useRef(0);
 
   const [addToCollectionItem, setAddToCollectionItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
@@ -60,6 +64,13 @@ export default function YoutubePage() {
     }
     return undefined;
   }, [isAdding]);
+
+  const isSearchMode = useMemo(() => Boolean((search || "").trim()), [search]);
+
+  const items = useMemo(
+    () => (isSearchMode ? searchResults : savedItems),
+    [isSearchMode, savedItems, searchResults]
+  );
 
   const selected = useMemo(
     () => items.find((x) => x.id === selectedId) || null,
@@ -82,9 +93,9 @@ export default function YoutubePage() {
         thumbnail: v.thumbnail,
         channelTitle: v.channelTitle,
         duration: v.duration,
+        isSaved: true,
       }));
-      setItems(mapped);
-      setSelectedId((prev) => prev || mapped?.[0]?.id || null);
+      setSavedItems(mapped);
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || "Failed to load videos";
@@ -98,106 +109,198 @@ export default function YoutubePage() {
     loadSavedVideos();
   }, [loadSavedVideos]);
 
+  const saveVideoById = useCallback(
+    async (videoId, urlHint, options = {}) => {
+      if (!videoId) return;
+
+      const already = savedItems.find((v) => v.videoId === videoId);
+      if (already) {
+        setSelectedId(already.id);
+        if (options?.clearSearch) setSearch("");
+        toast.info("That video is already saved.");
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const detailsRes = await youtubeAPI.getVideoDetails(videoId);
+        if (!detailsRes?.success) {
+          throw new Error(
+            detailsRes?.message || "Failed to fetch video details"
+          );
+        }
+
+        const details = detailsRes.data;
+        const thumb =
+          details?.thumbnail?.maxres ||
+          details?.thumbnail?.high ||
+          details?.thumbnail?.medium ||
+          details?.thumbnail?.default ||
+          null;
+        if (!thumb) throw new Error("Missing thumbnail from YouTube details");
+
+        const createRes = await youtubeAPI.create({
+          videoId: videoId,
+          title: (details.title || `YouTube: ${videoId}`).slice(0, 200),
+          thumbnail: thumb,
+          embedUrl:
+            details.embedUrl || `https://www.youtube.com/embed/${videoId}`,
+          url:
+            details.url ||
+            urlHint ||
+            `https://www.youtube.com/watch?v=${videoId}`,
+          channelTitle: details.channelTitle
+            ? String(details.channelTitle).slice(0, 100)
+            : undefined,
+          description: details.description
+            ? String(details.description).slice(0, 1000)
+            : undefined,
+          tags: Array.isArray(details.tags)
+            ? details.tags
+                .map((t) => String(t).trim())
+                .filter(Boolean)
+                .slice(0, 50)
+            : undefined,
+        });
+
+        if (!createRes?.success) {
+          throw new Error(createRes?.message || "Failed to save video");
+        }
+
+        const saved = createRes.data;
+        const savedItem = {
+          id: saved._id,
+          videoId: saved.videoId,
+          title: saved.title,
+          url: saved.url,
+          embedUrl: saved.embedUrl,
+          thumbnail: saved.thumbnail,
+          channelTitle: saved.channelTitle,
+          duration: saved.duration,
+          isSaved: true,
+        };
+
+        setSavedItems((prev) => [savedItem, ...prev]);
+        setSelectedId(savedItem.id);
+        if (options?.clearSearch) setSearch("");
+        toast.success("Video saved.");
+      } catch (err) {
+        const status = err?.response?.status;
+        const responseData = err?.response?.data;
+        const message =
+          responseData?.message || err?.message || "Failed to save video";
+
+        if (status === 400 && Array.isArray(responseData?.errors)) {
+          const first = responseData.errors[0];
+          const detail = first?.msg || first?.message;
+          if (detail) {
+            toast.error(detail);
+            return;
+          }
+        }
+
+        // If it already exists in DB (unique index), refresh list.
+        if (status === 409) {
+          toast.info(message);
+          await loadSavedVideos();
+          if (options?.clearSearch) setSearch("");
+          return;
+        }
+
+        toast.error(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [loadSavedVideos, savedItems, toast]
+  );
+
   const addVideo = useCallback(async () => {
     const id = parseYouTubeId(urlInput);
     if (!id) {
       toast.warning("Paste a valid YouTube URL or video id.");
       return;
     }
+    await saveVideoById(id, urlInput.trim());
+    setIsAdding(false);
+    setUrlInput("");
+  }, [saveVideoById, toast, urlInput]);
 
-    const rawUrl = urlInput.trim();
-    const already = items.find((v) => v.videoId === id);
-    if (already) {
-      setSelectedId(already.id);
-      setIsAdding(false);
-      setUrlInput("");
-      toast.info("That video is already saved.");
+  // Real-time YouTube search (remote) when user types in the page search box.
+  useEffect(() => {
+    const q = (search || "").trim();
+    setSearchError(null);
+
+    if (!q) {
+      setSearchResults([]);
+      setIsSearchLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const detailsRes = await youtubeAPI.getVideoDetails(id);
-      if (!detailsRes?.success) {
-        throw new Error(detailsRes?.message || "Failed to fetch video details");
-      }
-
-      const details = detailsRes.data;
-      const thumb =
-        details?.thumbnail?.maxres ||
-        details?.thumbnail?.high ||
-        details?.thumbnail?.medium ||
-        details?.thumbnail?.default ||
-        null;
-      if (!thumb) throw new Error("Missing thumbnail from YouTube details");
-
-      const createRes = await youtubeAPI.create({
-        videoId: id,
-        title: (details.title || `YouTube: ${id}`).slice(0, 200),
-        thumbnail: thumb,
-        embedUrl: details.embedUrl || `https://www.youtube.com/embed/${id}`,
-        url: details.url || rawUrl || `https://www.youtube.com/watch?v=${id}`,
-        channelTitle: details.channelTitle
-          ? String(details.channelTitle).slice(0, 100)
-          : undefined,
-        description: details.description
-          ? String(details.description).slice(0, 1000)
-          : undefined,
-        tags: Array.isArray(details.tags)
-          ? details.tags
-              .map((t) => String(t).trim())
-              .filter(Boolean)
-              .slice(0, 50)
-          : undefined,
-      });
-
-      if (!createRes?.success) {
-        throw new Error(createRes?.message || "Failed to save video");
-      }
-
-      const saved = createRes.data;
-      const savedItem = {
-        id: saved._id,
-        videoId: saved.videoId,
-        title: saved.title,
-        url: saved.url,
-        embedUrl: saved.embedUrl,
-        thumbnail: saved.thumbnail,
-        channelTitle: saved.channelTitle,
-        duration: saved.duration,
-      };
-
-      setItems((prev) => [savedItem, ...prev]);
-      setSelectedId(savedItem.id);
-      setUrlInput("");
-      setIsAdding(false);
-      toast.success("Video saved.");
-    } catch (err) {
-      const status = err?.response?.status;
-      const responseData = err?.response?.data;
-      const message =
-        responseData?.message || err?.message || "Failed to save video";
-
-      if (status === 400 && Array.isArray(responseData?.errors)) {
-        const first = responseData.errors[0];
-        const detail = first?.msg || first?.message;
-        if (detail) {
-          toast.error(detail);
-          return;
-        }
-      }
-
-      // If it already exists in DB (unique index), refresh list and select it.
-      if (status === 409) {
-        toast.info(message);
-        await loadSavedVideos();
-        return;
-      }
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
+    if (q.length < 2) {
+      setSearchResults([]);
+      setIsSearchLoading(false);
+      return;
     }
-  }, [items, loadSavedVideos, toast, urlInput]);
+
+    const requestId = ++searchReqIdRef.current;
+    setIsSearchLoading(true);
+
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await youtubeAPI.searchVideos(q, 15, "relevance");
+        if (searchReqIdRef.current !== requestId) return;
+
+        if (!res?.success) {
+          throw new Error(res?.message || "YouTube search failed");
+        }
+
+        const videos = res?.data?.videos || [];
+        const mapped = videos.map((v) => {
+          const thumb =
+            v?.thumbnail?.high ||
+            v?.thumbnail?.medium ||
+            v?.thumbnail?.default ||
+            null;
+          return {
+            id: `yt:${v.id}`,
+            videoId: v.id,
+            title: v.title,
+            url: v.url,
+            embedUrl: v.embedUrl,
+            thumbnail: thumb,
+            channelTitle: v.channelTitle,
+            publishedAt: v.publishedAt,
+            isSaved: false,
+          };
+        });
+
+        setSearchResults(mapped);
+      } catch (err) {
+        if (searchReqIdRef.current !== requestId) return;
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "YouTube search failed";
+        setSearchError(message);
+        setSearchResults([]);
+      } finally {
+        if (searchReqIdRef.current === requestId) setIsSearchLoading(false);
+      }
+    }, 350);
+
+    return () => window.clearTimeout(t);
+  }, [search]);
+
+  // Keep selection valid when switching between saved list and search results.
+  useEffect(() => {
+    if (!items.length) {
+      setSelectedId(null);
+      return;
+    }
+    const stillExists = items.some((it) => it.id === selectedId);
+    if (!stillExists) setSelectedId(items[0].id);
+  }, [items, selectedId]);
 
   const confirmDelete = useCallback(async () => {
     const id = deleteItem?.id;
@@ -210,7 +313,7 @@ export default function YoutubePage() {
         throw new Error(res?.message || "Failed to delete video");
       }
 
-      setItems((prev) => {
+      setSavedItems((prev) => {
         const remaining = prev.filter((x) => x.id !== id);
         setSelectedId((prevSelected) =>
           prevSelected === id ? remaining?.[0]?.id || null : prevSelected
@@ -259,7 +362,7 @@ export default function YoutubePage() {
         title="YouTube"
         searchValue={search}
         onSearchChange={setSearch}
-        addLabel={isAdding ? (isLoading ? "Saving…" : "Save") : "Add"}
+        addLabel={isAdding ? (isLoading ? "Saving…" : "Save") : "Search"}
         onAdd={() => {
           if (!isAdding) {
             setIsAdding(true);
@@ -271,10 +374,45 @@ export default function YoutubePage() {
         items={items}
         selectedId={selectedId}
         onSelect={(it) => setSelectedId(it.id)}
+        renderItemLeading={(it) => {
+          const src = it?.thumbnail || null;
+          if (!src) return null;
+          return (
+            <img
+              src={src}
+              alt=""
+              className="h-10 w-16 rounded-md object-cover dp-border border"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+          );
+        }}
         renderItemTitle={(it) => it.title}
         renderItemSubtitle={(it) => it.url}
         renderItemActions={(it) => {
           const disabled = isLoading;
+
+          // In search mode, show a Save button instead of saved-item actions.
+          if (!it?.isSaved) {
+            return (
+              <button
+                type="button"
+                className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:opacity-60"
+                disabled={disabled}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!it?.videoId) return;
+                  saveVideoById(it.videoId, it.url, { clearSearch: true });
+                }}
+                aria-label="Save video"
+                title="Save video"
+              >
+                <BookmarkPlus size={16} />
+              </button>
+            );
+          }
+
           return (
             <>
               <button
@@ -310,12 +448,31 @@ export default function YoutubePage() {
           );
         }}
         renderEmptySidebar={
-          <div className="p-4 text-center">
-            <p className="dp-text font-semibold">No videos yet</p>
-            <p className="dp-text-muted mt-1 text-sm">
-              Click “Add” to paste a YouTube URL.
-            </p>
-          </div>
+          isSearchMode ? (
+            <div className="p-4 text-center">
+              <p className="dp-text font-semibold">
+                {isSearchLoading
+                  ? "Searching YouTube…"
+                  : searchError
+                  ? "Search failed"
+                  : (search || "").trim().length < 2
+                  ? "Type at least 2 characters"
+                  : "No results"}
+              </p>
+              <p className="dp-text-muted mt-1 text-sm">
+                {searchError
+                  ? String(searchError)
+                  : "Search pulls live results from YouTube."}
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 text-center">
+              <p className="dp-text font-semibold">No videos yet</p>
+              <p className="dp-text-muted mt-1 text-sm">
+                Click “Add” to paste a YouTube URL.
+              </p>
+            </div>
+          )
         }
         viewer={
           <div className="h-full">

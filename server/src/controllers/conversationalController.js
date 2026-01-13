@@ -1,14 +1,12 @@
 const axios = require('axios');
 const { validationResult } = require('express-validator');
+const Collection = require('../models/Collection');
 
 const UNIVERSAL_AI_AGENT_URL = process.env.UNIVERSAL_AI_AGENT_URL || 'http://localhost:8000';
 
-// Import all the controllers for executing actions
-const youtubeController = require('./youtubeController');
-const contentExtractionController = require('./contentExtractionController');
-const fileController = require('./fileController');
-const collectionController = require('./collectionController');
-const weatherController = require('./weatherController');
+// Note: We do not call controllers directly from conversational execution.
+// We execute an allowlisted set of internal HTTP calls so that auth, middleware,
+// and express-validator rules run consistently.
 
 /**
  * Conversational Command Controller
@@ -30,11 +28,29 @@ exports.processCommand = async (req, res, next) => {
     const { command, context = {} } = req.body;
     const userId = req.user._id;
 
+    // Provide lightweight collection context to the agent so it can resolve
+    // collection names to ids for user-scoped actions.
+    let userCollections = [];
+    try {
+      userCollections = await Collection.find({ userId })
+        .select('_id name')
+        .sort({ createdAt: -1 })
+        .lean();
+    } catch (collectionLookupError) {
+      // Non-fatal: agent can still respond without collection context.
+      console.warn('Failed to load collections for conversational context:', collectionLookupError.message);
+      userCollections = [];
+    }
+
     // Add user context
     const userContext = {
       ...context,
       userId: userId,
-      user: req.user
+      user: req.user,
+      collections: userCollections.map((c) => ({
+        id: String(c._id),
+        name: c.name,
+      }))
     };
 
     try {
@@ -132,78 +148,77 @@ exports.processCommand = async (req, res, next) => {
  * Execute the API call suggested by the conversational agent
  */
 async function executeApiCall(apiCall, req, res, next) {
-  const { endpoint, method, data, params } = apiCall;
-
-  try {
-    // Create a mock request object for the controller call
-    const mockReq = {
-      ...req,
-      body: data || {},
-      query: params || {},
-      params: req.params || {}
-    };
-
-    // Route to appropriate controller based on endpoint
-    if (endpoint.startsWith('/api/youtube')) {
-      if (endpoint.includes('process-with-ai')) {
-        return await executeYouTubeProcessing(data, mockReq, res, next);
-      } else if (endpoint.includes('videos-enhanced')) {
-        return await executeControllerMethod(youtubeController, 'createVideoWithSummary', mockReq, res, next);
-      }
-    } else if (endpoint.startsWith('/api/content-extraction')) {
-      if (endpoint.includes('process-with-ai')) {
-        return await executeControllerMethod(contentExtractionController, 'processContentWithAI', mockReq, res, next);
-      }
-    } else if (endpoint.startsWith('/api/files')) {
-      return await executeControllerMethod(fileController, 'uploadFiles', mockReq, res, next);
-    } else if (endpoint.startsWith('/api/collections')) {
-      return await executeControllerMethod(collectionController, 'createCollection', mockReq, res, next);
-    } else if (endpoint.startsWith('/api/weather')) {
-      if (endpoint.includes('/current/city')) {
-        return await executeControllerMethod(weatherController, 'getCurrentWeatherByCity', mockReq, res, next);
-      }
-      if (endpoint.includes('/current')) {
-        return await executeControllerMethod(weatherController, 'getCurrentWeather', mockReq, res, next);
-      }
-      if (endpoint.includes('/forecast/city')) {
-        return await executeControllerMethod(weatherController, 'getForecastByCity', mockReq, res, next);
-      }
-      if (endpoint.includes('/forecast')) {
-        return await executeControllerMethod(weatherController, 'getForecast', mockReq, res, next);
-      }
-      return { success: false, message: 'Unsupported weather endpoint' };
-    }
-
-    return { success: false, message: 'Unknown endpoint' };
-
-  } catch (error) {
-    console.error('API call execution error:', error);
-    throw error;
-  }
+  const { endpoint, method, data, params } = apiCall || {};
+  return await executeAllowedApiCall({ endpoint, method, data, params }, req);
 }
 
 /**
  * Execute YouTube processing
  */
-async function executeYouTubeProcessing(data, req, res, next) {
-  try {
-    // This would call the YouTube processing route we created earlier
-    const result = await axios.post(`${req.protocol}://${req.get('host')}/api/youtube/process-with-ai`, data, {
-      headers: {
-        'Authorization': req.headers.authorization,
-        'Content-Type': 'application/json'
-      }
-    });
+async function executeAllowedApiCall(apiCall, req) {
+  const { endpoint, method, data, params } = apiCall || {};
 
-    return {
-      success: true,
-      message: 'YouTube video processed successfully',
-      data: result.data
-    };
+  const allowlist = [
+    // Calendar
+    { method: 'post', pattern: /^\/api\/calendar\/google\/schedule$/ },
+    { method: 'post', pattern: /^\/api\/calendar\/google\/freebusy$/ },
 
-  } catch (error) {
-    throw error;
+    // Notes & todos
+    { method: 'post', pattern: /^\/api\/sticky-notes$/ },
+    { method: 'post', pattern: /^\/api\/todos$/ },
+    { method: 'post', pattern: /^\/api\/todos\/search-and-complete$/ },
+
+    // YouTube & extraction
+    { method: 'post', pattern: /^\/api\/youtube\/videos-enhanced$/ },
+    { method: 'post', pattern: /^\/api\/youtube\/process-with-ai$/ },
+    { method: 'post', pattern: /^\/api\/content-extraction\/process-with-ai$/ },
+
+    // Files
+    { method: 'post', pattern: /^\/api\/files\/upload$/ },
+
+    // Collections
+    { method: 'post', pattern: /^\/api\/collections$/ },
+    { method: 'put', pattern: /^\/api\/collections\/[a-f\d]{24}$/i },
+    { method: 'post', pattern: /^\/api\/collections\/[a-f\d]{24}\/items$/i },
+    { method: 'delete', pattern: /^\/api\/collections\/[a-f\d]{24}\/items\/(youtube|content|file|planner)\/[^/]{1,200}$/i },
+    { method: 'post', pattern: /^\/api\/collections\/[a-f\d]{24}\/planner-widgets$/i },
+
+    // Weather & search
+    { method: 'get', pattern: /^\/api\/weather(?:\/.*)?$/ },
+    { method: 'get', pattern: /^\/api\/search$/ },
+
+    // AI chat (server-side)
+    { method: 'post', pattern: /^\/api\/ai-services\/chat$/ },
+  ];
+
+  if (!endpoint || typeof endpoint !== 'string') {
+    return { success: false, message: 'Invalid api_call endpoint' };
   }
+
+  const httpMethod = String(method || 'POST').toLowerCase();
+  const isAllowed = allowlist.some((rule) => rule.method === httpMethod && rule.pattern.test(endpoint));
+  if (!isAllowed) {
+    return { success: false, message: 'Action is not supported yet' };
+  }
+
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (req.headers.authorization) {
+    headers.Authorization = req.headers.authorization;
+  }
+
+  const response = await axios({
+    url: `${baseUrl}${endpoint}`,
+    method: httpMethod,
+    headers,
+    params: params || undefined,
+    data: data || undefined,
+    timeout: 120000,
+  });
+
+  return response.data;
 }
 
 /**
