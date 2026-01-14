@@ -10,6 +10,8 @@ import {
 
 import { PlannerWidgetBody } from "./plannerWidgets";
 
+import { extractYouTubeId } from "../../utils/urlUtils";
+
 import { useResizableCard } from "./useResizableCard";
 
 const getTitleForItem = (item) => {
@@ -42,6 +44,25 @@ const getTypeIcon = (itemType) => {
     default:
       return FileText;
   }
+};
+
+const getYouTubeEmbedSrc = (data) => {
+  if (!data || typeof data !== "object") return null;
+
+  // Prefer the server-provided embedUrl.
+  if (typeof data.embedUrl === "string" && data.embedUrl.trim()) {
+    return data.embedUrl.trim();
+  }
+
+  // Fall back to url/videoId if embedUrl isn't present.
+  const videoId =
+    (typeof data.videoId === "string" && data.videoId.trim()) ||
+    extractYouTubeId(String(data.url || ""));
+
+  if (!videoId) return null;
+
+  // Privacy-enhanced mode.
+  return `https://www.youtube-nocookie.com/embed/${videoId}`;
 };
 
 export default function ResizableItemCard({
@@ -78,6 +99,14 @@ export default function ResizableItemCard({
   const title = getTitleForItem(item);
   const type = item?.itemType || "item";
   const Icon = getTypeIcon(type);
+
+  const youtubeEmbedSrc =
+    type === "youtube" ? getYouTubeEmbedSrc(item?.itemData) : null;
+
+  const bodyClassName =
+    type === "youtube"
+      ? "flex-1 min-h-0 overflow-hidden touch-auto"
+      : "flex-1 min-h-0 overflow-auto touch-auto";
 
   return (
     <div
@@ -138,14 +167,25 @@ export default function ResizableItemCard({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-auto touch-auto">
+      <div className={bodyClassName}>
         <div className="p-3 h-full">
           {type === "planner" ? (
             <PlannerWidgetBody widget={item?.itemData} />
+          ) : type === "youtube" ? (
+            <div className="h-full w-full dp-border rounded-xl border overflow-hidden bg-black">
+              {youtubeEmbedSrc ? (
+                <iframe
+                  className="h-full w-full"
+                  src={youtubeEmbedSrc}
+                  title={title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              ) : null}
+            </div>
           ) : (
-            <p className="dp-text-muted text-sm whitespace-pre-wrap break-words">
-              {item?.itemData?.description || item?.itemData?.content || ""}
-            </p>
+            <div className="h-full" />
           )}
         </div>
       </div>
