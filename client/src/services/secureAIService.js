@@ -97,6 +97,13 @@ class SecureAIService {
   }
 
   /**
+   * Simple chat endpoint
+   */
+  async chat(message) {
+    return this.makeRequest('/chat', { message });
+  }
+
+  /**
    * Get comprehensive content analysis
    */
   async analyzeContent(text, options = {}) {

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { dashPointAIAPI } from "../../../services/api";
+import secureAIService from "../../../services/secureAIService";
 import {
   buildEffectivePrompt,
   getCommandSuggestions,
@@ -183,7 +183,7 @@ export function useDashpointChat({
       setProposal(null);
       setLastPrompt((prompt || "").trim());
 
-      const res = await dashPointAIAPI.chat(effectivePrompt);
+      const res = await secureAIService.chat(effectivePrompt);
       if (!res?.success) {
         throw new Error(res?.message || "AI request failed");
       }
@@ -238,11 +238,7 @@ export function useDashpointChat({
 
     try {
       setIsSending(true);
-      const res = await dashPointAIAPI.chat({
-        prompt: lastPrompt,
-        approve: true,
-        api_call: pendingAction,
-      });
+      const res = await secureAIService.chat(lastPrompt);
 
       if (!res?.success) {
         throw new Error(res?.message || "AI request failed");

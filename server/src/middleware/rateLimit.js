@@ -36,21 +36,8 @@ const extractionLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for conversational interface (more permissive for natural language commands)
-const conversationalLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100, // limit each IP to 100 conversational commands per 10 minutes
-  message: {
-    success: false,
-    message: 'Conversational command limit reached, please try again later.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 module.exports = {
   generalLimiter,
   authLimiter,
-  extractionLimiter,
-  conversationalLimiter
+  extractionLimiter
 };

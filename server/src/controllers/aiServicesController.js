@@ -3,7 +3,6 @@ const { validationResult } = require('express-validator');
 
 const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const TEXTRAZOR_API_KEY = process.env.TEXTRAZOR_API_KEY;
-const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
 
 // Hugging Face API endpoints
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models';
@@ -20,7 +19,8 @@ const MODELS = {
   grammarCheck: 'textattack/roberta-base-CoLA',
   textSummarization: 'facebook/bart-large-cnn',
   sentenceSimplification: 'tuner007/pegasus_paraphrase',
-  punctuationRestoration: 'felflare/bert-restore-punctuation'
+  punctuationRestoration: 'felflare/bert-restore-punctuation',
+  chat: 'facebook/blenderbot-400M-distill'
 };
 
 // Helper function to make Hugging Face API calls
@@ -301,8 +301,8 @@ exports.answerQuestion = async (req, res, next) => {
   }
 };
 
-// DashPoint AI Agent integration endpoints
-exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
+// Simple chat endpoint (no function calling / approvals)
+exports.chat = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -313,332 +313,46 @@ exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
       });
     }
 
-    const { text_content, summary_length = 'medium' } = req.body;
+    const { message } = req.body;
 
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-text`, {
-      text_content,
-      summary_length
-    }, {
-      timeout: 60000,
-      headers: {
-        'Content-Type': 'application/json'
+    const result = await makeHuggingFaceRequest(
+      MODELS.chat,
+      String(message || ''),
+      {
+        max_new_tokens: 200,
+        do_sample: true,
+        temperature: 0.7,
+        top_p: 0.9,
+        return_full_text: false
       }
-    });
+    );
 
-    res.json({
-      success: true,
-      data: {
-        summary: response.data.summary,
-        originalLength: response.data.original_length,
-        summaryLength: response.data.summary_length,
-        service: 'dashpoint-ai-agent'
-      }
-    });
-
-  } catch (error) {
-    console.error('DashPoint AI Agent text summarization error:', error);
-    // Fallback to original Hugging Face implementation
-    try {
-      const fallbackResult = await makeHuggingFaceRequest(MODELS.summarization, req.body.text_content, {
-        max_length: 150,
-        min_length: 30,
-        do_sample: false
-      });
-
-      res.json({
-        success: true,
-        data: {
-          summary: fallbackResult[0]?.summary_text || '',
-          originalLength: req.body.text_content.length,
-          summaryLength: fallbackResult[0]?.summary_text?.length || 0,
-          service: 'hugging-face-fallback'
-        }
-      });
-    } catch (fallbackError) {
-      next(error);
-    }
-  }
-};
-
-exports.summarizeYouTubeWithDashPointAgent = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+    let responseText = '';
+    if (Array.isArray(result)) {
+      responseText = result[0]?.generated_text || result[0]?.summary_text || '';
+    } else if (typeof result === 'object' && result) {
+      responseText = result.generated_text || result.summary_text || '';
+    } else if (typeof result === 'string') {
+      responseText = result;
     }
 
-    const { youtube_url, summary_length = 'medium' } = req.body;
+    if (!responseText) {
+      responseText = 'No response generated.';
+    }
 
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
-      youtube_url,
-      summary_length
-    }, {
-      timeout: 120000, // YouTube videos might take longer
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    res.json({
+    return res.json({
       success: true,
       data: {
-        summary: response.data.summary,
-        video_url: response.data.video_url,
-        summaryLength: response.data.summary_length,
-        service: 'dashpoint-ai-agent'
+        response: responseText
       }
     });
-
   } catch (error) {
-    console.error('DashPoint AI Agent YouTube summarization error:', error);
-    res.status(500).json({
+    console.error('Chat error:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to summarize YouTube video',
-      error: error.message
+      message: 'Failed to generate chat response',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };
 
-exports.chatWithDashPointAgent = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { prompt, approve, api_call: approvedApiCall } = req.body;
-
-    // If the client already approved an action, execute it directly (still allowlisted).
-    if (approve === true && approvedApiCall) {
-      const executionResult = await executeAllowedApiCall(approvedApiCall, req);
-      const responseTextParts = [
-        executionResult?.message ||
-        (executionResult?.success === false
-          ? 'Action failed.'
-          : 'Action executed successfully.'),
-      ];
-      return res.json({
-        success: true,
-        data: {
-          response: responseTextParts.join('\n'),
-          changesRequired: false,
-          requiresApproval: false,
-          pending_action: null,
-          execution_result: executionResult,
-        },
-        service: 'dashpoint-ai-agent'
-      });
-    }
-
-    // Prefer the conversational endpoint since it can return an actionable api_call.
-    const userTimezone = req.user?.preferences?.timezone || 'UTC';
-    let agentResult = null;
-    try {
-      const agentResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/conversational`, {
-        command: prompt,
-        context: {
-          userId: req.user?._id,
-          timezone: userTimezone,
-        }
-      }, {
-        timeout: 120000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      agentResult = agentResponse.data || {};
-    } catch (agentConvError) {
-      const status = agentConvError?.response?.status;
-      const detail = agentConvError?.response?.data?.detail || agentConvError?.response?.data?.message || agentConvError?.message;
-
-      // Only fall back to /chat if /conversational is not implemented on this agent.
-      if (status === 404) {
-        try {
-          const fallbackResponse = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, { prompt }, {
-            timeout: 120000,
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          const fallbackPayload = fallbackResponse.data || {};
-          const fallbackResults = Array.isArray(fallbackPayload.results) ? fallbackPayload.results : [];
-          const text = fallbackResults
-            .map((item) => {
-              if (item?.type === 'text') return item.content;
-              if (item?.type === 'function_result') return JSON.stringify(item.result);
-              return JSON.stringify(item);
-            })
-            .filter(Boolean)
-            .join('\n');
-
-          return res.json({
-            success: true,
-            data: {
-              response: text || 'AI agent responded, but no text was returned.',
-              action: 'chat',
-              api_call: null,
-              execution_result: null,
-            },
-            service: 'dashpoint-ai-agent'
-          });
-        } catch (fallbackError) {
-          const fallbackDetail = fallbackError?.response?.data?.detail || fallbackError?.message;
-          return res.status(502).json({
-            success: false,
-            message: `DashPoint AI Agent is running but failed to process requests (${fallbackError?.response?.status || 'error'}).`,
-            error: fallbackDetail,
-          });
-        }
-      }
-
-      // /conversational exists but failed: surface the agent's error so we can fix it.
-      return res.status(502).json({
-        success: false,
-        message: 'DashPoint AI Agent failed to process the request.',
-        error: detail,
-      });
-    }
-
-    const responseMessage = agentResult?.message || 'Done.';
-
-    const changesRequired =
-      agentResult?.changes_required !== undefined
-        ? Boolean(agentResult.changes_required)
-        : Boolean(agentResult?.api_call);
-
-    // Require explicit user approval before executing any action.
-    const hasPendingAction = Boolean(agentResult?.api_call);
-    const responseTextParts = [responseMessage];
-    if (hasPendingAction) {
-      responseTextParts.push('Proposed action ready. Click Approve to execute.');
-    } else {
-      // Only add the explicit "no changes" note for commands that normally mutate state.
-      const statefulActions = new Set([
-        'add_note',
-        'add_todo',
-        'complete_todo',
-        'save_youtube',
-        'upload_file',
-        'create_collection',
-        'add_planner_widget',
-        'schedule_calendar',
-      ]);
-
-      if (statefulActions.has(String(agentResult?.action || '')) && !changesRequired) {
-        responseTextParts.push('No changes required.');
-      }
-    }
-
-    res.json({
-      success: true,
-      data: {
-        response: responseTextParts.join('\n'),
-        action: agentResult.action,
-        confidence: agentResult.confidence,
-        method: agentResult.method,
-        proposal: agentResult.proposal || null,
-        changesRequired,
-        requiresApproval: hasPendingAction,
-        pending_action: hasPendingAction ? agentResult.api_call : null,
-        execution_result: null,
-      },
-      service: 'dashpoint-ai-agent'
-    });
-
-  } catch (error) {
-    console.error('DashPoint AI Agent chat error:', error);
-    const isAxios = Boolean(error && (error.isAxiosError || error.response || error.request));
-    const agentUnavailable = isAxios && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT');
-    const status = agentUnavailable ? 503 : 500;
-    res.status(status).json({
-      success: false,
-      message: agentUnavailable
-        ? 'DashPoint AI Agent is not available. Start the Agent service and try again.'
-        : 'Failed to process chat request',
-      error: error.message
-    });
-  }
-};
-
-async function executeAllowedApiCall(apiCall, req) {
-  const { endpoint, method, data, params } = apiCall || {};
-
-  const allowlist = [
-    // Calendar
-    { method: 'post', pattern: /^\/api\/calendar\/google\/schedule$/ },
-    { method: 'post', pattern: /^\/api\/calendar\/google\/freebusy$/ },
-
-    // Notes & todos
-    { method: 'post', pattern: /^\/api\/sticky-notes$/ },
-    { method: 'post', pattern: /^\/api\/todos$/ },
-    { method: 'post', pattern: /^\/api\/todos\/search-and-complete$/ },
-
-    // YouTube & extraction
-    { method: 'post', pattern: /^\/api\/youtube\/videos-enhanced$/ },
-    { method: 'post', pattern: /^\/api\/youtube\/process-with-ai$/ },
-    { method: 'post', pattern: /^\/api\/content-extraction\/process-with-ai$/ },
-
-    // Files
-    { method: 'post', pattern: /^\/api\/files\/upload$/ },
-
-    // Collections
-    { method: 'post', pattern: /^\/api\/collections$/ },
-    { method: 'put', pattern: /^\/api\/collections\/[a-f\d]{24}$/i },
-    { method: 'post', pattern: /^\/api\/collections\/[a-f\d]{24}\/items$/i },
-    {
-      method: 'delete',
-      pattern:
-        /^\/api\/collections\/[a-f\d]{24}\/items\/(youtube|content|file|planner)\/[^/]{1,200}$/i,
-    },
-    { method: 'post', pattern: /^\/api\/collections\/[a-f\d]{24}\/planner-widgets$/i },
-
-    // Weather & search
-    { method: 'get', pattern: /^\/api\/weather(?:\/.*)?$/ },
-    { method: 'get', pattern: /^\/api\/search$/ },
-  ];
-
-  if (!endpoint || typeof endpoint !== 'string') {
-    return {
-      success: false,
-      message: 'Invalid api_call endpoint'
-    };
-  }
-
-  const httpMethod = String(method || 'POST').toLowerCase();
-  const isAllowed = allowlist.some(
-    (rule) => rule.method === httpMethod && rule.pattern.test(endpoint)
-  );
-
-  if (!isAllowed) {
-    return {
-      success: false,
-      message: 'Action is not supported yet'
-    };
-  }
-
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  if (req.headers.authorization) {
-    headers.Authorization = req.headers.authorization;
-  }
-
-  const response = await axios({
-    url: `${baseUrl}${endpoint}`,
-    method: httpMethod,
-    headers,
-    params: params || undefined,
-    data: data || undefined,
-    timeout: 120000,
-  });
-
-  return response.data;
-}

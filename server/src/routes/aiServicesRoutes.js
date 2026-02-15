@@ -8,9 +8,7 @@ const {
   analyzeSentiment,
   enhanceText,
   answerQuestion,
-  summarizeTextWithDashPointAgent,
-  summarizeYouTubeWithDashPointAgent,
-  chatWithDashPointAgent
+  chat
 } = require('../controllers/aiServicesController');
 
 const router = express.Router();
@@ -96,83 +94,17 @@ router.post('/answer',
   answerQuestion
 );
 
-// DashPoint AI Agent routes
-router.post('/dashpoint/summarize-text',
+// Simple chat route
+router.post('/chat',
   auth,
-  rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+  rateLimit({ windowMs: 15 * 60 * 1000, max: 30 }),
   [
-    body('text_content')
+    body('message')
       .isString()
-      .isLength({ min: 50, max: 50000 })
-      .withMessage('Text content must be between 50 and 50,000 characters'),
-    body('summary_length')
-      .optional()
-      .isString()
-      .withMessage('Summary length must be a string')
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Message must be between 1 and 1,000 characters')
   ],
-  summarizeTextWithDashPointAgent
-);
-
-router.post('/dashpoint/summarize-youtube',
-  auth,
-  rateLimit({ windowMs: 10 * 60 * 1000, max: 5 }), // 5 requests per 10 minutes
-  [
-    body('youtube_url')
-      .isString()
-      .matches(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/)
-      .withMessage('Must be a valid YouTube URL'),
-    body('summary_length')
-      .optional()
-      .isString()
-      .withMessage('Summary length must be a string')
-  ],
-  summarizeYouTubeWithDashPointAgent
-);
-
-router.post('/dashpoint/chat',
-  auth,
-  rateLimit({ windowMs: 5 * 60 * 1000, max: 15 }), // 15 requests per 5 minutes
-  [
-    body('approve')
-      .optional()
-      .isBoolean()
-      .withMessage('approve must be a boolean'),
-    body('prompt')
-      .custom((value, { req }) => {
-        if (req.body?.approve === true) return true;
-        if (typeof value !== 'string') {
-          throw new Error('Prompt must be between 5 and 2000 characters');
-        }
-        const trimmed = value.trim();
-        if (trimmed.length < 5 || trimmed.length > 2000) {
-          throw new Error('Prompt must be between 5 and 2000 characters');
-        }
-        return true;
-      }),
-    body('api_call')
-      .optional()
-      .isObject()
-      .withMessage('api_call must be an object'),
-    body('api_call.endpoint')
-      .optional()
-      .isString()
-      .isLength({ min: 1, max: 512 })
-      .withMessage('api_call.endpoint must be a string'),
-    body('api_call.method')
-      .optional()
-      .isString()
-      .isLength({ min: 1, max: 10 })
-      .withMessage('api_call.method must be a string'),
-    body('api_call.data')
-      .optional()
-      .isObject()
-      .withMessage('api_call.data must be an object'),
-    body('api_call.params')
-      .optional()
-      .isObject()
-      .withMessage('api_call.params must be an object')
-  ],
-  chatWithDashPointAgent
+  chat
 );
 
 module.exports = router;
