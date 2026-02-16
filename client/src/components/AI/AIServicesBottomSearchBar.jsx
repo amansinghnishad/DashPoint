@@ -2,7 +2,6 @@ import { useEffect } from "react";
 
 import { useToast } from "../../hooks/useToast";
 
-import ChatApprovalCard from "./chat/ChatApprovalCard";
 import ChatCommandBar from "./chat/ChatCommandBar";
 import ChatFooter from "./chat/ChatFooter";
 import ChatInputBar from "./chat/ChatInputBar";
@@ -12,7 +11,7 @@ import { useDashpointChat } from "./chat/useDashpointChat";
 export default function AIServicesBottomSearchBar({
   className = "",
   show = true,
-  placeholder = "Ask DashPoint AI…",
+  placeholder = "Quick command bar...",
   initialPrompt = "",
   onResponse,
   onCommand,
@@ -53,19 +52,8 @@ export default function AIServicesBottomSearchBar({
       className={`fixed left-1/2 bottom-4 z-[80] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 ${className}`}
     >
       {chat.hasMessages ? (
-        <ChatMessages
-          messages={chat.messages}
-          proposal={chat.proposal}
-          scrollRef={chat.scrollRef}
-        />
+        <ChatMessages messages={chat.messages} scrollRef={chat.scrollRef} />
       ) : null}
-
-      <ChatApprovalCard
-        pendingAction={chat.pendingAction}
-        isSending={chat.isSending}
-        onApprove={chat.approvePending}
-        onCancel={() => chat.setPendingAction(null)}
-      />
 
       <ChatCommandBar
         commands={chat.slashCommands}
@@ -75,7 +63,7 @@ export default function AIServicesBottomSearchBar({
         onToggleMenu={chat.toggleCommandMenu}
       />
 
-      <ChatFooter helperText={chat.helperText} hasMessages={chat.hasMessages} />
+      <ChatFooter helperText={chat.helperText} />
 
       <ChatInputBar
         inputRef={chat.inputRef}
@@ -98,3 +86,4 @@ export default function AIServicesBottomSearchBar({
     </div>
   );
 }
+

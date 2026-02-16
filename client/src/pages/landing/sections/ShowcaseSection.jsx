@@ -10,6 +10,9 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import SectionHeader from "../components/SectionHeader";
 
+const MotionButton = motion.button;
+const MotionDiv = motion.div;
+
 const cards = [
   {
     key: "github",
@@ -81,7 +84,7 @@ export default function ShowcaseSection() {
             onMouseLeave={() => setHoveredKey(null)}
           >
             {cards.map((c) => (
-              <motion.button
+              <MotionButton
                 key={c.key}
                 type="button"
                 className="dp-expanding-card group relative h-72 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 lg:h-[500px]"
@@ -108,7 +111,7 @@ export default function ShowcaseSection() {
                   </span>
                 </div>
 
-                <motion.div
+                <MotionDiv
                   className="dp-expanding-card-details absolute inset-x-5 bottom-5 top-16"
                   initial={false}
                   animate={{
@@ -136,8 +139,8 @@ export default function ShowcaseSection() {
                       </span>
                     </div>
                   </div>
-                </motion.div>
-              </motion.button>
+                </MotionDiv>
+              </MotionButton>
             ))}
           </div>
         </div>

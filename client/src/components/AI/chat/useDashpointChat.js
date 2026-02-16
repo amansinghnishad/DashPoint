@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import secureAIService from "../../../services/secureAIService";
 import {
   buildEffectivePrompt,
   getCommandSuggestions,
@@ -15,7 +14,7 @@ function makeId(suffix) {
 
 export function useDashpointChat({
   initialPrompt = "",
-  placeholder = "Ask DashPoint AI…",
+  placeholder = "Quick command bar...",
   onResponse,
   onCommand,
   toast,
@@ -23,9 +22,6 @@ export function useDashpointChat({
   const [prompt, setPromptState] = useState(initialPrompt);
   const [isSending, setIsSending] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [pendingAction, setPendingAction] = useState(null);
-  const [proposal, setProposal] = useState(null);
-  const [lastPrompt, setLastPrompt] = useState("");
 
   // UI state
   const [slashOpen, setSlashOpen] = useState(false);
@@ -104,8 +100,6 @@ export function useDashpointChat({
 
   const clearConversation = useCallback(() => {
     setMessages([]);
-    setPendingAction(null);
-    setProposal(null);
   }, []);
 
   const selectCommand = useCallback(
@@ -117,7 +111,7 @@ export function useDashpointChat({
 
       window.setTimeout(() => inputRef.current?.focus(), 0);
     },
-    [onCommand]
+    [onCommand, setPrompt]
   );
 
   const closeMenus = useCallback(() => {
@@ -179,19 +173,8 @@ export function useDashpointChat({
 
     try {
       setIsSending(true);
-      setPendingAction(null);
-      setProposal(null);
-      setLastPrompt((prompt || "").trim());
-
-      const res = await secureAIService.chat(effectivePrompt);
-      if (!res?.success) {
-        throw new Error(res?.message || "AI request failed");
-      }
-
       const responseText =
-        typeof res.data === "string"
-          ? res.data
-          : res.data?.response || JSON.stringify(res.data);
+        "Assistant features are turned off for now. You can still use /schedule, /meeting, /todo, and /notes shortcuts.";
 
       setMessages((prev) =>
         prev.map((m) =>
@@ -200,77 +183,15 @@ export function useDashpointChat({
             : m
         )
       );
-
-      if (res.data?.requiresApproval && res.data?.pending_action) {
-        const action = res.data.pending_action;
-
-        // Always require explicit user approval before executing any state-changing action.
-        // (No auto-apply for scheduling.)
-        setPendingAction(action);
-      }
-
-      if (res.data?.proposal) {
-        setProposal(res.data.proposal);
-      }
-
-      onResponse?.(responseText, res);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || err?.message || "AI request failed";
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? { ...m, content: message, isTyping: false, isError: true }
-            : m
-        )
-      );
-
-      toast?.error?.(message);
+      onResponse?.(responseText, {
+        success: true,
+        data: { response: responseText, disabled: true },
+      });
     } finally {
       setIsSending(false);
       scrollToBottom();
     }
   }, [onCommand, onResponse, parsedCommand, prompt, scrollToBottom, toast]);
-
-  const approvePending = useCallback(async () => {
-    if (!pendingAction || !lastPrompt) return;
-
-    try {
-      setIsSending(true);
-      const res = await secureAIService.chat(lastPrompt);
-
-      if (!res?.success) {
-        throw new Error(res?.message || "AI request failed");
-      }
-
-      const responseText =
-        typeof res.data === "string"
-          ? res.data
-          : res.data?.response || JSON.stringify(res.data);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: makeId("a2"),
-          role: "assistant",
-          content: responseText,
-          ts: Date.now(),
-        },
-      ]);
-
-      setPendingAction(null);
-      if (res.data?.proposal) setProposal(res.data.proposal);
-      onResponse?.(responseText, res);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || err?.message || "AI request failed";
-      toast?.error?.(message);
-    } finally {
-      setIsSending(false);
-      scrollToBottom();
-    }
-  }, [lastPrompt, onResponse, pendingAction, scrollToBottom, toast]);
 
   return {
     // refs
@@ -282,11 +203,6 @@ export function useDashpointChat({
     setPrompt,
     isSending,
     messages,
-    pendingAction,
-    setPendingAction,
-    proposal,
-    setProposal,
-    lastPrompt,
     hasMessages,
 
     // computed
@@ -302,7 +218,6 @@ export function useDashpointChat({
 
     // actions
     submit,
-    approvePending,
     clearConversation,
     selectCommand,
     closeMenus,
@@ -311,3 +226,4 @@ export function useDashpointChat({
     setCommandMenuOpen,
   };
 }
+

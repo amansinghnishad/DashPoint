@@ -1,6 +1,6 @@
 import { Bot, Loader2, User } from "lucide-react";
 
-export default function ChatMessages({ messages, proposal, scrollRef }) {
+export default function ChatMessages({ messages, scrollRef }) {
   return (
     <div className="relative mb-2">
       <div
@@ -53,16 +53,6 @@ export default function ChatMessages({ messages, proposal, scrollRef }) {
             );
           })}
 
-          {proposal ? (
-            <div className="dp-surface dp-border rounded-2xl border p-3 shadow-lg">
-              <p className="dp-text-muted text-xs font-semibold">
-                Proposal (JSON)
-              </p>
-              <pre className="dp-surface dp-text mt-2 max-h-44 overflow-auto rounded-xl p-2 text-xs">
-                {JSON.stringify(proposal, null, 2)}
-              </pre>
-            </div>
-          ) : null}
         </div>
       </div>
     </div>

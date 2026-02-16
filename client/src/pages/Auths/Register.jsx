@@ -131,7 +131,7 @@ export default function Register() {
         {
           Icon: Star,
           title: "Premium Experience",
-          description: "A clean dashboard with AI-powered tools included.",
+          description: "A clean dashboard with focused productivity tools included.",
         },
       ]}
       asideFooterTitle="What you get"
@@ -342,3 +342,4 @@ export default function Register() {
     </AuthLayout>
   );
 }
+

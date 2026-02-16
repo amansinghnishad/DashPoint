@@ -2,7 +2,6 @@ import {
   Download,
   // Bell,
   CalendarDays,
-  FileText,
   Home,
   // Keyboard,
   LogOut,
@@ -44,7 +43,6 @@ export const SideBar = ({
       { id: "collections", label: "Home", icon: Home },
       { id: "calendar", label: "Calendar", icon: CalendarDays },
       { id: "youtube", label: "YouTube", icon: Youtube },
-      { id: "content", label: "Content Extractor", icon: FileText },
       { id: "files", label: "File Manager", icon: Upload },
     ],
     []

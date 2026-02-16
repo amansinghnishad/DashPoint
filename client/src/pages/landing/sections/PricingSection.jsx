@@ -60,7 +60,7 @@ export default function PricingSection() {
               Pro (coming soon)
             </h3>
             <p className="mt-1 text-sm text-slate-600">
-              Advanced AI features, collaboration, and deeper insights.
+              Advanced productivity features, collaboration, and deeper insights.
             </p>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
@@ -85,3 +85,4 @@ export default function PricingSection() {
     </section>
   );
 }
+

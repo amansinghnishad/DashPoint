@@ -11,7 +11,6 @@ import FloatingInstallDownloadButtons from "../../components/PWAStatus/FloatingI
 import CollectionsHome from "./Home/CollectionsHome";
 import CollectionView from "./Collection/CollectionView";
 import YoutubePage from "./Youtube";
-import AIExplainerPage from "./AI-Explainer";
 import FileManagerPage from "./FileManager";
 import CalendarPage from "./Calendar";
 import AIServicesBottomSearchBar from "../../components/AI/AIServicesBottomSearchBar";
@@ -42,8 +41,6 @@ export default function Dashboard() {
         return <CalendarPage />;
       case "youtube":
         return <YoutubePage />;
-      case "content":
-        return <AIExplainerPage />;
       case "files":
         return <FileManagerPage />;
       case "collections":
@@ -96,8 +93,6 @@ export default function Dashboard() {
                       ? "Collections"
                       : activeTab === "youtube"
                       ? "YouTube"
-                      : activeTab === "content"
-                      ? "Content Extractor"
                       : activeTab === "files"
                       ? "File Manager"
                       : ""}

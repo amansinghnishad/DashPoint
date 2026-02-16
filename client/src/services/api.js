@@ -139,39 +139,6 @@ export const youtubeAPI = {
   }
 };
 
-// Content API
-export const contentAPI = {
-  // Get all saved content
-  getAll: async (page = 1, limit = 20) => {
-    const response = await apiClient.get(`/content-extraction?page=${page}&limit=${limit}`);
-    return response.data;
-  },
-
-  // Save new content
-  create: async (contentData) => {
-    const response = await apiClient.post('/content-extraction', contentData);
-    return response.data;
-  },
-
-  // Update saved content
-  update: async (id, contentData) => {
-    const response = await apiClient.put(`/content-extraction/${id}`, contentData);
-    return response.data;
-  },
-
-  // Delete saved content
-  delete: async (id) => {
-    const response = await apiClient.delete(`/content-extraction/${id}`);
-    return response.data;
-  },
-
-  // Extract content from URL
-  extractContent: async (url) => {
-    const response = await apiClient.post('/content-extraction/extract', { url });
-    return response.data;
-  }
-};
-
 // Collections API
 export const collectionsAPI = {
   // getCollections function

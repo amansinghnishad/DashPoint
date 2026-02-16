@@ -1,4 +1,4 @@
-export default function ChatFooter({ helperText, hasMessages }) {
+export default function ChatFooter({ helperText }) {
   return (
     <div className="px-3 pb-2">
       <p className="dp-text-subtle text-[11px]">
