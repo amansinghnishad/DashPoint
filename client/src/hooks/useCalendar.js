@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { calendarAPI } from "../services/api";
+import { APP_ROUTES } from "../app/routes/paths";
+import { calendarAPI } from "../services/modules/calendarApi";
 
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
 const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
@@ -37,7 +38,7 @@ export function useCalendar() {
   const connectGoogleCalendar = useCallback(async () => {
     setError(null);
     try {
-      const res = await calendarAPI.getGoogleAuthUrl("/dashboard");
+      const res = await calendarAPI.getGoogleAuthUrl(APP_ROUTES.DASHBOARD);
       const url = res?.data?.url;
       if (!url) {
         throw new Error("Failed to get Google auth URL");

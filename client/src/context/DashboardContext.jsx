@@ -5,11 +5,9 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import {
-  weatherAPI,
-  collectionsAPI,
-  youtubeAPI,
-} from "../services/api";
+import { collectionsAPI } from "../services/modules/collectionsApi";
+import { weatherAPI } from "../services/modules/weatherApi";
+import { youtubeAPI } from "../services/modules/youtubeApi";
 import { useActivity } from "../hooks/useActivity";
 
 const DashboardContext = createContext();

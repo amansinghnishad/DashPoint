@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getPreferredTheme, setTheme } from "../utils/theme";
+import { getPreferredTheme, setTheme } from "../shared/lib/theme";
 
 const THEME_EVENT = "dashpoint-theme-change";
 

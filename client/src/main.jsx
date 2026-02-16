@@ -1,11 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+
+import "./app/styles/globals.css";
+
 import App from "./App.jsx";
-import { initTheme } from "./utils/theme";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { ToastProvider } from "./context/ToastContext";
-import { AuthProvider } from "./context/AuthContext";
+import AppProviders from "./app/providers/AppProviders";
+import { initTheme } from "./shared/lib/theme";
 
 // Prevent duplicate custom element registration errors
 if (typeof window !== "undefined" && window.customElements) {
@@ -19,20 +19,10 @@ if (typeof window !== "undefined" && window.customElements) {
 
 initTheme();
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-const AppTree = googleClientId ? (
-  <GoogleOAuthProvider clientId={googleClientId}>
-    <App />
-  </GoogleOAuthProvider>
-) : (
-  <App />
-);
-
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ToastProvider>
-      <AuthProvider>{AppTree}</AuthProvider>
-    </ToastProvider>
+    <AppProviders>
+      <App />
+    </AppProviders>
   </StrictMode>
 );
