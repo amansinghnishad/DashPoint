@@ -1,5 +1,0 @@
-# This file intentionally defers to the top-level Agent/requirements.txt.
-# Keeping two separate pinned requirement sets caused version mismatches
-# (notably around google-generativeai types such as SafetySetting).
-
--r ../requirements.txt

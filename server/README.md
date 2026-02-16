@@ -6,14 +6,11 @@ Backend API server for the MERN DashPoint application, providing comprehensive b
 
 - **Authentication**: JWT-based user authentication with registration, login, and profile management
 - **Content Extraction**: Website content extraction with cheerio for scraping titles, content, and metadata
-- **Weather API**: Integration with OpenWeatherMap for current weather and forecasts
 - **YouTube Integration**: Save, organize, and analyze YouTube videos
 - **Collections**: Organize and manage various types of content in collections
-- **AI Services**: Advanced AI capabilities including summarization, sentiment analysis, and more
 - **File Management**: Upload, store, and retrieve user files
 - **Security**: Rate limiting, CORS, helmet, and input validation
 - **Database**: MongoDB with Mongoose ODM
-- **Agent Integration**: Connect with external AI agent for enhanced features
 
 ## Setup
 
@@ -114,7 +111,6 @@ Backend API server for the MERN DashPoint application, providing comprehensive b
 ### System
 - `GET /health` - Health check endpoint
 - `GET /api/system/status` - Get system status
-- `GET /api/system/agent-status` - Check AI agent connection
 
 ## Maintenance Notes
 
@@ -159,7 +155,6 @@ src/
 │   ├── weatherRoutes.js     # Weather routes
 │   └── youtubeRoutes.js     # YouTube routes
 ├── services/
-│   ├── aiAgentService.js    # AI agent communication
 │   ├── contentExtractorService.js # Web scraping service
 │   ├── fileService.js       # File handling service
 │   └── youtubeService.js    # YouTube API service
@@ -240,7 +235,6 @@ See `.env.example` for required environment variables:
 - `YOUTUBE_API_KEY` - YouTube Data API key
 - `HUGGING_FACE_TOKEN` - Hugging Face API token for AI services
 - `TEXTRAZOR_API_KEY` - TextRazor API key for text analysis
-- `DASHPOINT_AI_AGENT_URL` - URL for the AI agent service (default: http://localhost:8000)
 - `CLIENT_URL` - Frontend URL for CORS
 - `MAX_FILE_SIZE` - Maximum file upload size (in bytes)
 - `STORAGE_PATH` - Path for local file storage
@@ -303,51 +297,6 @@ The DashPoint server includes comprehensive testing:
 8. Set up monitoring and error tracking
 9. Implement CI/CD pipeline for automated deployments
 10. Configure backup and disaster recovery procedures
-
-## AI Agent Integration
-
-The DashPoint server includes integration with a dedicated AI agent service for enhanced features built with Gemini AI. This agent provides intelligent processing capabilities for content extraction and analysis.
-
-### Agent Setup
-
-1. **Setup AI Agent**
-   ```bash
-   # Run the AI agent setup script
-   ./scripts/setup-dashpoint-ai.sh
-   ```
-
-2. **Start AI Agent**
-   ```bash
-   # Linux/macOS
-   ./scripts/start-dashpoint-agent.sh
-   
-   # Windows
-   scripts/start-dashpoint-agent.ps1
-   ```
-
-3. **Verify Agent Status**
-   ```bash
-   # Check if agent is running
-   curl http://localhost:8000/health
-   ```
-
-### Agent Features
-
-The AI agent provides:
-- **Intelligent Chat Interface**: Process natural language queries through the agent
-- **YouTube Video Analysis**: Extract and analyze YouTube video content
-- **Web Content Extraction**: Advanced content extraction with AI analysis
-- **Text Summarization**: Generate summaries with customizable parameters
-- **Function Calling**: Intelligent task routing and execution
-- **Content Enhancement**: Keyword extraction, sentiment analysis, and topic detection
-
-### Integration Points
-
-The server integrates with the AI agent through:
-- **YouTube Controller**: Enhanced video analysis and intelligent summaries
-- **Content Extraction Controller**: Advanced web content processing
-- **AI Services Controller**: Direct access to AI capabilities via chat endpoints
-- **Secure AI Service**: Client-side integration through secure API wrapper
 
 ## License
 

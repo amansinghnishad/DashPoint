@@ -17,7 +17,6 @@ const youtubeRoutes = require('./routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
 const aiServicesRoutes = require('./routes/aiServicesRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-const conversationalRoutes = require('./routes/conversationalRoutes');
 const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 
@@ -140,7 +139,6 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/ai', aiServicesRoutes);
 app.use('/api/files', fileRoutes);
-app.use('/api/conversational', conversationalRoutes);
 app.use('/api/planner-widgets', plannerWidgetRoutes);
 app.use('/api/calendar', calendarRoutes);
 
