@@ -5,12 +5,9 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import {
-  weatherAPI,
-  collectionsAPI,
-  contentAPI,
-  youtubeAPI,
-} from "../services/api";
+import { collectionsAPI } from "../services/modules/collectionsApi";
+import { weatherAPI } from "../services/modules/weatherApi";
+import { youtubeAPI } from "../services/modules/youtubeApi";
 import { useActivity } from "../hooks/useActivity";
 
 const DashboardContext = createContext();
@@ -40,7 +37,6 @@ const initialState = {
   weather: null,
   stats: {
     collections: 0,
-    content: 0,
     videos: 0,
   },
   loading: {
@@ -61,9 +57,8 @@ export const DashboardProvider = ({ children }) => {
         type: "SET_LOADING",
         payload: { key: "stats", value: true },
       });
-      const [collectionsRes, contentRes, videosRes] = await Promise.all([
+      const [collectionsRes, videosRes] = await Promise.all([
         collectionsAPI.getCollections(1, 1),
-        contentAPI.getAll(1, 1),
         youtubeAPI.getAll(1, 1),
       ]);
 
@@ -71,7 +66,6 @@ export const DashboardProvider = ({ children }) => {
         collections: collectionsRes.success
           ? collectionsRes.data?.pagination?.total || 0
           : 0,
-        content: contentRes.success ? contentRes.pagination?.total || 0 : 0,
         videos: videosRes.success ? videosRes.pagination?.total || 0 : 0,
       };
 
@@ -80,7 +74,7 @@ export const DashboardProvider = ({ children }) => {
       console.error("Failed to load stats:", error);
       dispatch({
         type: "SET_STATS",
-        payload: { collections: 0, content: 0, videos: 0 },
+        payload: { collections: 0, videos: 0 },
       });
     } finally {
       dispatch({
@@ -113,7 +107,7 @@ export const DashboardProvider = ({ children }) => {
         type: "SET_LOADING",
         payload: { key: "weather", value: true },
       });
-      const response = await weatherAPI.getCurrent(location);
+      const response = await weatherAPI.getCurrentWeather(location);
       if (response.success) {
         dispatch({ type: "SET_WEATHER", payload: response.data });
       }
