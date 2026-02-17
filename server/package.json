@@ -5,12 +5,9 @@
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "NODE_ENV=production node src/server.js",
+    "start": "cross-env NODE_ENV=production node src/server.js",
     "dev": "nodemon src/server.js",
-    "prod": "NODE_ENV=production node src/server.js",
-    "start-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1 && npm start",
-    "dev-with-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1 && npm run dev",
-    "start-agent": "powershell -ExecutionPolicy Bypass -File scripts/start-dashpoint-agent.ps1",
+    "prod": "cross-env NODE_ENV=production node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -25,11 +22,14 @@
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.1.0",
+    "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
+    "google-auth-library": "^10.3.0",
+    "googleapis": "^144.0.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.15.2",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "nodemon": "^3.1.10"
   }
 }

@@ -31,7 +31,7 @@ const collectionSchema = new mongoose.Schema({
     itemType: {
       type: String,
       required: true,
-      enum: ['youtube', 'content', 'sticky-note', 'todo', 'file']
+      enum: ['youtube', 'content', 'file', 'planner']
     },
     itemId: {
       type: String,
@@ -50,7 +50,14 @@ const collectionSchema = new mongoose.Schema({
     type: String,
     trim: true,
     maxlength: [30, 'Tag cannot exceed 30 characters']
-  }]
+  }],
+  // Stores widget layout(s) for the collection canvas.
+  // Expected shape (client-owned): { version: 2, breakpoints: { xs|sm|md|lg: { items: { [itemKey]: {x,y,width,height} }, meta?: {...} } } }
+  // Kept flexible to allow future iterations without migrations.
+  layouts: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  }
 }, {
   timestamps: true
 });

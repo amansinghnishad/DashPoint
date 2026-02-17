@@ -3,7 +3,6 @@ const { validationResult } = require('express-validator');
 
 const HUGGING_FACE_TOKEN = process.env.HUGGING_FACE_TOKEN;
 const TEXTRAZOR_API_KEY = process.env.TEXTRAZOR_API_KEY;
-const DASHPOINT_AI_AGENT_URL = process.env.DASHPOINT_AI_AGENT_URL || 'http://localhost:8000';
 
 // Hugging Face API endpoints
 const HUGGING_FACE_BASE_URL = 'https://api-inference.huggingface.co/models';
@@ -20,7 +19,8 @@ const MODELS = {
   grammarCheck: 'textattack/roberta-base-CoLA',
   textSummarization: 'facebook/bart-large-cnn',
   sentenceSimplification: 'tuner007/pegasus_paraphrase',
-  punctuationRestoration: 'felflare/bert-restore-punctuation'
+  punctuationRestoration: 'felflare/bert-restore-punctuation',
+  chat: 'facebook/blenderbot-400M-distill'
 };
 
 // Helper function to make Hugging Face API calls
@@ -301,8 +301,8 @@ exports.answerQuestion = async (req, res, next) => {
   }
 };
 
-// DashPoint AI Agent integration endpoints
-exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
+// Simple chat endpoint (no function calling / approvals)
+exports.chat = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -313,130 +313,46 @@ exports.summarizeTextWithDashPointAgent = async (req, res, next) => {
       });
     }
 
-    const { text_content, summary_length = 'medium' } = req.body;
+    const { message } = req.body;
 
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-text`, {
-      text_content,
-      summary_length
-    }, {
-      timeout: 60000,
-      headers: {
-        'Content-Type': 'application/json'
+    const result = await makeHuggingFaceRequest(
+      MODELS.chat,
+      String(message || ''),
+      {
+        max_new_tokens: 200,
+        do_sample: true,
+        temperature: 0.7,
+        top_p: 0.9,
+        return_full_text: false
       }
-    });
+    );
 
-    res.json({
+    let responseText = '';
+    if (Array.isArray(result)) {
+      responseText = result[0]?.generated_text || result[0]?.summary_text || '';
+    } else if (typeof result === 'object' && result) {
+      responseText = result.generated_text || result.summary_text || '';
+    } else if (typeof result === 'string') {
+      responseText = result;
+    }
+
+    if (!responseText) {
+      responseText = 'No response generated.';
+    }
+
+    return res.json({
       success: true,
       data: {
-        summary: response.data.summary,
-        originalLength: response.data.input_length,
-        summaryLength: response.data.summary_length,
-        service: 'dashpoint-ai-agent'
+        response: responseText
       }
     });
-
   } catch (error) {
-    console.error('DashPoint AI Agent text summarization error:', error);
-    // Fallback to original Hugging Face implementation
-    try {
-      const fallbackResult = await makeHuggingFaceRequest(MODELS.summarization, req.body.text_content, {
-        max_length: 150,
-        min_length: 30,
-        do_sample: false
-      });
-
-      res.json({
-        success: true,
-        data: {
-          summary: fallbackResult[0]?.summary_text || '',
-          originalLength: req.body.text_content.length,
-          summaryLength: fallbackResult[0]?.summary_text?.length || 0,
-          service: 'hugging-face-fallback'
-        }
-      });
-    } catch (fallbackError) {
-      next(error);
-    }
-  }
-};
-
-exports.summarizeYouTubeWithDashPointAgent = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { youtube_url, summary_length = 'medium' } = req.body;
-
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/summarize-youtube`, {
-      youtube_url,
-      summary_length
-    }, {
-      timeout: 120000, // YouTube videos might take longer
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    res.json({
-      success: true,
-      data: {
-        summary: response.data.summary,
-        video_url: response.data.video_url,
-        summaryLength: response.data.summary_length,
-        service: 'dashpoint-ai-agent'
-      }
-    });
-
-  } catch (error) {
-    console.error('DashPoint AI Agent YouTube summarization error:', error);
-    res.status(500).json({
+    console.error('Chat error:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to summarize YouTube video',
-      error: error.message
+      message: 'Failed to generate chat response',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };
 
-exports.chatWithDashPointAgent = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
-
-    const { prompt } = req.body;
-
-    const response = await axios.post(`${DASHPOINT_AI_AGENT_URL}/chat`, {
-      prompt
-    }, {
-      timeout: 120000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    res.json({
-      success: true,
-      data: response.data.response,
-      service: 'dashpoint-ai-agent'
-    });
-
-  } catch (error) {
-    console.error('DashPoint AI Agent chat error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to process chat request',
-      error: error.message
-    });
-  }
-};

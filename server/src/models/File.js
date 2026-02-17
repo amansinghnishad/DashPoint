@@ -21,12 +21,30 @@ const fileSchema = new mongoose.Schema({
   },
   path: {
     type: String,
-    required: true
+    default: null
   },
   url: {
     type: String,
     required: true
-  }, userId: {
+  },
+  storageProvider: {
+    type: String,
+    enum: ['local', 'cloudinary'],
+    default: 'cloudinary'
+  },
+  cloudinaryPublicId: {
+    type: String,
+    default: null
+  },
+  cloudinaryResourceType: {
+    type: String,
+    default: null
+  },
+  cloudinaryAssetId: {
+    type: String,
+    default: null
+  },
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true

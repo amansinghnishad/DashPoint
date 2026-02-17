@@ -8,9 +8,7 @@ const {
   analyzeSentiment,
   enhanceText,
   answerQuestion,
-  summarizeTextWithDashPointAgent,
-  summarizeYouTubeWithDashPointAgent,
-  chatWithDashPointAgent
+  chat
 } = require('../controllers/aiServicesController');
 
 const router = express.Router();
@@ -96,49 +94,17 @@ router.post('/answer',
   answerQuestion
 );
 
-// DashPoint AI Agent routes
-router.post('/dashpoint/summarize-text',
+// Simple chat route
+router.post('/chat',
   auth,
-  rateLimit({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+  rateLimit({ windowMs: 15 * 60 * 1000, max: 30 }),
   [
-    body('text_content')
+    body('message')
       .isString()
-      .isLength({ min: 50, max: 50000 })
-      .withMessage('Text content must be between 50 and 50,000 characters'),
-    body('summary_length')
-      .optional()
-      .isString()
-      .withMessage('Summary length must be a string')
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Message must be between 1 and 1,000 characters')
   ],
-  summarizeTextWithDashPointAgent
-);
-
-router.post('/dashpoint/summarize-youtube',
-  auth,
-  rateLimit({ windowMs: 10 * 60 * 1000, max: 5 }), // 5 requests per 10 minutes
-  [
-    body('youtube_url')
-      .isString()
-      .matches(/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/)
-      .withMessage('Must be a valid YouTube URL'),
-    body('summary_length')
-      .optional()
-      .isString()
-      .withMessage('Summary length must be a string')
-  ],
-  summarizeYouTubeWithDashPointAgent
-);
-
-router.post('/dashpoint/chat',
-  auth,
-  rateLimit({ windowMs: 5 * 60 * 1000, max: 15 }), // 15 requests per 5 minutes
-  [
-    body('prompt')
-      .isString()
-      .isLength({ min: 5, max: 2000 })
-      .withMessage('Prompt must be between 5 and 2000 characters')
-  ],
-  chatWithDashPointAgent
+  chat
 );
 
 module.exports = router;

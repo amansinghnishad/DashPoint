@@ -1,5 +1,6 @@
 const Collection = require('../models/Collection');
 const { validationResult } = require('express-validator');
+const PlannerWidget = require('../models/PlannerWidget');
 
 // Get all collections for user
 exports.getCollections = async (req, res, next) => {
@@ -71,7 +72,8 @@ exports.getCollectionWithItems = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
 
-    const collection = await Collection.findOne({ _id: id, userId }); if (!collection) {
+    const collection = await Collection.findOne({ _id: id, userId });
+    if (!collection) {
       return res.status(404).json({
         success: false,
         message: 'Collection not found'
@@ -81,7 +83,9 @@ exports.getCollectionWithItems = async (req, res, next) => {
     // Populate item data for each item in the collection
     const populatedItems = await Promise.all(
       collection.items.map(async (item) => {
-        let itemData = null; try {
+        let itemData = null;
+
+        try {
           switch (item.itemType) {
             case 'youtube':
               const YouTube = require('../models/YouTube');
@@ -91,17 +95,13 @@ exports.getCollectionWithItems = async (req, res, next) => {
               const ContentExtraction = require('../models/ContentExtraction');
               itemData = await ContentExtraction.findOne({ _id: item.itemId, userId });
               break;
-            case 'sticky-note':
-              const StickyNote = require('../models/StickyNote');
-              itemData = await StickyNote.findOne({ _id: item.itemId, userId });
-              break;
-            case 'todo':
-              const Todo = require('../models/Todo');
-              itemData = await Todo.findOne({ _id: item.itemId, userId });
-              break;
             case 'file':
               const File = require('../models/File');
               itemData = await File.findOne({ _id: item.itemId, userId });
+              break;
+            case 'planner':
+              const PlannerWidget = require('../models/PlannerWidget');
+              itemData = await PlannerWidget.findOne({ _id: item.itemId, userId });
               break;
             default:
               itemData = null;
@@ -197,7 +197,7 @@ exports.updateCollection = async (req, res, next) => {
 
     const userId = req.user._id;
     const { id } = req.params;
-    const { name, description, color, icon, tags, isPrivate } = req.body;
+    const { name, description, color, icon, tags, isPrivate, layouts } = req.body;
 
     const collection = await Collection.findOne({ _id: id, userId });
 
@@ -230,6 +230,7 @@ exports.updateCollection = async (req, res, next) => {
     if (icon !== undefined) collection.icon = icon;
     if (tags !== undefined) collection.tags = tags;
     if (isPrivate !== undefined) collection.isPrivate = isPrivate;
+    if (layouts !== undefined) collection.layouts = layouts;
 
     await collection.save();
 
@@ -346,6 +347,53 @@ exports.getCollectionsForItem = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: collections
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Create a planner widget and add it to a collection (atomic convenience endpoint)
+exports.addPlannerWidgetToCollection = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const userId = req.user._id;
+    const { id } = req.params;
+    const { widgetType, title, data } = req.body;
+
+    const collection = await Collection.findOne({ _id: id, userId });
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        message: 'Collection not found'
+      });
+    }
+
+    const widget = new PlannerWidget({
+      userId,
+      widgetType,
+      title: title || '',
+      data: data || {}
+    });
+    await widget.save();
+
+    await collection.addItem('planner', String(widget._id));
+
+    return res.status(201).json({
+      success: true,
+      message: 'Planner widget added to collection successfully',
+      data: {
+        widget,
+        collection
+      }
     });
   } catch (error) {
     next(error);

@@ -2,7 +2,17 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const userSchema = new mongoose.Schema({  username: {
+const userSchema = new mongoose.Schema({
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
+  googleId: {
+    type: String,
+    default: null
+  },
+  username: {
     type: String,
     required: [true, 'Username is required'],
     trim: true,
@@ -19,7 +29,9 @@ const userSchema = new mongoose.Schema({  username: {
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function () {
+      return this.authProvider !== 'google';
+    },
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false // Don't include password in queries by default
   },
@@ -87,6 +99,38 @@ const userSchema = new mongoose.Schema({  username: {
         default: true
       }
     }
+  },
+
+  // Google Calendar link (separate from Google sign-in)
+  googleCalendar: {
+    connected: {
+      type: Boolean,
+      default: false
+    },
+    calendarId: {
+      type: String,
+      default: 'primary'
+    },
+    accessToken: {
+      type: String,
+      default: null,
+      select: false
+    },
+    refreshToken: {
+      type: String,
+      default: null,
+      select: false
+    },
+    scope: {
+      type: String,
+      default: null,
+      select: false
+    },
+    tokenExpiryDate: {
+      type: Number,
+      default: null,
+      select: false
+    }
   }
 }, {
   timestamps: true,
@@ -96,14 +140,23 @@ const userSchema = new mongoose.Schema({  username: {
       delete ret.passwordResetToken;
       delete ret.passwordResetExpires;
       delete ret.emailVerificationToken;
+      // Never expose OAuth tokens to the client
+      if (ret.googleCalendar) {
+        delete ret.googleCalendar.accessToken;
+        delete ret.googleCalendar.refreshToken;
+        delete ret.googleCalendar.scope;
+        delete ret.googleCalendar.tokenExpiryDate;
+      }
       delete ret.__v;
       return ret;
-    }  }
+    }
+  }
 });
 
 // Index definitions - using explicit index() calls for better control
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 userSchema.index({ createdAt: -1 });
 
 // Virtual for full name
@@ -114,6 +167,7 @@ userSchema.virtual('fullName').get(function () {
 // Pre-save middleware to hash password
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
+  if (!this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);
@@ -126,6 +180,7 @@ userSchema.pre('save', async function (next) {
 
 // Method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
