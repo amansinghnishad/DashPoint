@@ -93,8 +93,62 @@ const extractContent = async (url, options = {}) => {
       .replace(/\n+/g, '\n') // Replace multiple newlines with single newline
       .trim();
 
+    if (maxContentLength && content.length > maxContentLength) {
+      content = content.slice(0, maxContentLength).trim();
+    }
+
+    const images = extractImages
+      ? $('img[src]')
+          .map((index, element) => {
+            const src = $(element).attr('src');
+            if (!src) return null;
+            const absSrc = makeAbsoluteUrl(src, url);
+            return {
+              src: absSrc,
+              alt: ($(element).attr('alt') || '').trim(),
+              width: parseInt($(element).attr('width'), 10) || null,
+              height: parseInt($(element).attr('height'), 10) || null
+            };
+          })
+          .get()
+          .filter(Boolean)
+      : [];
+
+    const links = extractLinks
+      ? $('a[href]')
+          .map((index, element) => {
+            const href = ($(element).attr('href') || '').trim();
+            if (!href) return null;
+
+            let resolvedHref = href;
+            let linkType = 'external';
+
+            if (href.startsWith('mailto:')) {
+              linkType = 'email';
+            } else if (href.startsWith('tel:')) {
+              linkType = 'tel';
+            } else {
+              resolvedHref = makeAbsoluteUrl(href, url);
+              try {
+                const target = new URL(resolvedHref);
+                linkType = target.hostname === parsedUrl.hostname ? 'internal' : 'external';
+              } catch (error) {
+                return null;
+              }
+            }
+
+            return {
+              href: resolvedHref,
+              text: $(element).text().trim(),
+              type: linkType
+            };
+          })
+          .get()
+          .filter(Boolean)
+      : [];
+
     // Calculate reading time (average 200 words per minute)
-    const wordCount = content.split(/\s+/).length;
+    const wordCount = content.split(/\s+/).filter(Boolean).length;
     const readingTime = Math.ceil(wordCount / 200);
 
     // Determine category based on URL and content
@@ -116,6 +170,8 @@ const extractContent = async (url, options = {}) => {
         image: image ? makeAbsoluteUrl(image, url) : null,
         favicon: favicon ? makeAbsoluteUrl(favicon, url) : null
       },
+      images,
+      links,
       status: 'success'
     };
 

@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { APP_ROUTES } from "../app/routes/paths";
 import { calendarAPI } from "../services/modules/calendarApi";
 
-const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+const startOfDay = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+const endOfDay = (d) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
-export function useCalendar() {
+export function useCalendar(options = {}) {
+  const { loadEvents = true } = options;
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [connected, setConnected] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
@@ -86,14 +89,15 @@ export function useCalendar() {
     refreshStatus();
   }, [refreshStatus]);
 
-  // Load events whenever connected/selectedDate changes
+  // Load selected-day events only when requested by consumer.
   useEffect(() => {
+    if (!loadEvents) return;
     if (!connected) {
       setEvents([]);
       return;
     }
     loadEventsForSelectedDay();
-  }, [connected, loadEventsForSelectedDay]);
+  }, [connected, loadEvents, loadEventsForSelectedDay]);
 
   return {
     selectedDate,
@@ -106,7 +110,7 @@ export function useCalendar() {
     refreshStatus,
     connectGoogleCalendar,
     disconnectGoogleCalendar,
-    reloadEvents: loadEventsForSelectedDay
+    reloadEvents: loadEventsForSelectedDay,
   };
 }
 

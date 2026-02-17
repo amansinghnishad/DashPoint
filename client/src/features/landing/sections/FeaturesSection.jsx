@@ -1,6 +1,5 @@
 import {
   Calendar,
-  CloudSun,
   FileText,
   Globe,
   LayoutGrid,
@@ -26,11 +25,6 @@ const features = [
     icon: Youtube,
     title: "Media",
     description: "Keep focus with an embedded YouTube player.",
-  },
-  {
-    icon: CloudSun,
-    title: "Weather",
-    description: "Quick forecast without leaving your dashboard.",
   },
   {
     icon: Timer,

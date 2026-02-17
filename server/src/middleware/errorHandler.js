@@ -1,12 +1,5 @@
 const mongoose = require('mongoose');
 
-// notFound middleware
-const notFound = (req, res, next) => {
-  const error = new Error(`Not Found - ${req.originalUrl}`);
-  res.status(404);
-  next(error);
-};
-
 // errorHandler middleware
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
@@ -49,11 +42,6 @@ const errorHandler = (err, req, res, next) => {
     message: error.message || 'Server Error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
-};
-
-// asyncHandler function (to avoid try-catch in every controller)
-const asyncHandler = (fn) => (req, res, next) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 module.exports = errorHandler;

@@ -7,12 +7,11 @@ import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/Floatin
 import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 
-const WidgetsLayout = lazy(() => import("../layouts/WidgetsLayout"));
 const CollectionsHome = lazy(() => import("./Home/CollectionsHome"));
 const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./Youtube"));
 const FileManagerPage = lazy(() => import("./FileManager"));
-const CalendarPage = lazy(() => import("./Calendar"));
+const CalendarPage = lazy(() => import("./CalendarPage"));
 const AIServicesBottomSearchBar = lazy(
   () => import("../../../shared/ui/AI/AIServicesBottomSearchBar")
 );
@@ -33,7 +32,6 @@ export default function DashboardPage() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [widgetsOpen, setWidgetsOpen] = useState(false);
 
   const onOpenCollection = useCallback((value) => {
     const id =
@@ -80,7 +78,6 @@ export default function DashboardPage() {
         onNotificationsOpen={() => setNotificationsOpen(true)}
         onSettingsOpen={() => setSettingsOpen(true)}
         onShortcutsOpen={() => setShortcutsOpen(true)}
-        onWidgetsOpen={() => setWidgetsOpen(true)}
       />
 
       <div className="lg:pl-16">
@@ -103,6 +100,8 @@ export default function DashboardPage() {
                   <p className="dp-text-muted text-sm truncate">
                     {activeTab === "collections"
                       ? "Collections"
+                      : activeTab === "calendar"
+                      ? "Calendar"
                       : activeTab === "youtube"
                       ? "YouTube"
                       : activeTab === "files"
@@ -162,10 +161,6 @@ export default function DashboardPage() {
       >
         Shortcut help will be added here.
       </InfoModal>
-
-      <Suspense fallback={null}>
-        <WidgetsLayout open={widgetsOpen} onClose={() => setWidgetsOpen(false)} />
-      </Suspense>
 
       <FloatingInstallDownloadButtons />
     </div>
