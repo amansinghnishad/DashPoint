@@ -24,20 +24,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for content extraction (more resource intensive)
-const extractionLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // limit each IP to 50 extractions per hour
-  message: {
-    success: false,
-    message: 'Content extraction limit reached, please try again later.'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 module.exports = {
   generalLimiter,
-  authLimiter,
-  extractionLimiter
+  authLimiter
 };

@@ -1,11 +1,4 @@
-import {
-  CheckCircle2,
-  Calendar,
-  Github,
-  MessageSquare,
-  PanelsTopLeft,
-  Workflow,
-} from "@/shared/ui/icons";
+import { Calendar, Github, PanelsTopLeft } from "@/shared/ui/icons";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import SectionHeader from "../components/SectionHeader";
@@ -15,40 +8,42 @@ const MotionDiv = motion.div;
 
 const cards = [
   {
-    key: "github",
-    title: "GitHub",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    key: "Resize",
+    title: "Resize Panels",
+    description: "Easily resize and reorganize panels to fit your workflow.",
     icon: Github,
+    gif: "/resize-demo.gif", // 🔥 Change later
   },
   {
-    key: "workflows",
-    title: "Workflows",
-    description: "Placeholder panel - swap in your screenshot/image later.",
-    icon: Workflow,
-  },
-  {
-    key: "dashboard",
-    title: "Dashboards",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    key: "Collections",
+    title: "Collections",
+    description:
+      "Organize and manage your content in customizable collections.",
     icon: PanelsTopLeft,
+    gif: "/collections-demo.gif", // 🔥 Change later
   },
   {
-    key: "calendar",
+    key: "Calendar",
     title: "Calendar",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    description:
+      "Keep track of your schedule and upcoming deadlines effortlessly.",
     icon: Calendar,
+    gif: "/calendar-demo.gif", // 🔥 Change later
   },
 ];
 
 export default function ShowcaseSection() {
   const [hoveredKey, setHoveredKey] = useState(null);
   const reduceMotion = useReducedMotion();
+
   const [isWide, setIsWide] = useState(() => {
     if (typeof window === "undefined" || !window.matchMedia) return true;
     return window.matchMedia("(min-width: 769px)").matches;
   });
 
-  const activeKey = useMemo(() => hoveredKey ?? "dashboard", [hoveredKey]);
+  // ✅ Center card open by default
+  const defaultKey = "Collections";
+  const activeKey = hoveredKey ?? defaultKey;
   const hasActive = Boolean(activeKey);
 
   useEffect(() => {
@@ -65,54 +60,53 @@ export default function ShowcaseSection() {
     return {
       type: "spring",
       stiffness: 260,
-      damping: 32,
-      mass: 0.8,
+      damping: 30,
+      mass: 0.9,
     };
   }, [reduceMotion]);
 
   return (
-    <section id="showcase" className="bg-slate-50 py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="showcase" className="bg-slate-50 py-20">
+      <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
           title="Everything you need, right where you work"
-          description="DashPoint brings your content, planning, and key views into a single dashboard - fast to open, easy to scan, and built for momentum."
+          description="DashPoint brings your content, planning, and key views into a single dashboard."
         />
+
         <div className="mt-12">
-          <div
-            className="dp-expanding-cards"
-            aria-label="Interactive showcase cards"
-            onMouseLeave={() => setHoveredKey(null)}
-          >
+          <div className="flex gap-4" onMouseLeave={() => setHoveredKey(null)}>
             {cards.map((c) => (
               <MotionButton
                 key={c.key}
                 type="button"
-                className="dp-expanding-card group relative h-72 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 lg:h-[500px]"
-                aria-label={`${c.title} showcase card`}
+                className="relative h-[420px] overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-left shadow-sm focus:outline-none"
                 onMouseEnter={() => setHoveredKey(c.key)}
-                onFocus={() => setHoveredKey(c.key)}
-                onBlur={() => setHoveredKey(null)}
                 layout
                 style={{ flexBasis: 0 }}
                 animate={{
                   flexGrow: !isWide
                     ? 1
                     : activeKey === c.key
-                    ? 4
-                    : hasActive
-                    ? 0.65
-                    : 1,
+                      ? 4
+                      : hasActive
+                        ? 0.8
+                        : 1,
                 }}
                 transition={motionTransition}
               >
+                {/* Icon + Title */}
                 <div className="relative z-10 flex items-center gap-3">
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700">
                     <c.icon size={18} />
                   </span>
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {c.title}
+                  </h3>
                 </div>
 
+                {/* Expanding Content */}
                 <MotionDiv
-                  className="dp-expanding-card-details absolute inset-x-5 bottom-5 top-16"
+                  className="absolute inset-x-6 bottom-6 top-20"
                   initial={false}
                   animate={{
                     opacity: !isWide || activeKey === c.key ? 1 : 0,
@@ -128,16 +122,15 @@ export default function ShowcaseSection() {
                       !isWide || activeKey === c.key ? "auto" : "none",
                   }}
                 >
-                  <p className="text-sm leading-6 text-slate-600">
-                    {c.description}
-                  </p>
+                  <p className="text-sm text-slate-600">{c.description}</p>
 
+                  {/* GIF Preview */}
                   <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-                    <div className="grid aspect-[16/10] place-items-center">
-                      <span className="text-xs font-medium text-slate-500">
-                        Image placeholder
-                      </span>
-                    </div>
+                    <img
+                      src={c.gif} // 🔥 Change path anytime
+                      alt="Feature preview"
+                      className="aspect-[16/10] w-full object-cover transition-opacity duration-300"
+                    />
                   </div>
                 </MotionDiv>
               </MotionButton>

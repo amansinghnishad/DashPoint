@@ -104,7 +104,7 @@ export const getYouTubeErrorMessage = (error) => {
   }
 
   if (errorMessage.includes('quota')) {
-    return 'AI service temporarily unavailable due to usage limits. Please try again later.';
+    return 'Service temporarily unavailable due to usage limits. Please try again later.';
   }
 
   if (errorMessage.includes('network') || errorMessage.includes('timeout')) {

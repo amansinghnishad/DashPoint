@@ -91,10 +91,6 @@ exports.getCollectionWithItems = async (req, res, next) => {
               const YouTube = require('../models/YouTube');
               itemData = await YouTube.findOne({ _id: item.itemId, userId });
               break;
-            case 'content':
-              const ContentExtraction = require('../models/ContentExtraction');
-              itemData = await ContentExtraction.findOne({ _id: item.itemId, userId });
-              break;
             case 'file':
               const File = require('../models/File');
               itemData = await File.findOne({ _id: item.itemId, userId });

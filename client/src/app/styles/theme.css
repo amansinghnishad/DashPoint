@@ -67,8 +67,8 @@
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
   --dp-chat-bubble-user: rgb(15 23 42);
   --dp-chat-bubble-user-fg: rgb(255 255 255);
-  --dp-chat-bubble-ai: rgb(248 250 252);
-  --dp-chat-bubble-ai-fg: rgb(15 23 42);
+  --dp-chat-bubble-assistant: rgb(248 250 252);
+  --dp-chat-bubble-assistant-fg: rgb(15 23 42);
   --dp-chat-bubble-error: rgb(239 68 68 / 0.12);
   --dp-chat-bubble-error-fg: rgb(127 29 29);
   --dp-chat-avatar-bg: rgb(15 23 42 / 0.08);
@@ -117,14 +117,14 @@
   --dp-danger-border: rgb(239 68 68 / 0.2);
   --dp-danger-fg: rgb(254 202 202); /* red-200 */
 
-  --dp-resize-handle-bg: rgb(15 23 42/ 0.8);
+  --dp-resize-handle-bg: rgb(15 23 42/0.8);
 
   /* Chat UI */
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
   --dp-chat-bubble-user: rgb(255 255 255);
   --dp-chat-bubble-user-fg: rgb(15 23 42);
-  --dp-chat-bubble-ai: rgb(255 255 255 / 0.06);
-  --dp-chat-bubble-ai-fg: rgb(255 255 255);
+  --dp-chat-bubble-assistant: rgb(255 255 255 / 0.06);
+  --dp-chat-bubble-assistant-fg: rgb(255 255 255);
   --dp-chat-bubble-error: rgb(239 68 68 / 0.18);
   --dp-chat-bubble-error-fg: rgb(254 202 202);
   --dp-chat-avatar-bg: rgb(255 255 255 / 0.08);
@@ -183,8 +183,8 @@
 }
 
 .dp-chat-bubble-assistant {
-  background-color: var(--dp-chat-bubble-ai);
-  color: var(--dp-chat-bubble-ai-fg);
+  background-color: var(--dp-chat-bubble-assistant);
+  color: var(--dp-chat-bubble-assistant-fg);
   border: 1px solid var(--dp-border);
 }
 
@@ -448,4 +448,19 @@ body {
 :root[data-theme="dark"] .dp-glow,
 :root:not([data-theme]) .dp-glow {
   opacity: var(--dp-glow-opacity);
+}
+/* -------------------------------- */
+/* HERO VISUAL FILTER CONTROL */
+/* -------------------------------- */
+
+/* Default (dark mode) – black & white cinematic */
+:root:not([data-theme="light"]) .dp-hero-visual img,
+:root:not([data-theme="light"]) .dp-hero-visual video {
+  filter: grayscale(1) contrast(1.05) brightness(0.85);
+}
+
+/* Light mode – normal colorful */
+:root[data-theme="light"] .dp-hero-visual img,
+:root[data-theme="light"] .dp-hero-visual video {
+  filter: none;
 }

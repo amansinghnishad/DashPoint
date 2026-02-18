@@ -14,7 +14,7 @@ const collectionSchema = new mongoose.Schema({
   },
   color: {
     type: String,
-    default: '#3B82F6', // Default blue color
+    default: '#3B82F6',
     match: [/^#[0-9A-F]{6}$/i, 'Color must be a valid hex color']
   },
   icon: {
@@ -31,7 +31,7 @@ const collectionSchema = new mongoose.Schema({
     itemType: {
       type: String,
       required: true,
-      enum: ['youtube', 'content', 'file', 'planner']
+      enum: ['youtube', 'file', 'planner']
     },
     itemId: {
       type: String,
@@ -57,6 +57,15 @@ const collectionSchema = new mongoose.Schema({
   layouts: {
     type: mongoose.Schema.Types.Mixed,
     default: null
+  },
+  embedding: {
+    type: [Number], default: undefined
+  },
+  embeddingModel: {
+    type: String, default: "text-embedding-3-small"
+  },
+  embeddingUpdatedAt: {
+    type: Date, default: null
   }
 }, {
   timestamps: true

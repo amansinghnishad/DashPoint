@@ -50,25 +50,21 @@ const youtubeSchema = new mongoose.Schema({
   isFavorite: {
     type: Boolean,
     default: false
-  },  // AI summarization fields
-  aiSummary: {
-    type: String,
-    maxlength: 5000 // Increased from 2000 to 5000 characters
-  },
-  summaryGenerated: {
-    type: Boolean,
-    default: false
-  },
-  summaryLength: {
-    type: String,
-    enum: ['short', 'medium', 'long'],
-    default: 'medium'
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
     index: true
+  },
+  embedding: {
+    type: [Number], default: undefined
+  },
+  embeddingModel: {
+    type: String, default: "text-embedding-3-small"
+  },
+  embeddingUpdatedAt: {
+    type: Date, default: null
   }
 }, {
   timestamps: true

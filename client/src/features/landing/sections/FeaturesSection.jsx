@@ -1,83 +1,72 @@
-import {
-  Calendar,
-  FileText,
-  Globe,
-  LayoutGrid,
-  Lock,
-  Timer,
-  Youtube,
-  Zap,
-} from "@/shared/ui/icons";
+import { Calendar, FileText, Youtube, Zap } from "@/shared/ui/icons";
+
 import SectionHeader from "../components/SectionHeader";
 
 const features = [
   {
-    icon: LayoutGrid,
-    title: "Custom dashboard",
-    description: "Arrange widgets the way you work best.",
-  },
-  {
-    icon: FileText,
-    title: "Content extraction",
-    description: "Turn web pages into saved, readable content.",
+    icon: Calendar,
+    title: "Smart Calendar",
+    description:
+      "Track events, deadlines, and daily plans in one organized view.",
+    gradient: "from-blue-200 via-blue-100 to-indigo-50",
   },
   {
     icon: Youtube,
-    title: "Media",
-    description: "Keep focus with an embedded YouTube player.",
+    title: "YouTube Integration",
+    description: "Embed and manage videos directly inside your workspace.",
+    gradient: "from-red-200 via-rose-100 to-red-50",
   },
   {
-    icon: Timer,
-    title: "Time & focus",
-    description: "Utilities that keep your day moving.",
-  },
-  {
-    icon: Calendar,
-    title: "Calendar",
-    description: "Track events and upcoming deadlines.",
-  },
-  {
-    icon: Lock,
-    title: "Secure",
-    description: "Auth-aware API calls with token handling.",
-  },
-  {
-    icon: Globe,
-    title: "Cross-device",
-    description: "Responsive UI for desktop and mobile.",
+    icon: FileText,
+    title: "File Management",
+    description: "Upload, organize, and access important files anytime.",
+    gradient: "from-amber-200 via-yellow-100 to-amber-50",
   },
   {
     icon: Zap,
-    title: "Fast",
-    description: "Lightweight UI optimized for speed.",
+    title: "AI Chat Assistant",
+    description:
+      "Ask, plan, and generate ideas instantly with built-in AI chat.",
+    gradient: "from-purple-200 via-violet-100 to-purple-50",
   },
 ];
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="bg-white py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="features" className="bg-white py-24">
+      <div className="mx-auto max-w-6xl px-6">
         <SectionHeader
-          title="Everything you need, in one place"
-          description="A focused set of widgets and tools that cover daily workflow without the clutter."
+          title="Tools to Nurture Your Ideas"
+          description="A focused set of tools to capture, organize, and execute your ideas beautifully."
         />
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((f) => (
+        <div className="mt-16 grid gap-8 sm:grid-cols-2">
+          {features.map((feature) => (
             <div
-              key={f.title}
-              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"
+              key={feature.title}
+              className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${feature.gradient} p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
             >
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-700">
-                  <f.icon size={18} />
+              {/* 🪨 Grain */}
+              <div className="pointer-events-none absolute inset-0 dp-noise opacity-30" />
+
+              {/* 🌑 Dark Texture */}
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.08),transparent_60%)]" />
+
+              {/* Content */}
+              <div className="relative z-10 flex items-start gap-5">
+                {/* Icon Left */}
+                <div className="rounded-xl  p-4 shrink-0">
+                  <feature.icon size={24} className="text-slate-800" />
                 </div>
+
+                {/* Text Right */}
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    {f.title}
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    {feature.title}
                   </h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {f.description}
+
+                  <p className="mt-2 text-sm leading-6 text-slate-700">
+                    {feature.description}
                   </p>
                 </div>
               </div>

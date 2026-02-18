@@ -5,7 +5,7 @@ import SectionHeader from "../components/SectionHeader";
 const included = [
   "Clock and calendar widgets",
   "Planner widgets",
-  "Content extraction and saved items",
+  "Saved notes and files",
   "YouTube player widget",
   "Secure auth + API access",
 ];

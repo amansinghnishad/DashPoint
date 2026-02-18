@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const PLANNER_WIDGET_TYPES = [
-  'top-priorities',
+
   'todo-list',
   'appointments',
   'daily-schedule',
-  'goals',
+
   'notes',
   'notes-tomorrow',
 ];
@@ -33,6 +33,15 @@ const plannerWidgetSchema = new mongoose.Schema(
     data: {
       type: mongoose.Schema.Types.Mixed,
       default: {}
+    },
+    embedding: {
+      type: [Number], default: undefined
+    },
+    embeddingModel: {
+      type: String, default: "text-embedding-3-small"
+    },
+    embeddingUpdatedAt: {
+      type: Date, default: null
     }
   },
   {

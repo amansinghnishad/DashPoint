@@ -12,8 +12,8 @@ const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./Youtube"));
 const FileManagerPage = lazy(() => import("./FileManager"));
 const CalendarPage = lazy(() => import("./CalendarPage"));
-const AIServicesBottomSearchBar = lazy(
-  () => import("../../../shared/ui/AI/AIServicesBottomSearchBar")
+const DashboardChatBar = lazy(
+  () => import("../../../shared/ui/Chat/DashboardChatBar"),
 );
 
 function ContentFallback() {
@@ -101,12 +101,12 @@ export default function DashboardPage() {
                     {activeTab === "collections"
                       ? "Collections"
                       : activeTab === "calendar"
-                      ? "Calendar"
-                      : activeTab === "youtube"
-                      ? "YouTube"
-                      : activeTab === "files"
-                      ? "File Manager"
-                      : ""}
+                        ? "Calendar"
+                        : activeTab === "youtube"
+                          ? "YouTube"
+                          : activeTab === "files"
+                            ? "File Manager"
+                            : ""}
                   </p>
                 </div>
               </div>
@@ -122,17 +122,7 @@ export default function DashboardPage() {
       </div>
 
       <Suspense fallback={null}>
-        <AIServicesBottomSearchBar
-          onCommand={(cmd) => {
-            if (cmd === "schedule" || cmd === "meeting") {
-              setActiveTab("calendar");
-              return;
-            }
-            if (cmd === "todo" || cmd === "notes") {
-              setActiveTab("collections");
-            }
-          }}
-        />
+        <DashboardChatBar />
       </Suspense>
 
       <InfoModal
@@ -166,4 +156,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

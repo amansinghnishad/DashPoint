@@ -49,10 +49,9 @@ Default URL: `http://localhost:5000`
 Mounted in `src/server.js`:
 
 - `/api/auth`
-- `/api/content-extraction`
 - `/api/youtube`
 - `/api/collections`
-- `/api/ai`
+- `/api/chat`
 - `/api/files`
 - `/api/planner-widgets`
 - `/api/calendar`
@@ -80,10 +79,8 @@ Rate limiting:
 - `RATE_LIMIT_WINDOW_MS`
 - `RATE_LIMIT_MAX_REQUESTS`
 
-AI services:
-
-- `HUGGING_FACE_TOKEN`
-- `TEXTRAZOR_API_KEY`
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL`
 
 Google OAuth / Calendar:
 
@@ -104,10 +101,8 @@ Cloudinary:
 - `CLOUDINARY_API_SECRET`
 - `CLOUDINARY_FOLDER`
 
-Extraction/uploads:
+Uploads:
 
-- `MAX_CONTENT_LENGTH`
-- `REQUEST_TIMEOUT`
 - `MAX_FILE_SIZE`
 
 ## Folder Layout

@@ -33,8 +33,6 @@ const getTypeIcon = (itemType) => {
   switch (itemType) {
     case "youtube":
       return Youtube;
-    case "content":
-      return FileText;
     case "file":
       return FileText;
     case "photo":

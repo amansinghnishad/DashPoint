@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, Play, Shield, Sparkles, Zap } from "@/shared/ui/icons";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 const reducedMotionPreferred = () => {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -8,167 +7,212 @@ const reducedMotionPreferred = () => {
 };
 
 export default function HeroSection() {
+  const sectionRef = useRef(null);
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   const canAutoplay = useMemo(() => !reducedMotionPreferred(), []);
 
+  /* ---------------- Framer Scroll ---------------- */
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -300]);
+  const textX = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const textRotate = useTransform(scrollYProgress, [0, 1], [0, -4]);
+
+  const blurValue = useTransform(scrollYProgress, [0, 1], [0, 8]);
+  const blurFilter = useTransform(blurValue, (v) => `blur(${v}px)`);
+
+  /* ---------------- Autoplay Video ---------------- */
   useEffect(() => {
     if (!canAutoplay) return;
     const video = videoRef.current;
     if (!video) return;
 
-    const t = window.setTimeout(() => {
-      video
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
+    const t = setTimeout(() => {
+      video.play().catch(() => {});
     }, 100);
 
-    return () => window.clearTimeout(t);
+    return () => clearTimeout(t);
   }, [canAutoplay]);
 
-  const onTogglePlay = async () => {
-    const video = videoRef.current;
-    if (!video) return;
+  /* ---------------- Mobile Detection ---------------- */
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    const updateIsMobile = () => setIsMobile(media.matches);
+    updateIsMobile();
 
-    try {
-      if (video.paused) {
-        await video.play();
-        setIsPlaying(true);
-      } else {
-        video.pause();
-        setIsPlaying(false);
+    media.addEventListener
+      ? media.addEventListener("change", updateIsMobile)
+      : media.addListener(updateIsMobile);
+
+    return () => {
+      media.removeEventListener
+        ? media.removeEventListener("change", updateIsMobile)
+        : media.removeListener(updateIsMobile);
+    };
+  }, []);
+
+  /* ---------------- Scroll Background Effects ---------------- */
+  useEffect(() => {
+    const updateProgress = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const rect = section.getBoundingClientRect();
+      const totalScrollable = rect.height - window.innerHeight;
+
+      if (totalScrollable <= 0) {
+        setScrollProgress(0);
+        return;
       }
-    } catch {
-      setIsPlaying(false);
-    }
-  };
+
+      const progress = Math.min(
+        Math.max((-rect.top / totalScrollable) * 1.05, 0),
+        1,
+      );
+
+      setScrollProgress(progress);
+    };
+
+    let rafId = null;
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        updateProgress();
+        rafId = null;
+      });
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateProgress);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  const bgScale = 1 + scrollProgress * (isMobile ? 0.1 : 0.16);
+  const parallaxDriftY = scrollProgress * (isMobile ? 10 : 18);
+  const vignetteOpacity = 0.2 + scrollProgress * 0.45;
 
   return (
     <section
       id="hero"
-      className="relative flex min-h-[100vh] overflow-hidden bg-slate-950"
+      ref={sectionRef}
+      className="relative overflow-clip bg-slate-950"
+      style={{ height: isMobile ? "170vh" : "200vh" }}
     >
-      <div
-        className="dp-glow pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      >
-        <div className="absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-indigo-600/40 blur-3xl" />
-        <div className="absolute -bottom-24 right-[-10rem] h-72 w-[36rem] rounded-full bg-amber-400/20 blur-3xl" />
-      </div>
+      <div className="sticky top-0 h-screen overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-black" />
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pb-20">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div>
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl text-white">
-              One place for your
-              <span className="block text-white/90">tasks and content</span>
-            </h1>
-            <p className="mt-5 text-base leading-7 sm:text-lg text-white/70">
-              DashPoint brings your daily tools into a fast, clean workspace.
-              Plan your day, extract content, and stay organized-without
-              juggling tabs.
-            </p>
+        {/* Background Image */}
+        <div
+          className="dp-hero-visual absolute inset-0"
+          style={{
+            transform: `scale(${bgScale}) translateY(${scrollProgress * -12}px)`,
+          }}
+        >
+          <picture>
+            <source media="(max-width: 768px)" srcSet="/bg/mobileBg.png" />
+            <img
+              src="/bg/bg.png"
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </picture>
+        </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                to="/register"
-                className="dp-btn-primary inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold shadow-sm"
-              >
-                Get started
-                <ArrowRight size={16} className="ml-2" />
-              </Link>
+        {/* Foreground */}
+        <div
+          className="dp-hero-visual pointer-events-none absolute inset-0"
+          style={{ transform: `translateY(${parallaxDriftY}px)` }}
+        >
+          <picture>
+            <source
+              media="(max-width: 768px)"
+              srcSet="/bg/mobileParallex.png"
+            />
+            <img
+              src="/bg/parallex.png"
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </picture>
+        </div>
 
-              <button
-                type="button"
-                onClick={onTogglePlay}
-                className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                <Play size={16} className="mr-2" />
-                {isPlaying ? "Pause demo" : "Watch demo"}
-              </button>
-            </div>
+        {/* Layout */}
+        <div className="absolute inset-0 z-30 flex items-center justify-center px-8 md:px-16">
+          <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between gap-12">
+            {/* Text */}
+            <motion.div
+              className="flex-1"
+              style={{
+                y: textY,
+                x: textX,
+                opacity: textOpacity,
+                rotate: textRotate,
+                filter: blurFilter,
+              }}
+            >
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white">
+                One place for your
+                <span className="block text-blue-400">tasks and content</span>
+              </h1>
 
-            <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <Zap size={16} className="text-amber-300" />
-                  Fast
-                </div>
-                <p className="mt-2 text-sm text-white/70">
-                  Optimized for quick daily use.
-                </p>
+              <p className="mt-6 text-base md:text-lg text-white/80 leading-relaxed max-w-xl">
+                DashPoint brings your daily tools into a fast, clean workspace.
+                Plan your day, extract content, and stay organized — without
+                juggling tabs.
+              </p>
+
+              <div className="mt-8 flex gap-4 flex-wrap">
+                <button className="dp-btn-hero px-7 py-3 rounded-full font-medium">
+                  Get started
+                </button>
+                <button className="dp-btn-secondary px-7 py-3 rounded-full font-medium">
+                  Pause demo
+                </button>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <Shield size={16} className="text-amber-300" />
-                  Secure
-                </div>
-                <p className="mt-2 text-sm text-white/70">
-                  Token-based auth and API access.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                  <Sparkles size={16} className="text-amber-300" />
-                  Flexible
-                </div>
-                <p className="mt-2 text-sm text-white/70">
-                  Build your dashboard your way.
-                </p>
-              </div>
-            </div>
-          </div>
+            </motion.div>
 
-          <div className="relative">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl">
-              <div className="relative aspect-video overflow-hidden rounded-2xl bg-black">
-                <video
-                  ref={videoRef}
-                  className="h-full w-full object-cover"
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                >
-                  <source src="/2.mp4" type="video/mp4" />
-                </video>
-                {!isPlaying ? (
-                  <button
-                    type="button"
-                    onClick={onTogglePlay}
-                    className="absolute inset-0 grid place-items-center"
-                    aria-label="Play demo"
+            {/* Screen */}
+            <div className="flex-1 flex justify-center">
+              <div className="w-[90%] md:w-[520px] shadow-2xl">
+                <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                  <video
+                    ref={videoRef}
+                    className="h-full w-full object-cover"
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    preload="metadata"
                   >
-                    <span
-                      className={`inline-flex items-center justify-center rounded-full p-4 backdrop-blur ${"bg-white/15 hover:bg-white/20"}`}
-                    >
-                      <Play size={28} className="text-white" />
-                    </span>
-                  </button>
-                ) : null}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-sm font-semibold text-white">Widgets</p>
-                  <p className="mt-1 text-sm text-white/70">
-                    Calendar, planner, YouTube.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-sm font-semibold text-white">
-                    Content extraction
-                  </p>
-                  <p className="mt-1 text-sm text-white/70">
-                    Save structured summaries fast.
-                  </p>
+                    <source src="/whi1.mp4" type="video/mp4" />
+                    <source src="/1.mp4" type="video/mp4" />
+                  </video>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Vignette */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50"
+          style={{ opacity: vignetteOpacity }}
+        />
       </div>
     </section>
   );
