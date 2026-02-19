@@ -1,6 +1,6 @@
 import { Calendar, Github, PanelsTopLeft } from "@/shared/ui/icons";
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SectionHeader from "../components/SectionHeader";
 
 const MotionDiv = motion.div;
@@ -34,6 +34,37 @@ const cards = [
   },
 ];
 
+function VideoPreview({ src, isActive }) {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [isActive]);
+
+  return (
+    <motion.video
+      ref={videoRef}
+      src={src}
+      loop
+      muted
+      playsInline
+      preload="metadata"
+      className="absolute inset-0 h-full w-full object-cover"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isActive ? 1 : 0 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+    />
+  );
+}
+
 export default function ShowcaseSection() {
   const [hoveredKey, setHoveredKey] = useState(null);
   const reduceMotion = useReducedMotion();
@@ -57,26 +88,26 @@ export default function ShowcaseSection() {
     if (reduceMotion) return { duration: 0 };
     return {
       type: "spring",
-      stiffness: 260,
-      damping: 30,
-      mass: 0.9,
+      stiffness: 280,
+      damping: 34,
+      mass: 0.65,
     };
   }, [reduceMotion]);
 
   return (
     <section
       id="showcase"
-      className="lg:h-[85vh] md:h-auto dp-bg dp-showcase-bg relative overflow-hidden py-12 sm:py-14 md:py-16"
+      className="dp-bg dp-showcase-bg relative overflow-hidden py-20 md:py-24"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">
+      <div className="mx-auto max-w-7xl px-6">
         <SectionHeader
           title="Everything you need, right where you work"
           description="DashPoint brings your content, planning, and key views into a single dashboard."
         />
 
-        <div className="mt-8 sm:mt-10 md:mt-12">
+        <div className="mt-14">
           <div
-            className="flex flex-col gap-4 sm:gap-5 md:flex-row md:gap-6"
+            className="flex flex-col gap-6 md:flex-row"
             onMouseLeave={() => setHoveredKey(null)}
           >
             {cards.map((c) => {
@@ -89,53 +120,62 @@ export default function ShowcaseSection() {
                   onMouseEnter={() => isWide && setHoveredKey(c.key)}
                   style={{ flexBasis: 0 }}
                   animate={{
-                    flexGrow: !isWide ? 1 : isActive ? 4 : hoveredKey ? 0.9 : 1,
+                    flexGrow: !isWide
+                      ? 1
+                      : isActive
+                        ? 3.2
+                        : hoveredKey
+                          ? 0.9
+                          : 1,
                   }}
                   transition={motionTransition}
-                  className="flex min-h-[400px] flex-col rounded-3xl border dp-border dp-surface shadow-sm transition-shadow duration-300 hover:shadow-xl sm:min-h-[430px] md:min-h-[470px]"
+                  className="flex flex-col rounded-3xl border dp-border dp-surface shadow-sm transition-shadow duration-200 hover:shadow-xl"
                 >
-                  {/* Header */}
-                  <div className="flex items-center gap-3 px-4 pt-4 sm:gap-4 sm:px-5 sm:pt-5 md:px-6 md:pt-6">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border dp-border dp-surface-muted dp-text sm:h-12 sm:w-12">
-                      <c.icon size={20} />
-                    </span>
-                    <h3 className="text-base font-semibold tracking-tight dp-text sm:text-lg">
-                      {c.title}
-                    </h3>
+                  {/* HEADER */}
+                  <div className="px-6 pt-6">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border dp-border dp-surface-muted dp-text">
+                        <c.icon size={20} />
+                      </span>
+                      <h3 className="text-lg font-semibold tracking-tight dp-text">
+                        {c.title}
+                      </h3>
+                    </div>
+
+                    {(!isWide || isActive) && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="mt-4 max-w-sm text-sm dp-text-muted"
+                      >
+                        {c.description}
+                      </motion.p>
+                    )}
                   </div>
 
-                  {/* Description */}
-                  {(!isWide || isActive) && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="max-w-full px-4 pt-2 text-sm dp-text-muted sm:max-w-sm sm:px-5 sm:pt-3 md:px-6"
-                    >
-                      {c.description}
-                    </motion.p>
-                  )}
+                  {/* MEDIA */}
+                  <div className="mt-6 px-6 pb-6 flex-1">
+                    <div className="relative h-[260px] md:h-[340px] w-full overflow-hidden rounded-2xl border dp-border dp-surface-muted">
+                      {/* IMAGE LAYER */}
+                      <motion.img
+                        src={c.image}
+                        alt={c.title}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        animate={{
+                          opacity: isWide && isActive ? 0 : 1,
+                          scale: isWide && isActive ? 1.02 : 1,
+                        }}
+                        transition={{
+                          duration: 0.2,
+                          ease: "easeOut",
+                        }}
+                      />
 
-                  {/* Media */}
-                  <div className="mt-3 px-4 pb-4 sm:mt-4 sm:px-5 sm:pb-5 md:px-6 md:pb-6">
-                    <div className="relative h-52 w-full overflow-hidden rounded-2xl border dp-border dp-surface-muted sm:h-56 md:h-72 lg:h-85">
-                      {isWide && isActive ? (
-                        <video
-                          src={c.video}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          preload="none"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <img
-                          src={c.image}
-                          alt={c.title}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-700 md:hover:scale-105"
-                        />
+                      {/* VIDEO LAYER */}
+                      {isWide && (
+                        <VideoPreview src={c.video} isActive={isActive} />
                       )}
                     </div>
                   </div>

@@ -1,192 +1,43 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import DashboardPageLayout from "../layouts/DashboardPageLayout";
-import { useToast } from "../../../hooks/useToast";
-import fileService from "../../../services/modules/fileService";
 import AddToCollectionModal from "../../../shared/ui/modals/AddToCollectionModal";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 import { IconAdd, IconDelete } from "@/shared/ui/icons";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const SERVER_BASE_URL = API_BASE_URL.replace(/\/?api\/?$/, "");
-
-const resolveFileUrl = (serverBaseUrl, url) => {
-  if (!url) return null;
-  if (/^https?:\/\//i.test(url)) return url;
-  return `${serverBaseUrl}${url}`;
-};
-
-const isProbablyText = (mime) => {
-  if (!mime) return false;
-  return (
-    mime.startsWith("text/") ||
-    mime === "application/json" ||
-    mime === "application/xml" ||
-    mime === "application/javascript"
-  );
-};
+import { FILE_MANAGER_ACCEPT } from "./fileManager/fileManager.helpers";
+import { useFileManager } from "./fileManager/useFileManager";
 
 export default function FileManagerPage() {
-  const toast = useToast();
-  const [search, setSearch] = useState("");
-  const [items, setItems] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [textPreview, setTextPreview] = useState(null);
-  const [isBusy, setIsBusy] = useState(false);
-  const [addToCollectionItem, setAddToCollectionItem] = useState(null);
-  const [deleteItem, setDeleteItem] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const {
+    state: {
+      search,
+      items,
+      selected,
+      selectedId,
+      textPreview,
+      isBusy,
+      addToCollectionItem,
+      deleteItem,
+      isDeleting,
+    },
+    actions: {
+      setSearch,
+      setSelectedId,
+      setAddToCollectionItem,
+      setDeleteItem,
+      uploadSelectedFiles,
+      removeFile,
+      downloadSelectedFile,
+    },
+  } = useFileManager();
 
   const fileInputRef = useRef(null);
 
-  const selected = useMemo(
-    () => items.find((x) => x.id === selectedId) || null,
-    [items, selectedId]
-  );
-
-  const loadFiles = useCallback(async () => {
-    try {
-      setIsBusy(true);
-      const res = await fileService.getFiles({ page: 1, limit: 50 });
-      if (!res?.success) {
-        throw new Error(res?.error || res?.message || "Failed to load files");
-      }
-
-      const mapped = (res.data || []).map((f) => ({
-        id: f._id,
-        title: f.originalName,
-        subtitle: f.formattedSize || "",
-        type: "file",
-        mime: f.mimetype,
-        remoteUrl: resolveFileUrl(SERVER_BASE_URL, f.url),
-        downloadUrl: f._id
-          ? `${SERVER_BASE_URL}/api/files/${f._id}/download`
-          : null,
-        _raw: f,
-      }));
-
-      setItems(mapped);
-      setSelectedId((prev) => prev || mapped?.[0]?.id || null);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || err?.message || "Failed to load files";
-      toast.error(message);
-    } finally {
-      setIsBusy(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
-
-  const onPickFiles = useCallback(
-    async (e) => {
-      // Copy files before clearing the input. In some browsers the FileList becomes
-      // empty after resetting the input value.
-      const files = Array.from(e.target.files || []);
-      // allow picking same file again
-      e.target.value = "";
-      if (!files.length) return;
-
-      try {
-        setIsBusy(true);
-        const res = await fileService.uploadFiles(files);
-        if (!res?.success) {
-          throw new Error(res?.error || res?.message || "Upload failed");
-        }
-
-        const uploaded = (res.data || []).map((f) => ({
-          id: f._id,
-          title: f.originalName,
-          subtitle: f.formattedSize || "",
-          type: "file",
-          mime: f.mimetype,
-          remoteUrl: resolveFileUrl(SERVER_BASE_URL, f.url),
-          downloadUrl: f._id
-            ? `${SERVER_BASE_URL}/api/files/${f._id}/download`
-            : null,
-          _raw: f,
-        }));
-
-        setItems((prev) => {
-          const existingIds = new Set(prev.map((x) => x.id));
-          const nextUploads = uploaded.filter((u) => !existingIds.has(u.id));
-          return [...nextUploads, ...prev];
-        });
-        setSelectedId(uploaded?.[0]?.id || selectedId);
-        toast.success("File(s) uploaded.");
-      } catch (err) {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to upload files";
-        toast.error(message);
-      } finally {
-        setIsBusy(false);
-      }
-    },
-    [selectedId, toast]
-  );
-
-  useEffect(() => {
-    const loadText = async () => {
-      if (!selected || selected.type !== "file") {
-        setTextPreview(null);
-        return;
-      }
-
-      if (!isProbablyText(selected.mime)) {
-        setTextPreview(null);
-        return;
-      }
-
-      try {
-        if (selected.remoteUrl) {
-          const resp = await fetch(selected.remoteUrl);
-          if (!resp.ok) throw new Error("Failed to fetch file");
-          const text = await resp.text();
-          setTextPreview(text);
-        } else {
-          setTextPreview(null);
-        }
-      } catch {
-        setTextPreview(null);
-      }
-    };
-
-    loadText();
-  }, [selected]);
-
-  const confirmDelete = useCallback(async () => {
-    const id = deleteItem?.id;
-    if (!id) return;
-
-    try {
-      setIsDeleting(true);
-      const res = await fileService.deleteFile(id);
-      if (!res?.success) {
-        throw new Error(res?.error || res?.message || "Delete failed");
-      }
-
-      setItems((prev) => {
-        const remaining = prev.filter((x) => x.id !== id);
-        setSelectedId((prevSelected) =>
-          prevSelected === id ? remaining?.[0]?.id || null : prevSelected
-        );
-        return remaining;
-      });
-
-      toast.success("File deleted.");
-      setDeleteItem(null);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || err?.message || "Failed to delete file";
-      toast.error(message);
-    } finally {
-      setIsDeleting(false);
-    }
-  }, [deleteItem?.id, toast]);
+  const onPickFiles = async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!files.length) return;
+    await uploadSelectedFiles(files);
+  };
 
   const viewer = selected ? (
     <div className="p-4">
@@ -221,13 +72,14 @@ export default function FileManagerPage() {
               <p className="dp-text-muted mt-1 text-sm">
                 This file type can't be previewed yet.
               </p>
-              {selected.downloadUrl ? (
-                <a
-                  href={selected.downloadUrl}
+              {selected.id ? (
+                <button
+                  type="button"
+                  onClick={downloadSelectedFile}
                   className="dp-text mt-3 inline-block text-sm underline"
                 >
                   Download
-                </a>
+                </button>
               ) : null}
             </div>
           )}
@@ -251,7 +103,7 @@ export default function FileManagerPage() {
         multiple
         className="hidden"
         onChange={onPickFiles}
-        accept="image/*,application/pdf,text/*,.md,.json,.csv"
+        accept={FILE_MANAGER_ACCEPT}
       />
 
       <DashboardPageLayout
@@ -261,7 +113,6 @@ export default function FileManagerPage() {
         addLabel="Add"
         onAdd={() => {
           if (!fileInputRef.current) {
-            toast.error("File picker not available.");
             return;
           }
           fileInputRef.current.click();
@@ -294,7 +145,7 @@ export default function FileManagerPage() {
                 type="button"
                 className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:opacity-60"
                 disabled={disabled}
-                onClick={async (e) => {
+                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (!it?.id) return;
@@ -334,7 +185,7 @@ export default function FileManagerPage() {
           if (isDeleting) return;
           setDeleteItem(null);
         }}
-        onConfirm={confirmDelete}
+        onConfirm={removeFile}
         title={
           deleteItem?.title ? `Delete: ${deleteItem.title}` : "Delete file"
         }

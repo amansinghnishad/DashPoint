@@ -147,10 +147,10 @@ export default function CollectionPickerModal({
               {busy
                 ? "Working..."
                 : isCreateMode
-                ? tool === "file" || tool === "photo"
-                  ? "Upload & Add"
-                  : "Create & Add"
-                : "Add"}
+                  ? tool === "file" || tool === "photo"
+                    ? "Upload & Add"
+                    : "Create & Add"
+                  : "Add"}
             </button>
           </div>
         </div>
