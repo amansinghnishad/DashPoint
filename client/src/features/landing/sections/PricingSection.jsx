@@ -3,9 +3,9 @@ import { Check, Sparkles } from "@/shared/ui/icons";
 import SectionHeader from "../components/SectionHeader";
 
 const included = [
-  "Clock, weather, and calendar widgets",
+  "Clock and calendar widgets",
   "Planner widgets",
-  "Content extraction and saved items",
+  "Saved notes and files",
   "YouTube player widget",
   "Secure auth + API access",
 ];
@@ -60,7 +60,8 @@ export default function PricingSection() {
               Pro (coming soon)
             </h3>
             <p className="mt-1 text-sm text-slate-600">
-              Advanced productivity features, collaboration, and deeper insights.
+              Advanced productivity features, collaboration, and deeper
+              insights.
             </p>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">

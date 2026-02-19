@@ -11,14 +11,12 @@ const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-const contentExtractionRoutes = require('./routes/contentExtractionRoutes');
-const weatherRoutes = require('./routes/weatherRoutes');
 const youtubeRoutes = require('./routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
-const aiServicesRoutes = require('./routes/aiServicesRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -120,11 +118,10 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
-      'content-extraction': '/api/content-extraction', weather: '/api/weather',
       youtube: '/api/youtube',
       collections: '/api/collections',
-      ai: '/api/ai',
-      files: '/api/files'
+      files: '/api/files',
+      chat: '/api/chat'
     },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
@@ -133,14 +130,12 @@ app.get('/', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/content-extraction', contentExtractionRoutes);
-app.use('/api/weather', weatherRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/collections', collectionRoutes);
-app.use('/api/ai', aiServicesRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/planner-widgets', plannerWidgetRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/chat', chatRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -156,9 +151,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-  console.log(`📊 Dashboard API available at http://localhost:${PORT}`);
-  console.log(`🏥 Health check at http://localhost:${PORT}/health`);
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  console.log(`Dashboard API available at http://localhost:${PORT}`);
+  console.log(`Health check at http://localhost:${PORT}/health`);
 });
 
 // Graceful shutdown
@@ -177,3 +172,4 @@ process.on('SIGINT', () => {
 });
 
 module.exports = app;
+

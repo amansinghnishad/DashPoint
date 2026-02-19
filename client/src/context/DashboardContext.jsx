@@ -6,7 +6,6 @@ import {
   useCallback,
 } from "react";
 import { collectionsAPI } from "../services/modules/collectionsApi";
-import { weatherAPI } from "../services/modules/weatherApi";
 import { youtubeAPI } from "../services/modules/youtubeApi";
 import { useActivity } from "../hooks/useActivity";
 
@@ -14,8 +13,6 @@ const DashboardContext = createContext();
 
 const dashboardReducer = (state, action) => {
   switch (action.type) {
-    case "SET_WEATHER":
-      return { ...state, weather: action.payload };
     case "SET_STATS":
       return { ...state, stats: action.payload };
     case "SET_LOADING":
@@ -34,13 +31,11 @@ const dashboardReducer = (state, action) => {
 };
 
 const initialState = {
-  weather: null,
   stats: {
     collections: 0,
     videos: 0,
   },
   loading: {
-    weather: false,
     stats: false,
   },
   error: null,
@@ -95,33 +90,6 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [loadStats]);
 
-  // setWeather function
-  const setWeather = (weatherData) => {
-    dispatch({ type: "SET_WEATHER", payload: weatherData });
-  };
-
-  // loadWeather function
-  const loadWeather = async (location) => {
-    try {
-      dispatch({
-        type: "SET_LOADING",
-        payload: { key: "weather", value: true },
-      });
-      const response = await weatherAPI.getCurrentWeather(location);
-      if (response.success) {
-        dispatch({ type: "SET_WEATHER", payload: response.data });
-      }
-    } catch (error) {
-      console.error("Failed to load weather:", error);
-      dispatch({ type: "SET_ERROR", payload: error.message });
-    } finally {
-      dispatch({
-        type: "SET_LOADING",
-        payload: { key: "weather", value: false },
-      });
-    }
-  };
-
   // Load dashboard data on mount
   useEffect(() => {
     loadDashboardData();
@@ -130,8 +98,6 @@ export const DashboardProvider = ({ children }) => {
     ...state,
     loadDashboardData,
     loadStats,
-    setWeather,
-    loadWeather,
     dispatch,
     addActivity,
     getRecentActivities,

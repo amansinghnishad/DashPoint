@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.venv
 dist
 dist-ssr
 *.local
@@ -29,3 +30,6 @@ dist-ssr
 .env.local
 .env.development.local
 .env.test.local
+
+uploads/*
+!uploads/.gitkeep

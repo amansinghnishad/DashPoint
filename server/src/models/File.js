@@ -72,7 +72,7 @@ const fileSchema = new mongoose.Schema({
   lastAccessed: {
     type: Date,
     default: Date.now
-  }
+  },
 }, {
   timestamps: true
 });

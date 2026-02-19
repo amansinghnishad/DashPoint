@@ -11,15 +11,17 @@ export default function SectionHeader({
       className={`${alignClass} max-w-3xl ${align === "left" ? "" : "mx-auto"}`}
     >
       {eyebrow ? (
-        <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-700 backdrop-blur">
+        <div className="inline-flex items-center rounded-full dp-border border dp-surface-muted px-3 py-1 text-xs font-medium dp-text-soft backdrop-blur">
           {eyebrow}
         </div>
       ) : null}
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+
+      <h2 className="mt-4 text-3xl font-semibold tracking-tight dp-text sm:text-4xl">
         {title}
       </h2>
+
       {description ? (
-        <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+        <p className="mt-4 text-base leading-7 dp-text-muted sm:text-lg">
           {description}
         </p>
       ) : null}

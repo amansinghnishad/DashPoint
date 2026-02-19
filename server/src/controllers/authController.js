@@ -83,7 +83,7 @@ exports.register = async (req, res, next) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: existingUser.email === email
+        message: existingUser.email === normalizedEmail
           ? 'User with this email already exists'
           : 'Username is already taken'
       });
@@ -185,18 +185,12 @@ exports.googleAuth = async (req, res, next) => {
       await user.save();
     } else {
       // Link account if it exists with same email
-      const shouldSave =
-        user.googleId !== googleId ||
-        user.authProvider !== 'google' ||
-        (!user.avatar && picture) ||
-        (emailVerified && !user.isEmailVerified);
-
       user.googleId = user.googleId || googleId;
       user.authProvider = 'google';
       if (!user.avatar && picture) user.avatar = picture;
       if (emailVerified) user.isEmailVerified = true;
       user.lastLogin = new Date();
-      if (shouldSave) await user.save();
+      await user.save();
     }
 
     const token = generateToken({
@@ -231,9 +225,10 @@ exports.login = async (req, res, next) => {
     }
 
     const { email, password } = req.body;
+    const normalizedEmail = String(email || '').toLowerCase().trim();
 
     // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
       return res.status(401).json({

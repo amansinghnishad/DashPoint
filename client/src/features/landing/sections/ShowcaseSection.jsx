@@ -1,63 +1,56 @@
-import {
-  CheckCircle2,
-  Calendar,
-  Github,
-  MessageSquare,
-  PanelsTopLeft,
-  Workflow,
-} from "@/shared/ui/icons";
+import { Calendar, Github, PanelsTopLeft } from "@/shared/ui/icons";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import SectionHeader from "../components/SectionHeader";
 
-const MotionButton = motion.button;
 const MotionDiv = motion.div;
 
 const cards = [
   {
-    key: "github",
-    title: "GitHub",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    key: "Resize",
+    title: "Resize Panels",
+    description: "Easily resize and reorganize panels to fit your workflow.",
     icon: Github,
+    image: "/showCase/resize.jpeg",
+    video: "/showCase/resize.mp4",
   },
   {
-    key: "workflows",
-    title: "Workflows",
-    description: "Placeholder panel - swap in your screenshot/image later.",
-    icon: Workflow,
-  },
-  {
-    key: "dashboard",
-    title: "Dashboards",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    key: "Collections",
+    title: "Collections",
+    description:
+      "Organize and manage your content in customizable collections.",
     icon: PanelsTopLeft,
+    image: "/showCase/collection.jpeg",
+    video: "/showCase/collection.mp4",
   },
   {
-    key: "calendar",
+    key: "Calendar",
     title: "Calendar",
-    description: "Placeholder panel - swap in your screenshot/image later.",
+    description:
+      "Keep track of your schedule and upcoming deadlines effortlessly.",
     icon: Calendar,
+    image: "/showCase/calendar.jpeg",
+    video: "/showCase/calendar.mp4",
   },
 ];
 
 export default function ShowcaseSection() {
   const [hoveredKey, setHoveredKey] = useState(null);
   const reduceMotion = useReducedMotion();
-  const [isWide, setIsWide] = useState(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return true;
-    return window.matchMedia("(min-width: 769px)").matches;
-  });
-
-  const activeKey = useMemo(() => hoveredKey ?? "dashboard", [hoveredKey]);
-  const hasActive = Boolean(activeKey);
+  const [isWide, setIsWide] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
     const mq = window.matchMedia("(min-width: 769px)");
-    const onChange = (e) => setIsWide(e.matches);
+    const handleChange = (e) => setIsWide(e.matches);
     setIsWide(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+
+    if (mq.addEventListener) {
+      mq.addEventListener("change", handleChange);
+      return () => mq.removeEventListener("change", handleChange);
+    }
+
+    mq.addListener(handleChange);
+    return () => mq.removeListener(handleChange);
   }, []);
 
   const motionTransition = useMemo(() => {
@@ -65,83 +58,90 @@ export default function ShowcaseSection() {
     return {
       type: "spring",
       stiffness: 260,
-      damping: 32,
-      mass: 0.8,
+      damping: 30,
+      mass: 0.9,
     };
   }, [reduceMotion]);
 
   return (
-    <section id="showcase" className="bg-slate-50 py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section
+      id="showcase"
+      className="lg:h-[85vh] md:h-auto dp-bg dp-showcase-bg relative overflow-hidden py-12 sm:py-14 md:py-16"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">
         <SectionHeader
           title="Everything you need, right where you work"
-          description="DashPoint brings your content, planning, and key views into a single dashboard - fast to open, easy to scan, and built for momentum."
+          description="DashPoint brings your content, planning, and key views into a single dashboard."
         />
-        <div className="mt-12">
+
+        <div className="mt-8 sm:mt-10 md:mt-12">
           <div
-            className="dp-expanding-cards"
-            aria-label="Interactive showcase cards"
+            className="flex flex-col gap-4 sm:gap-5 md:flex-row md:gap-6"
             onMouseLeave={() => setHoveredKey(null)}
           >
-            {cards.map((c) => (
-              <MotionButton
-                key={c.key}
-                type="button"
-                className="dp-expanding-card group relative h-72 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 lg:h-[500px]"
-                aria-label={`${c.title} showcase card`}
-                onMouseEnter={() => setHoveredKey(c.key)}
-                onFocus={() => setHoveredKey(c.key)}
-                onBlur={() => setHoveredKey(null)}
-                layout
-                style={{ flexBasis: 0 }}
-                animate={{
-                  flexGrow: !isWide
-                    ? 1
-                    : activeKey === c.key
-                    ? 4
-                    : hasActive
-                    ? 0.65
-                    : 1,
-                }}
-                transition={motionTransition}
-              >
-                <div className="relative z-10 flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700">
-                    <c.icon size={18} />
-                  </span>
-                </div>
+            {cards.map((c) => {
+              const isActive = hoveredKey === c.key;
 
+              return (
                 <MotionDiv
-                  className="dp-expanding-card-details absolute inset-x-5 bottom-5 top-16"
-                  initial={false}
+                  key={c.key}
+                  layout
+                  onMouseEnter={() => isWide && setHoveredKey(c.key)}
+                  style={{ flexBasis: 0 }}
                   animate={{
-                    opacity: !isWide || activeKey === c.key ? 1 : 0,
-                    y: !isWide || activeKey === c.key ? 0 : 8,
+                    flexGrow: !isWide ? 1 : isActive ? 4 : hoveredKey ? 0.9 : 1,
                   }}
-                  transition={
-                    reduceMotion
-                      ? { duration: 0 }
-                      : { duration: 0.25, ease: "easeOut" }
-                  }
-                  style={{
-                    pointerEvents:
-                      !isWide || activeKey === c.key ? "auto" : "none",
-                  }}
+                  transition={motionTransition}
+                  className="flex min-h-[400px] flex-col rounded-3xl border dp-border dp-surface shadow-sm transition-shadow duration-300 hover:shadow-xl sm:min-h-[430px] md:min-h-[470px]"
                 >
-                  <p className="text-sm leading-6 text-slate-600">
-                    {c.description}
-                  </p>
+                  {/* Header */}
+                  <div className="flex items-center gap-3 px-4 pt-4 sm:gap-4 sm:px-5 sm:pt-5 md:px-6 md:pt-6">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border dp-border dp-surface-muted dp-text sm:h-12 sm:w-12">
+                      <c.icon size={20} />
+                    </span>
+                    <h3 className="text-base font-semibold tracking-tight dp-text sm:text-lg">
+                      {c.title}
+                    </h3>
+                  </div>
 
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-                    <div className="grid aspect-[16/10] place-items-center">
-                      <span className="text-xs font-medium text-slate-500">
-                        Image placeholder
-                      </span>
+                  {/* Description */}
+                  {(!isWide || isActive) && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="max-w-full px-4 pt-2 text-sm dp-text-muted sm:max-w-sm sm:px-5 sm:pt-3 md:px-6"
+                    >
+                      {c.description}
+                    </motion.p>
+                  )}
+
+                  {/* Media */}
+                  <div className="mt-3 px-4 pb-4 sm:mt-4 sm:px-5 sm:pb-5 md:px-6 md:pb-6">
+                    <div className="relative h-52 w-full overflow-hidden rounded-2xl border dp-border dp-surface-muted sm:h-56 md:h-72 lg:h-85">
+                      {isWide && isActive ? (
+                        <video
+                          src={c.video}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          preload="none"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <img
+                          src={c.image}
+                          alt={c.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-700 md:hover:scale-105"
+                        />
+                      )}
                     </div>
                   </div>
                 </MotionDiv>
-              </MotionButton>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

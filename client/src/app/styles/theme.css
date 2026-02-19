@@ -67,67 +67,95 @@
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
   --dp-chat-bubble-user: rgb(15 23 42);
   --dp-chat-bubble-user-fg: rgb(255 255 255);
-  --dp-chat-bubble-ai: rgb(248 250 252);
-  --dp-chat-bubble-ai-fg: rgb(15 23 42);
+  --dp-chat-bubble-assistant: rgb(248 250 252);
+  --dp-chat-bubble-assistant-fg: rgb(15 23 42);
   --dp-chat-bubble-error: rgb(239 68 68 / 0.12);
   --dp-chat-bubble-error-fg: rgb(127 29 29);
   --dp-chat-avatar-bg: rgb(15 23 42 / 0.08);
+
+  --dp-showcase-gradient:
+    radial-gradient(
+      1000px 500px at 50% -250px,
+      rgba(59, 130, 246, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 400px at 80% 20%,
+      rgba(168, 85, 247, 0.08),
+      transparent 60%
+    );
 }
 
 /* Defaults for dark mode (match current Hero/Auth look) */
 :root:not([data-theme]),
 :root[data-theme="dark"] {
-  --dp-bg: rgb(2 6 23); /* slate-950 */
-  --dp-fg: rgb(255 255 255);
-  --dp-fg-soft: rgb(255 255 255 / 0.9);
-  --dp-muted: rgb(255 255 255 / 0.7);
-  --dp-subtle: rgb(255 255 255 / 0.6);
-  --dp-border: rgb(255 255 255 / 0.1);
-  --dp-surface: rgb(255 255 255 / 0.05);
-  --dp-surface-muted: rgb(255 255 255 / 0.05);
-  --dp-nav-scrolled-bg: rgb(2 6 23 / 0.4);
-  --dp-nav-panel-bg: rgba(2, 6, 23, 0.842);
-  --dp-glow-opacity: 0.6;
-  --dp-placeholder: rgb(255 255 255 / 0.4);
+  color-scheme: dark;
 
-  /* Semantic CTAs in dark mode */
+  /* 🔥 Neutral Dark Grey Theme */
+  --dp-bg: rgb(10 10 10); /* almost black */
+  --dp-fg: rgb(255 255 255); /* pure white */
+  --dp-fg-soft: rgb(230 230 230); /* soft white */
+  --dp-muted: rgb(180 180 180); /* medium grey */
+  --dp-subtle: rgb(140 140 140); /* lighter grey */
+  --dp-border: rgb(255 255 255 / 0.08);
+  --dp-surface: rgb(20 20 20); /* dark grey surface */
+  --dp-surface-muted: rgb(28 28 28); /* slightly lighter */
+  --dp-nav-scrolled-bg: rgb(10 10 10 / 0.7);
+  --dp-nav-panel-bg: rgb(18 18 18 / 0.95);
+  --dp-glow-opacity: 0.5;
+  --dp-placeholder: rgb(120 120 120);
+
+  /* Buttons */
   --dp-btn-primary-bg: rgb(255 255 255);
-  --dp-btn-primary-fg: rgb(15 23 42);
-  --dp-btn-primary-bg-hover: rgb(255 255 255 / 0.9);
+  --dp-btn-primary-fg: rgb(0 0 0);
+  --dp-btn-primary-bg-hover: rgb(230 230 230);
 
-  /* Hero/topbar CTA (match existing dark Hero look) */
+  /* Hero button */
   --dp-btn-hero-bg: rgb(255 255 255);
-  --dp-btn-hero-fg: rgb(79 70 229); /* indigo-600 */
-  --dp-btn-hero-bg-hover: rgb(252 211 77); /* amber-300 */
-  --dp-btn-hero-fg-hover: rgb(67 56 202); /* indigo-700 */
+  --dp-btn-hero-fg: rgb(0 0 0);
+  --dp-btn-hero-bg-hover: rgb(220 220 220);
+  --dp-btn-hero-fg-hover: rgb(0 0 0);
 
-  /* Sidebar primitives */
-  --dp-sidebar-bg: rgb(2 6 23 / 0.95);
-  --dp-hover-bg: rgb(255 255 255 / 0.1);
-  --dp-overlay-bg: rgb(0 0 0 / 0.5);
+  /* Sidebar */
+  --dp-sidebar-bg: rgb(15 15 15 / 0.96);
+  --dp-hover-bg: rgb(255 255 255 / 0.05);
+  --dp-overlay-bg: rgb(0 0 0 / 0.6);
 
-  /* Status & danger */
-  --dp-status-online: rgb(34 197 94); /* green-500 */
-  --dp-toast-success: rgb(34 197 94); /* green-500 */
-  --dp-toast-error: rgb(239 68 68); /* red-500 */
-  --dp-toast-warning: rgb(252 211 77); /* amber-300 */
-  --dp-toast-info: rgb(96 165 250); /* blue-400 */
+  /* Status colors (keep them vibrant for contrast) */
+  --dp-status-online: rgb(34 197 94);
+  --dp-toast-success: rgb(34 197 94);
+  --dp-toast-error: rgb(239 68 68);
+  --dp-toast-warning: rgb(245 158 11);
+  --dp-toast-info: rgb(96 165 250);
+
   --dp-danger-bg: rgb(239 68 68 / 0.1);
   --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
-  --dp-danger-border: rgb(239 68 68 / 0.2);
-  --dp-danger-fg: rgb(254 202 202); /* red-200 */
+  --dp-danger-border: rgb(239 68 68 / 0.25);
+  --dp-danger-fg: rgb(255 180 180);
 
-  --dp-resize-handle-bg: rgb(15 23 42/ 0.8);
+  --dp-resize-handle-bg: rgb(40 40 40);
 
-  /* Chat UI */
+  /* Chat */
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
   --dp-chat-bubble-user: rgb(255 255 255);
-  --dp-chat-bubble-user-fg: rgb(15 23 42);
-  --dp-chat-bubble-ai: rgb(255 255 255 / 0.06);
-  --dp-chat-bubble-ai-fg: rgb(255 255 255);
-  --dp-chat-bubble-error: rgb(239 68 68 / 0.18);
-  --dp-chat-bubble-error-fg: rgb(254 202 202);
+  --dp-chat-bubble-user-fg: rgb(0 0 0);
+  --dp-chat-bubble-assistant: rgb(35 35 35);
+  --dp-chat-bubble-assistant-fg: rgb(255 255 255);
+  --dp-chat-bubble-error: rgb(239 68 68 / 0.2);
+  --dp-chat-bubble-error-fg: rgb(255 200 200);
   --dp-chat-avatar-bg: rgb(255 255 255 / 0.08);
+
+  --dp-showcase-gradient:
+    radial-gradient(
+      1000px 500px at 50% -250px,
+      rgba(212, 117, 28, 0.979),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 400px at 20% 40%,
+      rgba(169, 85, 247, 0.151),
+      transparent 60%
+    );
 }
 
 /* Chat UI helpers */
@@ -183,8 +211,8 @@
 }
 
 .dp-chat-bubble-assistant {
-  background-color: var(--dp-chat-bubble-ai);
-  color: var(--dp-chat-bubble-ai-fg);
+  background-color: var(--dp-chat-bubble-assistant);
+  color: var(--dp-chat-bubble-assistant-fg);
   border: 1px solid var(--dp-border);
 }
 
@@ -448,4 +476,32 @@ body {
 :root[data-theme="dark"] .dp-glow,
 :root:not([data-theme]) .dp-glow {
   opacity: var(--dp-glow-opacity);
+}
+/* -------------------------------- */
+/* HERO VISUAL FILTER CONTROL */
+/* -------------------------------- */
+
+/* Default (dark mode) – black & white cinematic */
+:root:not([data-theme="light"]) .dp-hero-visual img,
+:root:not([data-theme="light"]) .dp-hero-visual video {
+  filter: grayscale(1) contrast(1.05) brightness(0.85);
+}
+
+/* Light mode – normal colorful */
+:root[data-theme="light"] .dp-hero-visual img,
+:root[data-theme="light"] .dp-hero-visual video {
+  filter: none;
+}
+.dp-showcase-bg {
+  position: relative;
+  isolation: isolate; /* ensures gradient sits behind content cleanly */
+}
+
+.dp-showcase-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--dp-showcase-gradient);
+  pointer-events: none;
+  z-index: -1; /* stay behind content */
 }

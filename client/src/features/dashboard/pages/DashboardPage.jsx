@@ -7,14 +7,13 @@ import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/Floatin
 import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 
-const WidgetsLayout = lazy(() => import("../layouts/WidgetsLayout"));
 const CollectionsHome = lazy(() => import("./Home/CollectionsHome"));
 const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./Youtube"));
 const FileManagerPage = lazy(() => import("./FileManager"));
-const CalendarPage = lazy(() => import("./Calendar"));
-const AIServicesBottomSearchBar = lazy(
-  () => import("../../../shared/ui/AI/AIServicesBottomSearchBar")
+const CalendarPage = lazy(() => import("./CalendarPage"));
+const DashboardChatBar = lazy(
+  () => import("../../../shared/ui/Chat/DashboardChatBar"),
 );
 
 function ContentFallback() {
@@ -33,7 +32,6 @@ export default function DashboardPage() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [widgetsOpen, setWidgetsOpen] = useState(false);
 
   const onOpenCollection = useCallback((value) => {
     const id =
@@ -80,7 +78,6 @@ export default function DashboardPage() {
         onNotificationsOpen={() => setNotificationsOpen(true)}
         onSettingsOpen={() => setSettingsOpen(true)}
         onShortcutsOpen={() => setShortcutsOpen(true)}
-        onWidgetsOpen={() => setWidgetsOpen(true)}
       />
 
       <div className="lg:pl-16">
@@ -103,11 +100,13 @@ export default function DashboardPage() {
                   <p className="dp-text-muted text-sm truncate">
                     {activeTab === "collections"
                       ? "Collections"
-                      : activeTab === "youtube"
-                      ? "YouTube"
-                      : activeTab === "files"
-                      ? "File Manager"
-                      : ""}
+                      : activeTab === "calendar"
+                        ? "Calendar"
+                        : activeTab === "youtube"
+                          ? "YouTube"
+                          : activeTab === "files"
+                            ? "File Manager"
+                            : ""}
                   </p>
                 </div>
               </div>
@@ -123,17 +122,7 @@ export default function DashboardPage() {
       </div>
 
       <Suspense fallback={null}>
-        <AIServicesBottomSearchBar
-          onCommand={(cmd) => {
-            if (cmd === "schedule" || cmd === "meeting") {
-              setActiveTab("calendar");
-              return;
-            }
-            if (cmd === "todo" || cmd === "notes") {
-              setActiveTab("collections");
-            }
-          }}
-        />
+        <DashboardChatBar />
       </Suspense>
 
       <InfoModal
@@ -163,12 +152,7 @@ export default function DashboardPage() {
         Shortcut help will be added here.
       </InfoModal>
 
-      <Suspense fallback={null}>
-        <WidgetsLayout open={widgetsOpen} onClose={() => setWidgetsOpen(false)} />
-      </Suspense>
-
       <FloatingInstallDownloadButtons />
     </div>
   );
 }
-
