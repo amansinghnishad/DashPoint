@@ -1,5 +1,4 @@
 const express = require('express');
-const { body, param, query } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const {
   getAllVideos,
@@ -11,13 +10,18 @@ const {
   getChannelDetails,
 } = require('../controllers/youtubeController');
 const auth = require('../middleware/auth');
+const {
+  createVideoValidation,
+  updateVideoValidation,
+  deleteVideoValidation
+} = require('../middleware/validators/youtubeValidators');
 
 const router = express.Router();
 
-// Rate limiting for YouTube API calls (more restrictive due to quota limits)
+// Rate limiting for YouTube API calls
 const youtubeRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 50 : 100, // Limit requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 50 : 100,
   message: {
     success: false,
     message: 'Too many YouTube API requests, please try again later.'
@@ -29,39 +33,26 @@ const youtubeRateLimit = rateLimit({
 // Apply rate limiting to all YouTube routes
 router.use(youtubeRateLimit);
 
-// CRUD routes for saved videos
-// GET /api/youtube/videos - Get all saved videos
+
+// GET all saved videos
 router.get('/videos', auth, getAllVideos);
 
-// POST /api/youtube/videos - Save a new video
+// POST  Save a new video
 router.post('/videos', [
   auth,
-  body('videoId').notEmpty().withMessage('Video ID is required'),
-  body('title').notEmpty().withMessage('Title is required').isLength({ max: 200 }),
-  body('thumbnail').notEmpty().withMessage('Thumbnail URL is required'),
-  body('embedUrl').notEmpty().withMessage('Embed URL is required'),
-  body('url').notEmpty().withMessage('URL is required'),
-  body('channelTitle').optional().isLength({ max: 100 }),
-  body('description').optional().isLength({ max: 1000 }),
-  body('tags').optional().isArray(),
-  body('category').optional().isString(),
-  body('isFavorite').optional().isBoolean()
+  ...createVideoValidation
 ], createVideo);
 
-// PUT /api/youtube/videos/:id - Update a saved video
+// PUT Update a saved video
 router.put('/videos/:id', [
   auth,
-  param('id').isMongoId().withMessage('Invalid video ID'),
-  body('title').optional().isLength({ max: 200 }),
-  body('tags').optional().isArray(),
-  body('category').optional().isString(),
-  body('isFavorite').optional().isBoolean()
+  ...updateVideoValidation
 ], updateVideo);
 
-// DELETE /api/youtube/videos/:id - Delete a saved video
+// DELETE  Delete a saved video
 router.delete('/videos/:id', [
   auth,
-  param('id').isMongoId().withMessage('Invalid video ID')
+  ...deleteVideoValidation
 ], deleteVideo);
 
 // Get video details by ID
