@@ -1,68 +1,41 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes/paths";
 import { Eye, EyeOff, Lock, Mail, Zap, Gift, Star } from "@/shared/ui/icons";
 import { useAuth } from "../../../context/AuthContext";
 import AuthLayout from "../layouts/AuthLayout";
 import { GoogleLogin } from "@react-oauth/google";
-
-const isValidEmail = (value) => {
-  const v = String(value || "").trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-};
+import useLoginFormState from "./useLoginFormState";
 
 export default function Login() {
   const navigate = useNavigate();
   const { loginUser, loginWithGoogle, loading, error, clearError } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [touched, setTouched] = useState({ email: false, password: false });
-  const [formError, setFormError] = useState(null);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    rememberMe,
+    setRememberMe,
+    showPassword,
+    setShowPassword,
+    touched,
+    setTouched,
+    formError,
+    setFormError,
+    emailError,
+    passwordError,
+    onSubmit,
+  } = useLoginFormState({
+    loginUser,
+    navigate,
+    dashboardRoute: APP_ROUTES.DASHBOARD,
+  });
 
   useEffect(() => {
     clearError?.();
   }, [clearError]);
-
-  const emailError = useMemo(() => {
-    if (!touched.email) return null;
-    if (!email.trim()) return "Email is required.";
-    if (!isValidEmail(email)) return "Enter a valid email.";
-    return null;
-  }, [email, touched.email]);
-
-  const passwordError = useMemo(() => {
-    if (!touched.password) return null;
-    if (!password) return "Password is required.";
-    if (password.length < 6) return "Password must be at least 6 characters.";
-    return null;
-  }, [password, touched.password]);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setFormError(null);
-    setTouched({ email: true, password: true });
-
-    if (!email.trim() || !password) {
-      setFormError("Please fill in all fields.");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      setFormError("Please enter a valid email.");
-      return;
-    }
-
-    const result = await loginUser({ email: email.trim(), password });
-    if (result?.success) {
-      navigate(APP_ROUTES.DASHBOARD, { replace: true });
-      return;
-    }
-
-    setFormError(result?.error || "Login failed.");
-  };
 
   const labelClass = "text-white";
   const iconClass = "text-white/60";
@@ -96,7 +69,8 @@ export default function Login() {
         {
           Icon: Star,
           title: "Premium Experience",
-          description: "A clean dashboard with focused productivity tools included.",
+          description:
+            "A clean dashboard with focused productivity tools included.",
         },
       ]}
       asideFooterTitle="Launch benefits"
@@ -197,7 +171,10 @@ export default function Login() {
             Remember me
           </label>
 
-          <Link to={APP_ROUTES.REGISTER} className={`transition-colors ${linkClass}`}>
+          <Link
+            to={APP_ROUTES.REGISTER}
+            className={`transition-colors ${linkClass}`}
+          >
             New here?
           </Link>
         </div>
@@ -241,7 +218,10 @@ export default function Login() {
 
         <p className={`text-center text-sm ${subtleClass}`}>
           Don't have an account?{" "}
-          <Link to={APP_ROUTES.REGISTER} className={`font-semibold ${linkClass}`}>
+          <Link
+            to={APP_ROUTES.REGISTER}
+            className={`font-semibold ${linkClass}`}
+          >
             Create one free
           </Link>
         </p>

@@ -3,32 +3,38 @@ import { useEffect, useMemo, useState } from "react";
 import { normalizeTodoListData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 
+const withClientKeys = (items = []) =>
+  items.map((item) => ({
+    ...item,
+    clientKey: item?.clientKey || crypto.randomUUID(),
+  }));
+
 export default function PlannerTodoListCard({ widget }) {
   const widgetId = widget?._id;
 
   const baseline = useMemo(
     () => normalizeTodoListData(widget?.data),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [widgetId]
+    [widgetId],
   );
-  const [items, setItems] = useState(() => baseline.items);
+  const [items, setItems] = useState(() => withClientKeys(baseline.items));
   const [draftText, setDraftText] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const doneCount = useMemo(
-    () => items.filter((it) => it.text.trim() && it.done).length,
-    [items]
-  );
+  const doneCount = items.filter((it) => it.text.trim() && it.done).length;
 
   useEffect(() => {
-    setItems(baseline.items);
+    setItems(withClientKeys(baseline.items));
     setEditingIndex(null);
   }, [baseline, widgetId]);
 
   const addDraftItem = () => {
     const text = draftText.trim();
     if (!text) return;
-    setItems((prev) => [...prev, { done: false, text }]);
+    setItems((prev) => [
+      ...prev,
+      { clientKey: crypto.randomUUID(), done: false, text },
+    ]);
     setDraftText("");
   };
 
@@ -54,7 +60,7 @@ export default function PlannerTodoListCard({ widget }) {
               const isEditing = editingIndex === idx;
               return (
                 <div
-                  key={idx}
+                  key={it.clientKey}
                   className="dp-border dp-hover-bg flex items-start justify-between gap-2 rounded-xl border px-3 py-2"
                 >
                   <div className="min-w-0 flex-1">

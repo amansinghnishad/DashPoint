@@ -9,7 +9,38 @@ import {
   Image,
   Youtube,
 } from "@/shared/ui/icons";
-import { createElement, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useReducer, useRef } from "react";
+
+const menuReducer = (state, action) => {
+  switch (action.type) {
+    case "OPEN":
+      return { open: true, mounted: true, visible: false };
+    case "SHOW":
+      return { ...state, visible: true };
+    case "CLOSE":
+      return { ...state, open: false, visible: false };
+    case "UNMOUNT":
+      return { open: false, mounted: false, visible: false };
+    default:
+      return state;
+  }
+};
+
+const MENU_CLOSED = { open: false, mounted: false, visible: false };
+
+const PLANNER_ICON_BY_VALUE = {
+  "todo-list": CheckSquare,
+  appointments: CalendarDays,
+  "daily-schedule": Clock,
+  notes: StickyNote,
+};
+
+const TOOLS = [
+  { id: "planner", label: "Planner", Icon: LayoutGrid },
+  { id: "photo", label: "Photo", Icon: Image },
+  { id: "youtube", label: "YouTube", Icon: Youtube },
+  { id: "file", label: "File", Icon: FileText },
+];
 
 export default function BottomBar({
   activeTool,
@@ -20,31 +51,20 @@ export default function BottomBar({
   className = "",
   show = true,
 }) {
-  const [plannerMenuOpen, setPlannerMenuOpen] = useState(false);
-  const [plannerMenuMounted, setPlannerMenuMounted] = useState(false);
-  const [plannerMenuVisible, setPlannerMenuVisible] = useState(false);
+  const [menuState, dispatchMenu] = useReducer(menuReducer, MENU_CLOSED);
+  const plannerMenuOpen = menuState.open;
+  const plannerMenuMounted = menuState.mounted;
+  const plannerMenuVisible = menuState.visible;
+  const setPlannerMenuOpen = (valueOrUpdater) => {
+    const next =
+      typeof valueOrUpdater === "function"
+        ? valueOrUpdater(menuState.open)
+        : valueOrUpdater;
+    if (next) dispatchMenu({ type: "OPEN" });
+    else dispatchMenu({ type: "CLOSE" });
+  };
   const plannerMenuRef = useRef(null);
   const plannerMenuTimerRef = useRef(null);
-
-  const plannerIconByValue = useMemo(
-    () => ({
-      "todo-list": CheckSquare,
-      appointments: CalendarDays,
-      "daily-schedule": Clock,
-      notes: StickyNote,
-    }),
-    []
-  );
-
-  const tools = useMemo(
-    () => [
-      { id: "planner", label: "Planner", Icon: LayoutGrid },
-      { id: "photo", label: "Photo", Icon: Image },
-      { id: "youtube", label: "YouTube", Icon: Youtube },
-      { id: "file", label: "File", Icon: FileText },
-    ],
-    []
-  );
 
   useEffect(() => {
     if (!plannerMenuOpen) return;
@@ -75,17 +95,15 @@ export default function BottomBar({
     }
 
     if (plannerMenuOpen) {
-      setPlannerMenuMounted(true);
       const raf = window.requestAnimationFrame(() => {
-        setPlannerMenuVisible(true);
+        dispatchMenu({ type: "SHOW" });
       });
       return () => window.cancelAnimationFrame(raf);
     }
 
     // Animate out, then unmount.
-    setPlannerMenuVisible(false);
     plannerMenuTimerRef.current = window.setTimeout(() => {
-      setPlannerMenuMounted(false);
+      dispatchMenu({ type: "UNMOUNT" });
       plannerMenuTimerRef.current = null;
     }, 160);
   }, [plannerMenuOpen]);
@@ -98,7 +116,7 @@ export default function BottomBar({
     >
       <div className="dp-surface dp-border rounded-2xl border shadow-lg px-2 py-2">
         <div className="flex items-center gap-1">
-          {tools.map(({ id, label, Icon }) => {
+          {TOOLS.map(({ id, label, Icon }) => {
             const isActive = activeTool === id;
 
             return (
@@ -136,7 +154,7 @@ export default function BottomBar({
                         <div className="grid grid-cols-3 gap-2">
                           {plannerOptions.map((opt) => {
                             const TileIcon =
-                              plannerIconByValue?.[opt.value] || LayoutGrid;
+                              PLANNER_ICON_BY_VALUE?.[opt.value] || LayoutGrid;
 
                             return (
                               <button

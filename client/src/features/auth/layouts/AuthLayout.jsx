@@ -1,6 +1,9 @@
 import Footer from "../../../shared/ui/Footer/Footer";
 import TopBar from "../../../shared/ui/Navbars/TopBar";
 
+const EMPTY_ASIDE_ITEMS = [];
+const EMPTY_ASIDE_FOOTER_ITEMS = [];
+
 const GlowBackdrop = () => {
   return (
     <div
@@ -21,9 +24,9 @@ export default function AuthLayout({
   asideTitle,
   asideDescription,
   asideBadge,
-  asideItems = [],
+  asideItems = EMPTY_ASIDE_ITEMS,
   asideFooterTitle,
-  asideFooterItems = [],
+  asideFooterItems = EMPTY_ASIDE_FOOTER_ITEMS,
   alert,
   children,
 }) {
@@ -68,8 +71,11 @@ export default function AuthLayout({
 
                   {asideItems?.length ? (
                     <div className="space-y-4">
-                      {asideItems.map(({ Icon, title, description }, idx) => (
-                        <div key={idx} className="flex items-start gap-3">
+                      {asideItems.map(({ Icon, title, description }) => (
+                        <div
+                          key={title || description || "aside-item"}
+                          className="flex items-start gap-3"
+                        >
                           {Icon ? (
                             <Icon className="text-amber-300 mt-0.5" size={20} />
                           ) : null}
@@ -93,8 +99,8 @@ export default function AuthLayout({
                       ) : null}
                       {asideFooterItems?.length ? (
                         <ul className="space-y-1 text-sm text-white/70">
-                          {asideFooterItems.map((line, idx) => (
-                            <li key={idx}>{line}</li>
+                          {asideFooterItems.map((line) => (
+                            <li key={line}>{line}</li>
                           ))}
                         </ul>
                       ) : null}

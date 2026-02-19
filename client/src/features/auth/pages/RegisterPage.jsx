@@ -1,104 +1,57 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../../app/routes/paths";
-import { Eye, EyeOff, Gift, Lock, Mail, Star, User, Zap } from "@/shared/ui/icons";
+import {
+  Eye,
+  EyeOff,
+  Gift,
+  Lock,
+  Mail,
+  Star,
+  User,
+  Zap,
+} from "@/shared/ui/icons";
 import { useAuth } from "../../../context/AuthContext";
 import AuthLayout from "../layouts/AuthLayout";
 import { GoogleLogin } from "@react-oauth/google";
-
-const isValidEmail = (value) => {
-  const v = String(value || "").trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-};
+import useRegisterFormState from "./useRegisterFormState";
 
 export default function Register() {
   const navigate = useNavigate();
   const { registerUser, loginWithGoogle, loading, error, clearError } =
     useAuth();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [touched, setTouched] = useState({
-    name: false,
-    email: false,
-    password: false,
-    confirmPassword: false,
+  const {
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    showPassword,
+    setShowPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
+    touched,
+    setTouched,
+    formError,
+    setFormError,
+    nameError,
+    emailError,
+    passwordError,
+    confirmError,
+    onSubmit,
+  } = useRegisterFormState({
+    registerUser,
+    navigate,
+    loginRoute: APP_ROUTES.LOGIN,
   });
-  const [formError, setFormError] = useState(null);
 
   useEffect(() => {
     clearError?.();
   }, [clearError]);
-
-  const nameError = useMemo(() => {
-    if (!touched.name) return null;
-    if (!name.trim()) return "Name is required.";
-    if (name.trim().length < 2) return "Name is too short.";
-    return null;
-  }, [name, touched.name]);
-
-  const emailError = useMemo(() => {
-    if (!touched.email) return null;
-    if (!email.trim()) return "Email is required.";
-    if (!isValidEmail(email)) return "Enter a valid email.";
-    return null;
-  }, [email, touched.email]);
-
-  const passwordError = useMemo(() => {
-    if (!touched.password) return null;
-    if (!password) return "Password is required.";
-    if (password.length < 6) return "Password must be at least 6 characters.";
-    return null;
-  }, [password, touched.password]);
-
-  const confirmError = useMemo(() => {
-    if (!touched.confirmPassword) return null;
-    if (!confirmPassword) return "Please confirm your password.";
-    if (confirmPassword !== password) return "Passwords do not match.";
-    return null;
-  }, [confirmPassword, password, touched.confirmPassword]);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setFormError(null);
-    setTouched({
-      name: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-    });
-
-    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      setFormError("Please fill in all fields.");
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      setFormError("Please enter a valid email.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match.");
-      return;
-    }
-
-    const result = await registerUser({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-    });
-    if (result?.success) {
-      navigate(APP_ROUTES.LOGIN, { replace: true });
-      return;
-    }
-
-    setFormError(result?.error || "Registration failed.");
-  };
 
   const labelClass = "text-white";
   const iconClass = "text-white/60";
@@ -132,7 +85,8 @@ export default function Register() {
         {
           Icon: Star,
           title: "Premium Experience",
-          description: "A clean dashboard with focused productivity tools included.",
+          description:
+            "A clean dashboard with focused productivity tools included.",
         },
       ]}
       asideFooterTitle="What you get"

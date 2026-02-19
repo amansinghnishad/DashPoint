@@ -86,7 +86,9 @@ export default function Footer({ embedded = false }) {
                     <span>Lucknow, UP</span>
                   </div>
                   <a
-                    href="#"
+                    href="https://github.com"
+                    target="_blank"
+                    rel="noreferrer"
                     className="inline-flex items-center gap-2 text-white/70 hover:text-white"
                   >
                     <Github size={16} className="text-white/60" />

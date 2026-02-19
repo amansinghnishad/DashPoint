@@ -3,6 +3,12 @@ import { IconAdd, IconDelete, IconEdit, IconTime } from "@/shared/ui/icons";
 import { normalizeAppointmentsData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 
+const withClientKeys = (items = []) =>
+  items.map((item) => ({
+    ...item,
+    clientKey: item?.clientKey || crypto.randomUUID(),
+  }));
+
 export default function PlannerAppointmentsCard({ widget }) {
   const widgetId = widget?._id;
 
@@ -11,7 +17,7 @@ export default function PlannerAppointmentsCard({ widget }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [widgetId],
   );
-  const [items, setItems] = useState(() => baseline.items);
+  const [items, setItems] = useState(() => withClientKeys(baseline.items));
   const [draftTitle, setDraftTitle] = useState("");
   const [draftWhen, setDraftWhen] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
@@ -40,7 +46,10 @@ export default function PlannerAppointmentsCard({ widget }) {
     if (!title) return;
     if (!draftWhen) return;
 
-    setItems((prev) => [...prev, { title, when: draftWhen }]);
+    setItems((prev) => [
+      ...prev,
+      { clientKey: crypto.randomUUID(), title, when: draftWhen },
+    ]);
     setDraftTitle("");
     setDraftWhen("");
   };
@@ -57,7 +66,7 @@ export default function PlannerAppointmentsCard({ widget }) {
   }, [items]);
 
   useEffect(() => {
-    setItems(baseline.items);
+    setItems(withClientKeys(baseline.items));
     setEditingIndex(null);
   }, [baseline, widgetId]);
 
@@ -85,7 +94,7 @@ export default function PlannerAppointmentsCard({ widget }) {
               const isEditing = editingIndex === idx;
               return (
                 <div
-                  key={idx}
+                  key={it.clientKey}
                   className="dp-hover-bg flex items-start justify-between gap-2 rounded-xl px-3 py-2"
                 >
                   <div className="min-w-0 flex-1">

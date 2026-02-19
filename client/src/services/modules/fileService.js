@@ -1,7 +1,7 @@
 import { apiClient } from "../../shared/api/httpClient";
 import { compactParams, getResponseData } from "../../shared/api/httpUtils";
 
-export const fileService = {
+const fileService = {
   getFiles(params = {}) {
     return getResponseData(
       apiClient.get("/files", {

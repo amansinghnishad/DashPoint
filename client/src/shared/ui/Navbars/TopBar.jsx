@@ -28,16 +28,11 @@ const TopBar = () => {
 
   const logoSrc = "/logo.png";
 
-  const isAuthPage = useMemo(() => {
-    return (
-      location.pathname === APP_ROUTES.LOGIN ||
-      location.pathname === APP_ROUTES.REGISTER
-    );
-  }, [location.pathname]);
+  const isAuthPage =
+    location.pathname === APP_ROUTES.LOGIN ||
+    location.pathname === APP_ROUTES.REGISTER;
 
-  const isLandingPage = useMemo(() => {
-    return location.pathname === APP_ROUTES.HOME;
-  }, [location.pathname]);
+  const isLandingPage = location.pathname === APP_ROUTES.HOME;
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);

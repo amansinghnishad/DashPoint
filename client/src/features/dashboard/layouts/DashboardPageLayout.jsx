@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+const EMPTY_ITEMS = [];
+
 export default function DashboardPageLayout({
   title,
   searchValue,
@@ -7,7 +9,7 @@ export default function DashboardPageLayout({
   addLabel = "Add",
   onAdd,
   addDisabled = false,
-  items = [],
+  items = EMPTY_ITEMS,
   selectedId,
   onSelect,
   renderItemLeading,
@@ -121,14 +123,14 @@ export default function DashboardPageLayout({
               })}
             </ul>
           ) : (
-            renderEmptySidebar ?? (
+            (renderEmptySidebar ?? (
               <div className="p-4 text-center">
                 <p className="dp-text font-semibold">No items</p>
                 <p className="dp-text-muted mt-1 text-sm">
                   Use "{addLabel}" to get started.
                 </p>
               </div>
-            )
+            ))
           )}
         </aside>
 

@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 
 const reducedMotionPreferred = () => {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -106,113 +112,115 @@ export default function HeroSection() {
   const vignetteOpacity = 0.2 + scrollProgress * 0.45;
 
   return (
-    <section
-      id="hero"
-      ref={sectionRef}
-      className="relative overflow-clip bg-slate-950"
-      style={{ height: isMobile ? "170vh" : "200vh" }}
-    >
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-black" />
+    <LazyMotion features={domAnimation}>
+      <section
+        id="hero"
+        ref={sectionRef}
+        className="relative overflow-clip bg-slate-950"
+        style={{ height: isMobile ? "170vh" : "200vh" }}
+      >
+        <div className="sticky top-0 h-screen overflow-hidden">
+          {/* Background */}
+          <div className="absolute inset-0 bg-black" />
 
-        {/* Background Image */}
-        <div
-          className="dp-hero-visual absolute inset-0"
-          style={{
-            transform: `scale(${bgScale}) translateY(${scrollProgress * -12}px)`,
-          }}
-        >
-          <picture>
-            <source media="(max-width: 768px)" srcSet="/bg/mobileBg.webp" />
-            <img
-              src="/bg/bg.webp"
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          </picture>
-        </div>
+          {/* Background Image */}
+          <div
+            className="dp-hero-visual absolute inset-0"
+            style={{
+              transform: `scale(${bgScale}) translateY(${scrollProgress * -12}px)`,
+            }}
+          >
+            <picture>
+              <source media="(max-width: 768px)" srcSet="/bg/mobileBg.webp" />
+              <img
+                src="/bg/bg.webp"
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </picture>
+          </div>
 
-        {/* Foreground */}
-        <div
-          className="dp-hero-visual pointer-events-none absolute inset-0"
-          style={{ transform: `translateY(${parallaxDriftY}px)` }}
-        >
-          <picture>
-            <source
-              media="(max-width: 768px)"
-              srcSet="/bg/mobileParallex.webp"
-            />
-            <img
-              src="/bg/parallex.webp"
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          </picture>
-        </div>
+          {/* Foreground */}
+          <div
+            className="dp-hero-visual pointer-events-none absolute inset-0"
+            style={{ transform: `translateY(${parallaxDriftY}px)` }}
+          >
+            <picture>
+              <source
+                media="(max-width: 768px)"
+                srcSet="/bg/mobileParallex.webp"
+              />
+              <img
+                src="/bg/parallex.webp"
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </picture>
+          </div>
 
-        {/* Layout */}
-        <div className="absolute inset-0 z-30 flex items-center justify-center px-8 md:px-16">
-          <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between gap-12">
-            {/* Text */}
-            <motion.div
-              className="flex-1"
-              style={{
-                y: textY,
-                x: textX,
-                opacity: textOpacity,
-                rotate: textRotate,
-                filter: blurFilter,
-              }}
-            >
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white">
-                One place for your
-                <span className="block text-blue-400">tasks and content</span>
-              </h1>
+          {/* Layout */}
+          <div className="absolute inset-0 z-30 flex items-center justify-center px-8 md:px-16">
+            <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between gap-12">
+              {/* Text */}
+              <m.div
+                className="flex-1"
+                style={{
+                  y: textY,
+                  x: textX,
+                  opacity: textOpacity,
+                  rotate: textRotate,
+                  filter: blurFilter,
+                }}
+              >
+                <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white">
+                  One place for your
+                  <span className="block text-blue-400">tasks and content</span>
+                </h1>
 
-              <p className="mt-6 text-base md:text-lg text-white/80 leading-relaxed max-w-xl">
-                DashPoint brings your daily tools into a fast, clean workspace.
-                Plan your day, extract content, and stay organized — without
-                juggling tabs.
-              </p>
+                <p className="mt-6 text-base md:text-lg text-white/80 leading-relaxed max-w-xl">
+                  DashPoint brings your daily tools into a fast, clean
+                  workspace. Plan your day, extract content, and stay organized
+                  — without juggling tabs.
+                </p>
 
-              <div className="mt-8 flex gap-4 flex-wrap">
-                <button className="dp-btn-hero px-7 py-3 rounded-full font-medium">
-                  Get started
-                </button>
-                <button className="dp-btn-secondary px-7 py-3 rounded-full font-medium">
-                  Pause demo
-                </button>
-              </div>
-            </motion.div>
+                <div className="mt-8 flex gap-4 flex-wrap">
+                  <button className="dp-btn-hero px-7 py-3 rounded-full font-medium">
+                    Get started
+                  </button>
+                  <button className="dp-btn-secondary px-7 py-3 rounded-full font-medium">
+                    Pause demo
+                  </button>
+                </div>
+              </m.div>
 
-            {/* Screen */}
-            <div className="flex-1 flex justify-center">
-              <div className="w-[90%] md:w-[520px] shadow-2xl">
-                <div className="relative aspect-[16/10] overflow-hidden bg-black">
-                  <video
-                    ref={videoRef}
-                    className="h-full w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    preload="metadata"
-                  >
-                    <source src="/1.mp4" type="video/mp4" />
-                  </video>
+              {/* Screen */}
+              <div className="flex-1 flex justify-center">
+                <div className="w-[90%] md:w-[520px] shadow-2xl">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                    <video
+                      ref={videoRef}
+                      className="h-full w-full object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                      preload="metadata"
+                    >
+                      <source src="/1.mp4" type="video/mp4" />
+                    </video>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Vignette */}
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50"
-          style={{ opacity: vignetteOpacity }}
-        />
-      </div>
-    </section>
+          {/* Vignette */}
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50"
+            style={{ opacity: vignetteOpacity }}
+          />
+        </div>
+      </section>
+    </LazyMotion>
   );
 }

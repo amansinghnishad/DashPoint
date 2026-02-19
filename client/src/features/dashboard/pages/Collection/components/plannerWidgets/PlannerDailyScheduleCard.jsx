@@ -4,6 +4,12 @@ import { normalizeDailyScheduleData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 import { IconAdd, IconDelete, IconEdit } from "@/shared/ui/icons";
 
+const withClientKeys = (blocks = []) =>
+  blocks.map((block) => ({
+    ...block,
+    clientKey: block?.clientKey || crypto.randomUUID(),
+  }));
+
 export default function PlannerDailyScheduleCard({ widget }) {
   const widgetId = widget?._id;
 
@@ -12,30 +18,31 @@ export default function PlannerDailyScheduleCard({ widget }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [widgetId],
   );
-  const [blocks, setBlocks] = useState(() => baseline.blocks);
-  const [draftStart, setDraftStart] = useState("");
-  const [draftEnd, setDraftEnd] = useState("");
-  const [draftTitle, setDraftTitle] = useState("");
+  const [blocks, setBlocks] = useState(() => withClientKeys(baseline.blocks));
+  const [draft, setDraft] = useState({ start: "", end: "", title: "" });
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const filledCount = useMemo(
-    () => blocks.filter((b) => (b.title || "").trim()).length,
-    [blocks],
-  );
+  const filledCount = blocks.filter((b) => (b.title || "").trim()).length;
 
   useEffect(() => {
-    setBlocks(baseline.blocks);
+    setBlocks(withClientKeys(baseline.blocks));
     setEditingIndex(null);
   }, [baseline, widgetId]);
 
   const addDraftBlock = () => {
-    const title = draftTitle.trim();
+    const title = draft.title.trim();
     if (!title) return;
-    if (!draftStart || !draftEnd) return;
-    setBlocks((prev) => [...prev, { start: draftStart, end: draftEnd, title }]);
-    setDraftStart("");
-    setDraftEnd("");
-    setDraftTitle("");
+    if (!draft.start || !draft.end) return;
+    setBlocks((prev) => [
+      ...prev,
+      {
+        clientKey: crypto.randomUUID(),
+        start: draft.start,
+        end: draft.end,
+        title,
+      },
+    ]);
+    setDraft({ start: "", end: "", title: "" });
   };
 
   const nextData = useMemo(() => ({ blocks }), [blocks]);
@@ -60,7 +67,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
               const isEditing = editingIndex === idx;
               return (
                 <div
-                  key={idx}
+                  key={b.clientKey}
                   className="dp-border dp-hover-bg flex items-start justify-between gap-2 rounded-xl border px-3 py-2"
                 >
                   <div className="min-w-0 flex-1">
@@ -144,19 +151,25 @@ export default function PlannerDailyScheduleCard({ widget }) {
       <div className="dp-border grid grid-cols-1 gap-2 rounded-2xl border p-2 md:grid-cols-[120px_120px_1fr_auto] md:items-center">
         <input
           type="time"
-          value={draftStart}
-          onChange={(e) => setDraftStart(e.target.value)}
+          value={draft.start}
+          onChange={(e) =>
+            setDraft((prev) => ({ ...prev, start: e.target.value }))
+          }
           className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
         />
         <input
           type="time"
-          value={draftEnd}
-          onChange={(e) => setDraftEnd(e.target.value)}
+          value={draft.end}
+          onChange={(e) =>
+            setDraft((prev) => ({ ...prev, end: e.target.value }))
+          }
           className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
         />
         <input
-          value={draftTitle}
-          onChange={(e) => setDraftTitle(e.target.value)}
+          value={draft.title}
+          onChange={(e) =>
+            setDraft((prev) => ({ ...prev, title: e.target.value }))
+          }
           onKeyDown={(e) => {
             if (e.key === "Enter") addDraftBlock();
           }}

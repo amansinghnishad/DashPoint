@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef } from "react";
 
 import Modal from "../../../../../shared/ui/modals/Modal";
 import { useToast } from "../../../../../hooks/useToast";
@@ -7,6 +7,39 @@ import CollectionPickerCreate from "./CollectionPickerCreate";
 import CollectionPickerExisting from "./CollectionPickerExisting";
 import { useCollectionPickerItems } from "../hooks/useCollectionPickerItems";
 import { useCollectionPickerActions } from "../hooks/useCollectionPickerActions";
+
+const COLLECTION_PICKER_INITIAL_STATE = {
+  mode: "existing",
+  busy: false,
+  createYouTubeUrl: "",
+  createPlannerWidgetType: "todo-list",
+  createPlannerWidgetTitle: "",
+};
+
+function collectionPickerReducer(state, action) {
+  switch (action.type) {
+    case "SET_MODE":
+      return { ...state, mode: action.payload };
+    case "SET_BUSY":
+      return { ...state, busy: action.payload };
+    case "SET_CREATE_YOUTUBE_URL":
+      return { ...state, createYouTubeUrl: action.payload };
+    case "SET_CREATE_PLANNER_WIDGET_TYPE":
+      return { ...state, createPlannerWidgetType: action.payload };
+    case "SET_CREATE_PLANNER_WIDGET_TITLE":
+      return { ...state, createPlannerWidgetTitle: action.payload };
+    case "RESET_FOR_OPEN":
+      return {
+        ...state,
+        mode: action.payload === "planner" ? "create" : "existing",
+        createYouTubeUrl: "",
+        createPlannerWidgetType: "todo-list",
+        createPlannerWidgetTitle: "",
+      };
+    default:
+      return state;
+  }
+}
 
 export default function CollectionPickerModal({
   open,
@@ -18,15 +51,11 @@ export default function CollectionPickerModal({
 }) {
   const toast = useToast();
 
-  const [mode, setMode] = useState("existing");
-  const isCreateMode = mode === "create";
-
-  const [busy, setBusy] = useState(false);
-
-  const [createYouTubeUrl, setCreateYouTubeUrl] = useState("");
-  const [createPlannerWidgetType, setCreatePlannerWidgetType] =
-    useState("todo-list");
-  const [createPlannerWidgetTitle, setCreatePlannerWidgetTitle] = useState("");
+  const [pickerState, dispatchPicker] = useReducer(
+    collectionPickerReducer,
+    COLLECTION_PICKER_INITIAL_STATE,
+  );
+  const isCreateMode = pickerState.mode === "create";
 
   const { loading, search, setSearch, selectedId, setSelectedId, filtered } =
     useCollectionPickerItems({ open, tool, toast });
@@ -43,12 +72,12 @@ export default function CollectionPickerModal({
       onAdded,
       toast,
       selectedId,
-      setBusy,
+      setBusy: (value) => dispatchPicker({ type: "SET_BUSY", payload: value }),
       fileInputRef,
       photoInputRef,
-      createYouTubeUrl,
-      createPlannerWidgetType,
-      createPlannerWidgetTitle,
+      createYouTubeUrl: pickerState.createYouTubeUrl,
+      createPlannerWidgetType: pickerState.createPlannerWidgetType,
+      createPlannerWidgetTitle: pickerState.createPlannerWidgetTitle,
     });
 
   const title = useMemo(() => {
@@ -83,21 +112,18 @@ export default function CollectionPickerModal({
 
   useEffect(() => {
     if (!open) return;
-    setMode(tool === "planner" ? "create" : "existing");
-    setCreateYouTubeUrl("");
-    setCreatePlannerWidgetType("todo-list");
-    setCreatePlannerWidgetTitle("");
+    dispatchPicker({ type: "RESET_FOR_OPEN", payload: tool });
     setSearch("");
     setSelectedId(null);
   }, [open, setSearch, setSelectedId, tool]);
 
-  const primaryDisabled = busy || (!isCreateMode && !selectedId);
+  const primaryDisabled = pickerState.busy || (!isCreateMode && !selectedId);
 
   return (
     <Modal
       open={open}
       onClose={() => {
-        if (busy) return;
+        if (pickerState.busy) return;
         onClose?.();
       }}
       title={title}
@@ -107,9 +133,11 @@ export default function CollectionPickerModal({
           {isCreateMode ? (
             <button
               type="button"
-              onClick={() => setMode("existing")}
+              onClick={() =>
+                dispatchPicker({ type: "SET_MODE", payload: "existing" })
+              }
               className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-              disabled={busy}
+              disabled={pickerState.busy}
             >
               Back to existing
             </button>
@@ -121,10 +149,13 @@ export default function CollectionPickerModal({
             <button
               type="button"
               onClick={() =>
-                setMode((m) => (m === "create" ? "existing" : "create"))
+                dispatchPicker({
+                  type: "SET_MODE",
+                  payload: isCreateMode ? "existing" : "create",
+                })
               }
               className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-              disabled={busy}
+              disabled={pickerState.busy}
             >
               {isCreateMode ? "Pick existing" : "Create new"}
             </button>
@@ -133,7 +164,7 @@ export default function CollectionPickerModal({
               type="button"
               onClick={() => onClose?.()}
               className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-              disabled={busy}
+              disabled={pickerState.busy}
             >
               Cancel
             </button>
@@ -144,7 +175,7 @@ export default function CollectionPickerModal({
               className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
               disabled={primaryDisabled}
             >
-              {busy
+              {pickerState.busy
                 ? "Working..."
                 : isCreateMode
                   ? tool === "file" || tool === "photo"
@@ -160,13 +191,25 @@ export default function CollectionPickerModal({
         {isCreateMode ? (
           <CollectionPickerCreate
             tool={tool}
-            busy={busy}
-            createYouTubeUrl={createYouTubeUrl}
-            setCreateYouTubeUrl={setCreateYouTubeUrl}
-            createPlannerWidgetType={createPlannerWidgetType}
-            setCreatePlannerWidgetType={setCreatePlannerWidgetType}
-            createPlannerWidgetTitle={createPlannerWidgetTitle}
-            setCreatePlannerWidgetTitle={setCreatePlannerWidgetTitle}
+            busy={pickerState.busy}
+            createYouTubeUrl={pickerState.createYouTubeUrl}
+            setCreateYouTubeUrl={(value) =>
+              dispatchPicker({ type: "SET_CREATE_YOUTUBE_URL", payload: value })
+            }
+            createPlannerWidgetType={pickerState.createPlannerWidgetType}
+            setCreatePlannerWidgetType={(value) =>
+              dispatchPicker({
+                type: "SET_CREATE_PLANNER_WIDGET_TYPE",
+                payload: value,
+              })
+            }
+            createPlannerWidgetTitle={pickerState.createPlannerWidgetTitle}
+            setCreatePlannerWidgetTitle={(value) =>
+              dispatchPicker({
+                type: "SET_CREATE_PLANNER_WIDGET_TITLE",
+                payload: value,
+              })
+            }
             onSubmit={createAndAdd}
             fileInputRef={fileInputRef}
             photoInputRef={photoInputRef}

@@ -41,8 +41,14 @@ export default function CreateCalendarItemModal({
     >
       <div className="space-y-3">
         <div>
-          <label className="dp-text text-sm font-semibold">Type</label>
+          <label
+            htmlFor="calendar-item-type"
+            className="dp-text text-sm font-semibold"
+          >
+            Type
+          </label>
           <select
+            id="calendar-item-type"
             value={form.type}
             onChange={(event) => onChangeField("type", event.target.value)}
             className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
@@ -56,8 +62,14 @@ export default function CreateCalendarItemModal({
         </div>
 
         <div>
-          <label className="dp-text text-sm font-semibold">Title</label>
+          <label
+            htmlFor="calendar-item-title"
+            className="dp-text text-sm font-semibold"
+          >
+            Title
+          </label>
           <input
+            id="calendar-item-title"
             value={form.title}
             onChange={(event) => onChangeField("title", event.target.value)}
             className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
@@ -66,8 +78,14 @@ export default function CreateCalendarItemModal({
         </div>
 
         <div>
-          <label className="dp-text text-sm font-semibold">Color</label>
+          <label
+            htmlFor="calendar-item-color"
+            className="dp-text text-sm font-semibold"
+          >
+            Color
+          </label>
           <select
+            id="calendar-item-color"
             value={form.color}
             onChange={(event) => onChangeField("color", event.target.value)}
             className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
@@ -81,8 +99,14 @@ export default function CreateCalendarItemModal({
         </div>
 
         <div>
-          <label className="dp-text text-sm font-semibold">Date</label>
+          <label
+            htmlFor="calendar-item-date"
+            className="dp-text text-sm font-semibold"
+          >
+            Date
+          </label>
           <input
+            id="calendar-item-date"
             type="date"
             value={form.date}
             onChange={(event) => onChangeField("date", event.target.value)}
@@ -93,8 +117,14 @@ export default function CreateCalendarItemModal({
         {isTimedEvent ? (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="dp-text text-sm font-semibold">Start</label>
+              <label
+                htmlFor="calendar-item-start"
+                className="dp-text text-sm font-semibold"
+              >
+                Start
+              </label>
               <input
+                id="calendar-item-start"
                 type="time"
                 value={form.startTime}
                 onChange={(event) =>
@@ -105,11 +135,19 @@ export default function CreateCalendarItemModal({
             </div>
 
             <div>
-              <label className="dp-text text-sm font-semibold">End</label>
+              <label
+                htmlFor="calendar-item-end"
+                className="dp-text text-sm font-semibold"
+              >
+                End
+              </label>
               <input
+                id="calendar-item-end"
                 type="time"
                 value={form.endTime}
-                onChange={(event) => onChangeField("endTime", event.target.value)}
+                onChange={(event) =>
+                  onChangeField("endTime", event.target.value)
+                }
                 className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
               />
             </div>

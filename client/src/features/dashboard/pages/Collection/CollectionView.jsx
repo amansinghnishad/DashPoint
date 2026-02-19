@@ -33,11 +33,12 @@ export default function CollectionView({ collectionId, onBack }) {
   });
   const [activeTool, setActiveTool] = useState("youtube");
 
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerTool, setPickerTool] = useState(null);
+  const [pickerState, setPickerState] = useState({ open: false, tool: null });
 
-  const [deleteCanvasItem, setDeleteCanvasItem] = useState(null);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const [deleteState, setDeleteState] = useState({
+    item: null,
+    isRemoving: false,
+  });
 
   const canvasSurfaceRef = useRef(null);
   const worldRef = useRef(null);
@@ -83,8 +84,7 @@ export default function CollectionView({ collectionId, onBack }) {
   }, [items]);
 
   const openPicker = useCallback((toolId) => {
-    setPickerTool(toolId);
-    setPickerOpen(true);
+    setPickerState({ open: true, tool: toolId });
   }, []);
 
   const [creatingPlanner, setCreatingPlanner] = useState(false);
@@ -139,12 +139,12 @@ export default function CollectionView({ collectionId, onBack }) {
   );
 
   const confirmRemove = useCallback(async () => {
-    const itemType = deleteCanvasItem?.itemType;
-    const itemId = deleteCanvasItem?.itemId;
+    const itemType = deleteState.item?.itemType;
+    const itemId = deleteState.item?.itemId;
     if (!itemType || !itemId) return;
 
     try {
-      setIsRemoving(true);
+      setDeleteState((prev) => ({ ...prev, isRemoving: true }));
       const res = await collectionsAPI.removeItemFromCollection(
         collectionId,
         itemType,
@@ -154,7 +154,7 @@ export default function CollectionView({ collectionId, onBack }) {
         throw new Error(res?.message || "Failed to remove item");
       }
 
-      const key = getItemKey(deleteCanvasItem);
+      const key = getItemKey(deleteState.item);
       if (key) {
         setLayoutsByItemKey((prev) => {
           const next = { ...prev };
@@ -164,16 +164,16 @@ export default function CollectionView({ collectionId, onBack }) {
       }
 
       toast.success("Removed from collection.");
-      setDeleteCanvasItem(null);
+      setDeleteState({ item: null, isRemoving: false });
       await reload();
     } catch (err) {
       const message =
         err?.response?.data?.message || err?.message || "Failed to remove item";
       toast.error(message);
     } finally {
-      setIsRemoving(false);
+      setDeleteState((prev) => ({ ...prev, isRemoving: false }));
     }
-  }, [collectionId, deleteCanvasItem, reload, setLayoutsByItemKey, toast]);
+  }, [collectionId, deleteState.item, reload, setLayoutsByItemKey, toast]);
 
   const handleSelectTool = useCallback(
     (toolId) => {
@@ -233,9 +233,11 @@ export default function CollectionView({ collectionId, onBack }) {
             />
 
             <CollectionPickerModal
-              open={pickerOpen}
-              tool={pickerTool}
-              onClose={() => setPickerOpen(false)}
+              open={pickerState.open}
+              tool={pickerState.tool}
+              onClose={() =>
+                setPickerState((prev) => ({ ...prev, open: false }))
+              }
               collectionId={collectionId}
               existingKeys={existingKeys}
               onAdded={reload}
@@ -247,7 +249,6 @@ export default function CollectionView({ collectionId, onBack }) {
               className="absolute inset-0 origin-top-left"
               style={{
                 transform: `translate(${viewportOffset.x}px, ${viewportOffset.y}px) scale(${viewportScale})`,
-                willChange: "transform",
               }}
             >
               {!loading && items.length > 0
@@ -267,7 +268,9 @@ export default function CollectionView({ collectionId, onBack }) {
                             [key]: nextLayout,
                           }))
                         }
-                        onDelete={() => setDeleteCanvasItem(item)}
+                        onDelete={() =>
+                          setDeleteState((prev) => ({ ...prev, item }))
+                        }
                       />
                     ))
                 : null}
@@ -294,15 +297,15 @@ export default function CollectionView({ collectionId, onBack }) {
             ) : null}
 
             <DeleteConfirmModal
-              open={Boolean(deleteCanvasItem)}
+              open={Boolean(deleteState.item)}
               onClose={() => {
-                if (isRemoving) return;
-                setDeleteCanvasItem(null);
+                if (deleteState.isRemoving) return;
+                setDeleteState((prev) => ({ ...prev, item: null }));
               }}
               onConfirm={confirmRemove}
               title="Remove item"
               description="Remove this item from the collection?"
-              busy={isRemoving}
+              busy={deleteState.isRemoving}
             />
           </div>
         </div>

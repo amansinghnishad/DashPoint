@@ -37,7 +37,7 @@ export function getPreferredTheme() {
  * Apply theme to the document root.
  * @param {'dark'|'light'} theme
  */
-export function applyTheme(theme) {
+function applyTheme(theme) {
   if (typeof document === "undefined") return;
   document.documentElement.dataset.theme = theme;
   applyBodyClasses(theme);
@@ -69,4 +69,3 @@ export function setTheme(theme) {
   applyTheme(theme);
 }
 
-export const THEME_STORAGE_KEY = STORAGE_KEY;
