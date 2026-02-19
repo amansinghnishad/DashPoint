@@ -124,9 +124,9 @@ export default function HeroSection() {
           }}
         >
           <picture>
-            <source media="(max-width: 768px)" srcSet="/bg/mobileBg.png" />
+            <source media="(max-width: 768px)" srcSet="/bg/mobileBg.webp" />
             <img
-              src="/bg/bg.png"
+              src="/bg/bg.webp"
               alt=""
               className="h-full w-full object-cover"
             />
@@ -141,10 +141,10 @@ export default function HeroSection() {
           <picture>
             <source
               media="(max-width: 768px)"
-              srcSet="/bg/mobileParallex.png"
+              srcSet="/bg/mobileParallex.webp"
             />
             <img
-              src="/bg/parallex.png"
+              src="/bg/parallex.webp"
               alt=""
               className="h-full w-full object-cover"
             />
@@ -199,7 +199,6 @@ export default function HeroSection() {
                     autoPlay
                     preload="metadata"
                   >
-                    <source src="/whi1.mp4" type="video/mp4" />
                     <source src="/1.mp4" type="video/mp4" />
                   </video>
                 </div>

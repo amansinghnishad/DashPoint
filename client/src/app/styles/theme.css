@@ -148,12 +148,12 @@
   --dp-showcase-gradient:
     radial-gradient(
       1000px 500px at 50% -250px,
-      rgba(99, 102, 241, 0.12),
+      rgba(212, 117, 28, 0.979),
       transparent 60%
     ),
     radial-gradient(
       800px 400px at 20% 40%,
-      rgba(168, 85, 247, 0.08),
+      rgba(169, 85, 247, 0.151),
       transparent 60%
     );
 }
