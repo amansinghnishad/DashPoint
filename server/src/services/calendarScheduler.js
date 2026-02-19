@@ -132,7 +132,7 @@ function planSchedule({
     const totalFree = freeWithMinutes.reduce((sum, it) => sum + it.minutes, 0);
     const maxGap = freeWithMinutes.reduce((m, it) => Math.max(m, it.minutes), 0);
 
-    // Helper to split across multiple gaps.
+    // split across multiple gaps.
     const trySplit = () => {
       if (totalFree < requestedMinutes) return null;
 
