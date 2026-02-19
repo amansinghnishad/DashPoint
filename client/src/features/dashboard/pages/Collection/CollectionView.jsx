@@ -29,7 +29,7 @@ export default function CollectionView({ collectionId, onBack }) {
   const toast = useToast();
   const { collection, items, loading, reload } = useCollectionData({
     collectionId,
-    toast,
+    onError: toast.error,
   });
   const [activeTool, setActiveTool] = useState("youtube");
 
@@ -53,7 +53,7 @@ export default function CollectionView({ collectionId, onBack }) {
         // Keep UI responsive; localStorage still preserves layout.
       }
     },
-    [collectionId]
+    [collectionId],
   );
 
   const { layoutsByItemKey, setLayoutsByItemKey } = useCollectionLayouts({
@@ -78,7 +78,7 @@ export default function CollectionView({ collectionId, onBack }) {
 
   const existingKeys = useMemo(() => {
     return new Set(
-      items.map(getItemKey).filter((k) => typeof k === "string" && k.length)
+      items.map(getItemKey).filter((k) => typeof k === "string" && k.length),
     );
   }, [items]);
 
@@ -105,7 +105,7 @@ export default function CollectionView({ collectionId, onBack }) {
         });
         if (!createRes?.success) {
           throw new Error(
-            createRes?.message || "Failed to create planner widget"
+            createRes?.message || "Failed to create planner widget",
           );
         }
 
@@ -115,11 +115,11 @@ export default function CollectionView({ collectionId, onBack }) {
         const addRes = await collectionsAPI.addItemToCollection(
           collectionId,
           "planner",
-          String(created._id)
+          String(created._id),
         );
         if (!addRes?.success) {
           throw new Error(
-            addRes?.message || "Failed to add item to collection"
+            addRes?.message || "Failed to add item to collection",
           );
         }
 
@@ -135,7 +135,7 @@ export default function CollectionView({ collectionId, onBack }) {
         setCreatingPlanner(false);
       }
     },
-    [collectionId, reload, toast]
+    [collectionId, reload, toast],
   );
 
   const confirmRemove = useCallback(async () => {
@@ -148,7 +148,7 @@ export default function CollectionView({ collectionId, onBack }) {
       const res = await collectionsAPI.removeItemFromCollection(
         collectionId,
         itemType,
-        itemId
+        itemId,
       );
       if (!res?.success) {
         throw new Error(res?.message || "Failed to remove item");
@@ -181,7 +181,7 @@ export default function CollectionView({ collectionId, onBack }) {
       if (toolId === "planner") return;
       openPicker(toolId);
     },
-    [openPicker]
+    [openPicker],
   );
 
   if (!collectionId) return null;
@@ -310,4 +310,3 @@ export default function CollectionView({ collectionId, onBack }) {
     </div>
   );
 }
-

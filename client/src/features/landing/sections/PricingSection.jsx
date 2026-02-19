@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Check, Sparkles } from "@/shared/ui/icons";
+import { Check } from "@/shared/ui/icons";
 import SectionHeader from "../components/SectionHeader";
 
 const included = [
@@ -12,71 +12,61 @@ const included = [
 
 export default function PricingSection() {
   return (
-    <section id="pricing" className="bg-white py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section id="pricing" className="relative py-28 overflow-hidden">
+      {/* Different background style (not same as showcase) */}
+      <div className="absolute inset-0 dp-bg" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10 pointer-events-none" />
+
+      <div className="relative mx-auto max-w-4xl px-6">
         <SectionHeader
           title="Simple pricing"
-          description="Start with the essentials today. Add advanced capabilities when you need them."
+          description="Start free. Upgrade when you need more power."
         />
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">Free</h3>
-                <p className="mt-1 text-sm text-slate-600">
-                  Great for personal productivity.
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-semibold text-slate-900">$0</div>
-                <div className="text-sm text-slate-500">per month</div>
-              </div>
+        <div className="mt-20 space-y-10">
+          {/* MAIN CARD */}
+          <div className="rounded-3xl border dp-border dp-surface p-12 text-center shadow-xl transition-all duration-300 hover:shadow-2xl">
+            <h3 className="text-2xl font-semibold dp-text">Free</h3>
+
+            <div className="mt-6 text-6xl font-semibold dp-text">$0</div>
+            <p className="mt-2 dp-text-muted text-sm">per month</p>
+
+            <div className="mt-10 mx-auto max-w-md space-y-4 text-left">
+              {included.map((f) => (
+                <div key={f} className="flex items-start gap-3 dp-text-muted">
+                  <Check size={16} className="mt-1 dp-text" />
+                  <span className="text-sm">{f}</span>
+                </div>
+              ))}
             </div>
 
-            <ul className="mt-6 space-y-3">
-              {included.map((f) => (
-                <li key={f} className="flex items-start gap-3 text-slate-700">
-                  <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                    <Check size={14} />
-                  </span>
-                  <span className="text-sm leading-6">{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8">
+            <div className="mt-12">
               <Link
                 to="/register"
-                className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                className="dp-btn-primary inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-semibold transition-all duration-200"
               >
-                Create an account
+                Get started for free
               </Link>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">
-              Pro (coming soon)
-            </h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Advanced productivity features, collaboration, and deeper
-              insights.
+          {/* PRO TEASER (Different visual treatment) */}
+          <div className="text-center dp-text-muted">
+            <p className="text-sm uppercase tracking-widest opacity-70">
+              Coming soon
             </p>
 
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-sm font-medium text-slate-900">
-                Planned additions
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Team workflows, analytics, integrations, priority support.
-              </p>
-            </div>
+            <h4 className="mt-4 text-xl font-semibold dp-text">Pro plan</h4>
+
+            <p className="mt-3 max-w-xl mx-auto text-sm">
+              Advanced collaboration, analytics, integrations and priority
+              support.
+            </p>
 
             <button
               type="button"
               disabled
-              className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-slate-200 px-6 py-3 text-sm font-semibold text-slate-600"
+              className="mt-8 inline-flex items-center justify-center rounded-full dp-surface dp-border border px-6 py-3 text-sm font-semibold cursor-not-allowed"
             >
               Notify me
             </button>

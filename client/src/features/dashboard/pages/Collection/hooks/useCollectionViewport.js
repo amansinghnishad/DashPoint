@@ -1,20 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  clampScaleValue,
+  getLayoutsBounds,
+  isEditableTarget,
+  isSpaceKey,
+  isZoomOrBrowserShortcut,
+} from "./useCollectionViewport.helpers";
 
-const isEditableTarget = (target) => {
-  const el = target && target.nodeType === 1 ? target : null;
-  if (!el) return false;
-
-  if (el.isContentEditable) return true;
-  const tag = (el.tagName || "").toLowerCase();
-  if (tag === "input" || tag === "textarea" || tag === "select") return true;
-
-  const closest =
-    typeof el.closest === "function"
-      ? el.closest("input,textarea,select,[contenteditable='true']")
-      : null;
-  return Boolean(closest);
-};
-
+// View controls
 export default function useCollectionViewport({
   canvasRef,
   worldRef,
@@ -35,12 +28,9 @@ export default function useCollectionViewport({
   }, [viewportOffset, viewportScale]);
 
   const clampScale = useCallback((s) => {
-    const min = 0.25;
-    const max = 3;
-    return Math.min(max, Math.max(min, s));
+    return clampScaleValue(s);
   }, []);
 
-  // Ctrl/⌘ + wheel zoom (and prevent browser page zoom)
   useEffect(() => {
     const surface = canvasRef?.current;
     if (!surface) return;
@@ -74,7 +64,6 @@ export default function useCollectionViewport({
     return () => surface.removeEventListener("wheel", onWheel);
   }, [canvasRef, clampScale]);
 
-  // Pan (space+drag / middle mouse / background drag) + touch pinch zoom
   useEffect(() => {
     const surface = canvasRef?.current;
     if (!surface) return;
@@ -87,7 +76,7 @@ export default function useCollectionViewport({
     };
 
     const onKeyDown = (e) => {
-      if (e.code !== "Space" && e.key !== " ") return;
+      if (!isSpaceKey(e)) return;
       if (isEditableTarget(e.target)) return;
 
       e.preventDefault();
@@ -100,7 +89,7 @@ export default function useCollectionViewport({
     };
 
     const onKeyUp = (e) => {
-      if (e.code !== "Space" && e.key !== " ") return;
+      if (!isSpaceKey(e)) return;
       if (spacePressedRef.current) {
         spacePressedRef.current = false;
         setGrabCursor();
@@ -168,7 +157,7 @@ export default function useCollectionViewport({
       try {
         surfaceEl?.setPointerCapture?.(e.pointerId);
       } catch {
-        // ignore
+        // Ignore capture
       }
 
       panRef.current = {
@@ -254,20 +243,12 @@ export default function useCollectionViewport({
     });
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown, { capture: true });
-      window.removeEventListener("keyup", onKeyUp, { capture: true });
-      surface.removeEventListener("pointerdown", onPointerDownCapture, {
-        capture: true,
-      });
-      window.removeEventListener("pointermove", onPointerMove, {
-        passive: false,
-      });
-      window.removeEventListener("pointerup", onPointerUpOrCancel, {
-        passive: true,
-      });
-      window.removeEventListener("pointercancel", onPointerUpOrCancel, {
-        passive: true,
-      });
+      window.removeEventListener("keydown", onKeyDown, true);
+      window.removeEventListener("keyup", onKeyUp, true);
+      surface.removeEventListener("pointerdown", onPointerDownCapture, true);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUpOrCancel);
+      window.removeEventListener("pointercancel", onPointerUpOrCancel);
       surface.style.cursor = "";
       panRef.current = null;
       pinchRef.current = null;
@@ -276,34 +257,9 @@ export default function useCollectionViewport({
     };
   }, [canvasRef, clampScale, worldRef]);
 
-  // Block browser default shortcuts while on the collection canvas.
   useEffect(() => {
     const onKeyDownCapture = (e) => {
-      const hasModifier = e.ctrlKey || e.metaKey;
-      if (!hasModifier) return;
-
-      const key = typeof e.key === "string" ? e.key : "";
-      const lower = key.toLowerCase();
-      const code = typeof e.code === "string" ? e.code : "";
-
-      const isZoomKey =
-        key === "+" ||
-        key === "=" ||
-        key === "-" ||
-        key === "_" ||
-        key === "0" ||
-        code === "NumpadAdd" ||
-        code === "NumpadSubtract";
-
-      const isBrowserActionKey =
-        lower === "f" ||
-        lower === "p" ||
-        lower === "s" ||
-        lower === "r" ||
-        lower === "g" ||
-        lower === "h";
-
-      if (!isZoomKey && !isBrowserActionKey) return;
+      if (!isZoomOrBrowserShortcut(e)) return;
 
       e.preventDefault();
       e.stopPropagation();
@@ -322,51 +278,17 @@ export default function useCollectionViewport({
     if (!surface) return;
 
     const rect = surface.getBoundingClientRect();
-    const scale = typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
+    const scale =
+      typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
 
-    const layouts =
-      layoutsByItemKey && typeof layoutsByItemKey === "object"
-        ? layoutsByItemKey
-        : {};
-
-    const keys = Object.keys(layouts);
-    if (keys.length === 0) {
+    const bounds = getLayoutsBounds(layoutsByItemKey);
+    if (!bounds) {
       setViewportOffset({ x: 0, y: 0 });
       return;
     }
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    for (const k of keys) {
-      const l = layouts[k];
-      if (!l) continue;
-      const x = Number(l.x);
-      const y = Number(l.y);
-      const w = Number(l.width);
-      const h = Number(l.height);
-      if (![x, y, w, h].every(Number.isFinite)) continue;
-
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + w);
-      maxY = Math.max(maxY, y + h);
-    }
-
-    if (
-      !Number.isFinite(minX) ||
-      !Number.isFinite(minY) ||
-      !Number.isFinite(maxX) ||
-      !Number.isFinite(maxY)
-    ) {
-      setViewportOffset({ x: 0, y: 0 });
-      return;
-    }
-
-    const worldCenterX = (minX + maxX) / 2;
-    const worldCenterY = (minY + maxY) / 2;
+    const worldCenterX = (bounds.minX + bounds.maxX) / 2;
+    const worldCenterY = (bounds.minY + bounds.maxY) / 2;
 
     setViewportOffset({
       x: rect.width / 2 - worldCenterX * scale,

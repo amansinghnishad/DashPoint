@@ -1,5 +1,6 @@
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
+const { attachEmbeddingToPlannerWidget } = require('./embeddingsService');
 
 const normalizeTags = (tags) => {
   if (!Array.isArray(tags)) return [];
@@ -84,6 +85,7 @@ const addNoteToCollection = async (userId, args) => {
     }
   });
 
+  await attachEmbeddingToPlannerWidget(widget);
   await widget.save();
   await collection.addItem('planner', String(widget._id));
 

@@ -1,45 +1,56 @@
-export const getPickerCollectionItemType = (tool) => {
-  if (tool === "youtube") return "youtube";
-  if (tool === "file") return "file";
-  if (tool === "photo") return "file";
-  if (tool === "planner") return "planner";
-  return null;
+const PICKER_ITEM_TYPE_BY_TOOL = {
+  youtube: "youtube",
+  file: "file",
+  photo: "file",
+  planner: "planner",
 };
 
-export const getPickerItemId = (it) => it?._id || it?.id || null;
+const PLANNER_TYPE_LABELS = {
+  "todo-list": "To do list",
+  appointments: "Appointments",
+  "daily-schedule": "Daily schedule",
+  notes: "Notes",
+  "notes-tomorrow": "Notes",
+};
 
-export const getPickerItemLabel = (tool, it) => {
+const getPlannerTypeLabel = (widgetType) => {
+  const safeWidgetType = String(widgetType || "");
+  return PLANNER_TYPE_LABELS[safeWidgetType] || safeWidgetType || "Planner";
+};
+
+// Tool mapping
+export const getPickerCollectionItemType = (tool) => {
+  const safeTool = String(tool || "");
+  return PICKER_ITEM_TYPE_BY_TOOL[safeTool] || null;
+};
+
+// Item identity
+export const getPickerItemId = (item) => item?._id || item?.id || null;
+
+// Item labeling
+export const getPickerItemLabel = (tool, item) => {
   if (tool === "youtube") {
     return {
-      title: it?.title || "Untitled",
-      subtitle: it?.channelTitle || "YouTube",
+      title: item?.title || "Untitled",
+      subtitle: item?.channelTitle || "YouTube",
     };
   }
 
   if (tool === "planner") {
-    const widgetType = String(it?.widgetType || "");
-    const typeLabelByType = {
-      "todo-list": "To do list",
-      appointments: "Appointments",
-      "daily-schedule": "Daily schedule",
-      notes: "Notes",
-      "notes-tomorrow": "Notes",
-    };
-
-    const typeLabel = typeLabelByType[widgetType] || widgetType || "Planner";
-
+    const typeLabel = getPlannerTypeLabel(item?.widgetType);
     return {
-      title: it?.title || typeLabel,
+      title: item?.title || typeLabel,
       subtitle: typeLabel,
     };
   }
 
   return {
-    title: it?.originalName || it?.filename || "File",
-    subtitle: it?.formattedSize || it?.mimetype || "",
+    title: item?.originalName || item?.filename || "File",
+    subtitle: item?.formattedSize || item?.mimetype || "",
   };
 };
 
+// Text normalize
 export const toSingleLine = (value) =>
   String(value || "")
     .replace(/\s*\r?\n\s*/g, " ")

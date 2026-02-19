@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { collectionsAPI } from "../../../../../services/modules/collectionsApi";
 
-export default function useCollectionData({ collectionId, toast }) {
+const LOAD_ERROR_MESSAGE = "Failed to load collection";
+
+const getCollectionData = (response) => response?.data?.data ?? response?.data ?? null;
+
+const getCollectionItems = (data) => (Array.isArray(data?.items) ? data.items : []);
+
+const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.message || error?.message || fallback;
+
+// Data loading
+export default function useCollectionData({ collectionId, onError }) {
   const [collection, setCollection] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(Boolean(collectionId));
@@ -20,7 +30,6 @@ export default function useCollectionData({ collectionId, toast }) {
       return;
     }
 
-    // Collapse concurrent reload calls into a single request.
     if (inflightReloadRef.current) {
       return inflightReloadRef.current;
     }
@@ -30,18 +39,15 @@ export default function useCollectionData({ collectionId, toast }) {
       try {
         const response = await collectionsAPI.getCollectionWithItems(collectionId);
         if (!response?.success) {
-          throw new Error(response?.message || "Failed to load collection");
+          throw new Error(response?.message || LOAD_ERROR_MESSAGE);
         }
 
-        const data = response.data?.data ?? response.data;
+        const data = getCollectionData(response);
         setCollection(data);
-        setItems(Array.isArray(data?.items) ? data.items : []);
+        setItems(getCollectionItems(data));
       } catch (err) {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load collection";
-        toast?.error?.(message);
+        const message = getErrorMessage(err, LOAD_ERROR_MESSAGE);
+        onError?.(message);
       } finally {
         setLoading(false);
         inflightReloadRef.current = null;
@@ -50,7 +56,7 @@ export default function useCollectionData({ collectionId, toast }) {
 
     inflightReloadRef.current = promise;
     return promise;
-  }, [collectionId, reset, toast]);
+  }, [collectionId, onError, reset]);
 
   useEffect(() => {
     if (!collectionId) {

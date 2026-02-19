@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const PlannerWidget = require('../models/PlannerWidget');
+const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
 
 // Get all planner widgets for the authenticated user
 exports.getAllPlannerWidgets = async (req, res, next) => {
@@ -80,6 +81,7 @@ exports.createPlannerWidget = async (req, res, next) => {
       data: req.body.data || {}
     });
 
+    await attachEmbeddingToPlannerWidget(widget);
     await widget.save();
 
     res.status(201).json({
@@ -104,14 +106,10 @@ exports.updatePlannerWidget = async (req, res, next) => {
       });
     }
 
-    const widget = await PlannerWidget.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      {
-        ...(req.body.title !== undefined ? { title: req.body.title } : null),
-        ...(req.body.data !== undefined ? { data: req.body.data } : null)
-      },
-      { new: true, runValidators: true }
-    );
+    const widget = await PlannerWidget.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
 
     if (!widget) {
       return res.status(404).json({
@@ -119,6 +117,12 @@ exports.updatePlannerWidget = async (req, res, next) => {
         message: 'Planner widget not found'
       });
     }
+
+    if (req.body.title !== undefined) widget.title = req.body.title;
+    if (req.body.data !== undefined) widget.data = req.body.data;
+
+    await attachEmbeddingToPlannerWidget(widget);
+    await widget.save();
 
     res.json({
       success: true,

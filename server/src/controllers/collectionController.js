@@ -1,6 +1,7 @@
 const Collection = require('../models/Collection');
 const { validationResult } = require('express-validator');
 const PlannerWidget = require('../models/PlannerWidget');
+const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
 
 // Get all collections for user
 exports.getCollections = async (req, res, next) => {
@@ -379,6 +380,7 @@ exports.addPlannerWidgetToCollection = async (req, res, next) => {
       title: title || '',
       data: data || {}
     });
+    await attachEmbeddingToPlannerWidget(widget);
     await widget.save();
 
     await collection.addItem('planner', String(widget._id));
