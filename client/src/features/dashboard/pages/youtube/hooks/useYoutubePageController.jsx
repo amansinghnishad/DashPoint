@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { useToast } from "../../../../hooks/useToast";
-import { youtubeAPI } from "../../../../services/modules/youtubeApi";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
+import { useToast } from "@/hooks/useToast";
+import { youtubeAPI } from "@/services/modules/youtubeApi";
 import { parseYouTubeId } from "../utils/parseYouTubeId";
 import { SEARCH_INITIAL_STATE, searchReducer } from "../state/searchReducer";
 import { UI_INITIAL_STATE, uiReducer } from "../state/uiReducer";
@@ -38,7 +45,8 @@ export default function useYoutubePageController() {
     try {
       dispatchUi({ type: "SET_LOADING", payload: true });
       const res = await youtubeAPI.getAll(1, 50);
-      if (!res?.success) throw new Error(res?.message || "Failed to load videos");
+      if (!res?.success)
+        throw new Error(res?.message || "Failed to load videos");
 
       const mapped = (res.data || []).map((v) => ({
         id: v._id,
@@ -72,7 +80,8 @@ export default function useYoutubePageController() {
       const already = savedItems.find((v) => v.videoId === videoId);
       if (already) {
         setSelectedId(already.id);
-        if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
+        if (options?.clearSearch)
+          dispatchSearch({ type: "SET_QUERY", payload: "" });
         toast.info("That video is already saved.");
         return;
       }
@@ -81,7 +90,9 @@ export default function useYoutubePageController() {
       try {
         const detailsRes = await youtubeAPI.getVideoDetails(videoId);
         if (!detailsRes?.success) {
-          throw new Error(detailsRes?.message || "Failed to fetch video details");
+          throw new Error(
+            detailsRes?.message || "Failed to fetch video details",
+          );
         }
 
         const details = detailsRes.data;
@@ -97,8 +108,12 @@ export default function useYoutubePageController() {
           videoId,
           title: (details.title || `YouTube: ${videoId}`).slice(0, 200),
           thumbnail: thumb,
-          embedUrl: details.embedUrl || `https://www.youtube.com/embed/${videoId}`,
-          url: details.url || urlHint || `https://www.youtube.com/watch?v=${videoId}`,
+          embedUrl:
+            details.embedUrl || `https://www.youtube.com/embed/${videoId}`,
+          url:
+            details.url ||
+            urlHint ||
+            `https://www.youtube.com/watch?v=${videoId}`,
           channelTitle: details.channelTitle
             ? String(details.channelTitle).slice(0, 100)
             : undefined,
@@ -107,9 +122,9 @@ export default function useYoutubePageController() {
             : undefined,
           tags: Array.isArray(details.tags)
             ? details.tags
-              .map((t) => String(t).trim())
-              .filter(Boolean)
-              .slice(0, 50)
+                .map((t) => String(t).trim())
+                .filter(Boolean)
+                .slice(0, 50)
             : undefined,
         });
 
@@ -132,12 +147,14 @@ export default function useYoutubePageController() {
 
         setSavedItems((prev) => [savedItem, ...prev]);
         setSelectedId(savedItem.id);
-        if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
+        if (options?.clearSearch)
+          dispatchSearch({ type: "SET_QUERY", payload: "" });
         toast.success("Video saved.");
       } catch (err) {
         const status = err?.response?.status;
         const responseData = err?.response?.data;
-        const message = responseData?.message || err?.message || "Failed to save video";
+        const message =
+          responseData?.message || err?.message || "Failed to save video";
 
         if (status === 400 && Array.isArray(responseData?.errors)) {
           const first = responseData.errors[0];
@@ -151,7 +168,8 @@ export default function useYoutubePageController() {
         if (status === 409) {
           toast.info(message);
           await loadSavedVideos();
-          if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
+          if (options?.clearSearch)
+            dispatchSearch({ type: "SET_QUERY", payload: "" });
           return;
         }
 
@@ -187,11 +205,16 @@ export default function useYoutubePageController() {
         const res = await youtubeAPI.searchVideos(q, 15, "relevance");
         if (searchReqIdRef.current !== requestId) return;
 
-        if (!res?.success) throw new Error(res?.message || "YouTube search failed");
+        if (!res?.success)
+          throw new Error(res?.message || "YouTube search failed");
 
         const videos = res?.data?.videos || [];
         const mapped = videos.map((v) => {
-          const thumb = v?.thumbnail?.high || v?.thumbnail?.medium || v?.thumbnail?.default || null;
+          const thumb =
+            v?.thumbnail?.high ||
+            v?.thumbnail?.medium ||
+            v?.thumbnail?.default ||
+            null;
           return {
             id: `yt:${v.id}`,
             videoId: v.id,
@@ -209,7 +232,9 @@ export default function useYoutubePageController() {
       } catch (err) {
         if (searchReqIdRef.current !== requestId) return;
         const message =
-          err?.response?.data?.message || err?.message || "YouTube search failed";
+          err?.response?.data?.message ||
+          err?.message ||
+          "YouTube search failed";
         dispatchSearch({ type: "FAIL", payload: message });
       }
     }, 350);
@@ -233,7 +258,8 @@ export default function useYoutubePageController() {
     try {
       dispatchUi({ type: "SET_DELETING", payload: true });
       const res = await youtubeAPI.delete(id);
-      if (!res?.success) throw new Error(res?.message || "Failed to delete video");
+      if (!res?.success)
+        throw new Error(res?.message || "Failed to delete video");
 
       setSavedItems((prev) => {
         const remaining = prev.filter((x) => x.id !== id);
@@ -247,7 +273,9 @@ export default function useYoutubePageController() {
       dispatchUi({ type: "CLOSE_DELETE" });
     } catch (err) {
       const message =
-        err?.response?.data?.message || err?.message || "Failed to delete video";
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to delete video";
       toast.error(message);
     } finally {
       dispatchUi({ type: "SET_DELETING", payload: false });
@@ -259,7 +287,10 @@ export default function useYoutubePageController() {
       <iframe
         title={selected.title}
         className="h-full w-full"
-        src={selected.embedUrl || `https://www.youtube.com/embed/${selected.videoId || selected.id}`}
+        src={
+          selected.embedUrl ||
+          `https://www.youtube.com/embed/${selected.videoId || selected.id}`
+        }
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />

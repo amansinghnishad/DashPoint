@@ -1,6 +1,6 @@
-import DashboardPageLayout from "../../layouts/DashboardPageLayout";
-import AddToCollectionModal from "../../../../shared/ui/modals/AddToCollectionModal";
-import DeleteConfirmModal from "../../../../shared/ui/modals/DeleteConfirmModal";
+import DashboardPageLayout from "../../../layouts/DashboardPageLayout";
+import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
+import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
 import { BookmarkPlus, IconAdd, IconDelete } from "@/shared/ui/icons";
 import SearchEmptyState from "./SearchEmptyState";
 import YoutubeViewer from "./YoutubeViewer";
