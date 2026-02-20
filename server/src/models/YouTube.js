@@ -65,6 +65,34 @@ const youtubeSchema = new mongoose.Schema({
   },
   embeddingUpdatedAt: {
     type: Date, default: null
+  },
+  transcriptStatus: {
+    type: String,
+    enum: ['not-indexed', 'indexed', 'unavailable', 'failed'],
+    default: 'not-indexed',
+    index: true
+  },
+  transcriptLanguage: {
+    type: String,
+    default: ''
+  },
+  transcriptText: {
+    type: String,
+    default: '',
+    maxlength: 200000
+  },
+  transcriptChunkCount: {
+    type: Number,
+    default: 0
+  },
+  transcriptIndexedAt: {
+    type: Date,
+    default: null
+  },
+  transcriptError: {
+    type: String,
+    default: null,
+    maxlength: 1000
   }
 }, {
   timestamps: true

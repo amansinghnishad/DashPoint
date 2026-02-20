@@ -105,12 +105,75 @@ const addNoteToCollection = async (userId, args) => {
   };
 };
 
+const createCollectionWithNote = async (userId, args) => {
+  const name = String(args?.name || '').trim();
+  const noteText = String(args?.note || '').trim();
+
+  if (!name) {
+    throw new Error('Collection name is required');
+  }
+
+  if (!noteText) {
+    throw new Error('Note text is required');
+  }
+
+  let collection = await Collection.findOne({ userId, name });
+  let created = false;
+
+  if (!collection) {
+    collection = new Collection({
+      userId,
+      name,
+      description: args?.description,
+      color: args?.color,
+      icon: args?.icon,
+      tags: normalizeTags(args?.tags),
+      isPrivate: args?.isPrivate !== undefined ? Boolean(args.isPrivate) : true
+    });
+    await collection.save();
+    created = true;
+  }
+
+  const widget = new PlannerWidget({
+    userId,
+    widgetType: 'notes',
+    title: String(args?.title || '').trim().slice(0, 100),
+    data: {
+      text: noteText
+    }
+  });
+
+  await attachEmbeddingToPlannerWidget(widget);
+  await widget.save();
+  await collection.addItem('planner', String(widget._id));
+
+  return {
+    success: true,
+    message: created
+      ? 'Collection created and note added successfully'
+      : 'Collection found and note added successfully',
+    collection: {
+      _id: String(collection._id),
+      name: collection.name,
+      created
+    },
+    widget: {
+      _id: String(widget._id),
+      widgetType: widget.widgetType,
+      title: widget.title,
+      data: widget.data
+    }
+  };
+};
+
 const executeToolCall = async ({ name, args, userId }) => {
   switch (name) {
     case 'createCollection':
       return createCollectionForUser(userId, args);
     case 'addNote':
       return addNoteToCollection(userId, args);
+    case 'createCollectionWithNote':
+      return createCollectionWithNote(userId, args);
     default:
       throw new Error(`Unsupported tool: ${name}`);
   }

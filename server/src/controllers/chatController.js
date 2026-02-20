@@ -56,7 +56,7 @@ exports.chat = async (req, res, next) => {
       input: [
         {
           role: 'system',
-          content: 'You are DashPoint assistant. Use tools when the user asks to create collections or save notes. Keep responses concise and factual.'
+          content: 'You are DashPoint assistant. Use tools when the user asks to create collections or save notes. If the user asks for multiple actions in one command, complete all required DB actions in the same turn by either calling createCollectionWithNote or chaining multiple tool calls. Keep responses concise and factual.'
         },
         {
           role: 'user',

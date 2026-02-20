@@ -8,6 +8,8 @@ const {
   getVideoDetails,
   searchVideos,
   getChannelDetails,
+  reindexVideoTranscript,
+  getTalkingToVideoContext,
 } = require('../controllers/youtubeController');
 const auth = require('../middleware/auth');
 const {
@@ -48,6 +50,18 @@ router.put('/videos/:id', [
   auth,
   ...updateVideoValidation
 ], updateVideo);
+
+// Re-index transcript/chunks for a saved video
+router.post('/videos/:id/reindex-transcript', [
+  auth,
+  ...updateVideoValidation
+], reindexVideoTranscript);
+
+// Retrieve transcript chunks by semantic similarity for Talking to Video
+router.post('/videos/:id/talk-context', [
+  auth,
+  ...updateVideoValidation
+], getTalkingToVideoContext);
 
 // DELETE  Delete a saved video
 router.delete('/videos/:id', [

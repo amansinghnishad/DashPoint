@@ -1,6 +1,12 @@
 const axios = require('axios');
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 const YouTube = require('../models/YouTube');
+const YouTubeTranscriptChunk = require('../models/YouTubeTranscriptChunk');
+const {
+  indexTranscriptForVideo,
+  findRelevantTranscriptChunks
+} = require('../services/youtubeTranscriptService');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -57,6 +63,7 @@ exports.createVideo = async (req, res, next) => {
 
     const video = new YouTube(videoData);
     await video.save();
+    await indexTranscriptForVideo(video);
 
     res.status(201).json({
       success: true,
@@ -86,11 +93,10 @@ exports.updateVideo = async (req, res, next) => {
       });
     }
 
-    const video = await YouTube.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const video = await YouTube.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
 
     if (!video) {
       return res.status(404).json({
@@ -98,6 +104,10 @@ exports.updateVideo = async (req, res, next) => {
         message: 'Video not found'
       });
     }
+
+    Object.assign(video, req.body || {});
+    await video.save();
+    await indexTranscriptForVideo(video);
 
     res.json({
       success: true,
@@ -124,9 +134,102 @@ exports.deleteVideo = async (req, res, next) => {
       });
     }
 
+    await YouTubeTranscriptChunk.deleteMany({
+      userId: req.user._id,
+      youtubeId: video._id
+    });
+
     res.json({
       success: true,
       message: 'Video deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.reindexVideoTranscript = async (req, res, next) => {
+  try {
+    const video = await YouTube.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    const result = await indexTranscriptForVideo(video);
+
+    return res.status(200).json({
+      success: true,
+      message: result.indexed
+        ? 'Transcript indexed successfully'
+        : 'Transcript indexing completed with fallback state',
+      data: {
+        transcriptStatus: video.transcriptStatus,
+        transcriptLanguage: video.transcriptLanguage,
+        transcriptChunkCount: video.transcriptChunkCount,
+        transcriptIndexedAt: video.transcriptIndexedAt,
+        transcriptError: video.transcriptError,
+        ...result
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getTalkingToVideoContext = async (req, res, next) => {
+  try {
+    const { query, limit = 6, numCandidates = 120 } = req.body || {};
+
+    if (!String(query || '').trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'query is required'
+      });
+    }
+
+    const video = await YouTube.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    }).select('_id title videoId transcriptStatus transcriptChunkCount transcriptIndexedAt transcriptLanguage transcriptError');
+
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        message: 'Video not found'
+      });
+    }
+
+    const chunks = await findRelevantTranscriptChunks({
+      userId: new mongoose.Types.ObjectId(String(req.user._id)),
+      youtubeId: new mongoose.Types.ObjectId(String(video._id)),
+      query: String(query),
+      limit,
+      numCandidates
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        video: {
+          _id: video._id,
+          title: video.title,
+          videoId: video.videoId,
+          transcriptStatus: video.transcriptStatus,
+          transcriptChunkCount: video.transcriptChunkCount,
+          transcriptIndexedAt: video.transcriptIndexedAt,
+          transcriptLanguage: video.transcriptLanguage,
+          transcriptError: video.transcriptError
+        },
+        query: String(query),
+        chunks
+      }
     });
   } catch (error) {
     next(error);

@@ -18,6 +18,20 @@ export const youtubeAPI = {
     return getResponseData(apiClient.put(`/youtube/videos/${id}`, videoData));
   },
 
+  reindexTranscript(id) {
+    return getResponseData(apiClient.post(`/youtube/videos/${id}/reindex-transcript`));
+  },
+
+  getTalkContext(id, query, options = {}) {
+    return getResponseData(
+      apiClient.post(`/youtube/videos/${id}/talk-context`, {
+        query,
+        limit: options.limit,
+        numCandidates: options.numCandidates,
+      })
+    );
+  },
+
   delete(id) {
     return getResponseData(apiClient.delete(`/youtube/videos/${id}`));
   },
