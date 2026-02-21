@@ -8,15 +8,15 @@ import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/Floatin
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div>
       <TopBar />
-      <main>
+      <main className="bg-transparent">
         <HeroSection />
         <FeaturesSection />
         <ShowcaseSection />
         <PricingSection />
       </main>
-      <Footer />
+      <Footer embedded />
 
       <FloatingInstallDownloadButtons />
     </div>

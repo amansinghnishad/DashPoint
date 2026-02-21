@@ -18,11 +18,9 @@ const isReducedMotionPreferred = () => {
 };
 
 const TopBar = () => {
-  const navRef = useRef(null);
   const menuId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isPastHero, setIsPastHero] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -32,26 +30,9 @@ const TopBar = () => {
     location.pathname === APP_ROUTES.LOGIN ||
     location.pathname === APP_ROUTES.REGISTER;
 
-  const isLandingPage = location.pathname === APP_ROUTES.HOME;
-
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);
-
-    if (!isLandingPage) {
-      setIsPastHero(false);
-      return;
-    }
-
-    const hero = document.getElementById("hero");
-    if (!hero) {
-      setIsPastHero(false);
-      return;
-    }
-
-    const navHeight = navRef.current?.getBoundingClientRect().height ?? 0;
-    const heroRect = hero.getBoundingClientRect();
-    setIsPastHero(heroRect.bottom <= navHeight + 8);
-  }, [isLandingPage]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -109,8 +90,7 @@ const TopBar = () => {
     return `${base} ${bg} ${scrolled}`;
   }, [isMenuOpen, isScrolled]);
 
-  const useDarkText =
-    theme === "dark" && isLandingPage && isPastHero && !isMenuOpen;
+  const useDarkText = false;
   const textClass = useDarkText ? "text-black" : "text-white";
   const hoverClass = "hover:text-amber-300";
   const navItemClass = `${textClass} ${hoverClass} transition-colors duration-300`;
@@ -143,7 +123,7 @@ const TopBar = () => {
   }, [isAuthPage, location.pathname]);
 
   return (
-    <nav ref={navRef} className={navClassName} aria-label="Primary">
+    <nav className={navClassName} aria-label="Primary">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <Link
