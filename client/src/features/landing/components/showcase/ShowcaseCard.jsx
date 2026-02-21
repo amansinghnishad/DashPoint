@@ -4,7 +4,7 @@ import VideoPreview from "./VideoPreview";
 const MotionDiv = m.div;
 
 const PANEL_CLASS_NAME =
-  "relative h-[320px] md:h-[480px] w-full overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl";
+  "dp-surface dp-border relative h-[320px] md:h-[480px] w-full overflow-hidden rounded-3xl border shadow-2xl";
 
 const LIGHT_POSITIONS = [
   "circle at 15% 8%",
@@ -85,7 +85,7 @@ export default function ShowcaseCard({
       </div>
 
       <div className="mt-6 flex justify-center">
-        <h3 className="text-base font-semibold text-white tracking-wide">
+        <h3 className="dp-text text-base font-semibold tracking-wide">
           {card.title}
         </h3>
       </div>

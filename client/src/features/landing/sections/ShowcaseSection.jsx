@@ -39,7 +39,7 @@ export default function ShowcaseSection() {
     <LazyMotion features={domAnimation}>
       <section
         id="showcase"
-        className="relative overflow-hidden py-24 bg-black"
+        className="dp-showcase-bg dp-bg relative overflow-hidden py-24"
       >
         <div className="mx-auto max-w-7xl px-6">
           <SectionHeader
