@@ -13,8 +13,6 @@ const included = [
 export default function PricingSection() {
   return (
     <section id="pricing" className="relative py-28 overflow-hidden">
-      {/* Different background style (not same as showcase) */}
-      <div className="absolute inset-0 dp-bg" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10 pointer-events-none" />
 
       <div className="relative mx-auto max-w-4xl px-6">

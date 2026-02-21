@@ -144,18 +144,6 @@
   --dp-chat-bubble-error: rgb(239 68 68 / 0.2);
   --dp-chat-bubble-error-fg: rgb(255 200 200);
   --dp-chat-avatar-bg: rgb(255 255 255 / 0.08);
-
-  --dp-showcase-gradient:
-    radial-gradient(
-      1000px 500px at 50% -250px,
-      rgba(212, 117, 28, 0.979),
-      transparent 60%
-    ),
-    radial-gradient(
-      800px 400px at 20% 40%,
-      rgba(169, 85, 247, 0.151),
-      transparent 60%
-    );
 }
 
 /* Chat UI helpers */
