@@ -21,6 +21,7 @@ const TopBar = () => {
   const menuId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isInHeroSection, setIsInHeroSection] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -34,12 +35,41 @@ const TopBar = () => {
     setIsScrolled(window.scrollY > 50);
   }, []);
 
+  const handleHeroPosition = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const heroSection = document.getElementById("hero");
+    if (!heroSection) {
+      setIsInHeroSection(false);
+      return;
+    }
+
+    const rect = heroSection.getBoundingClientRect();
+    const navAnchorY = 96;
+    const isInsideHero = rect.top <= navAnchorY && rect.bottom > navAnchorY;
+
+    setIsInHeroSection(isInsideHero);
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.addEventListener("scroll", handleHeroPosition, { passive: true });
+    window.addEventListener("resize", handleHeroPosition);
+    handleHeroPosition();
+
+    return () => {
+      window.removeEventListener("scroll", handleHeroPosition);
+      window.removeEventListener("resize", handleHeroPosition);
+    };
+  }, [handleHeroPosition, location.pathname]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -90,8 +120,14 @@ const TopBar = () => {
     return `${base} ${bg} ${scrolled}`;
   }, [isMenuOpen, isScrolled]);
 
-  const useDarkText = false;
-  const textClass = useDarkText ? "text-black" : "text-white";
+  const useHeroTextInLightMode =
+    theme === "light" && isInHeroSection && !isMenuOpen;
+  const useDarkText = theme === "light" && !useHeroTextInLightMode;
+  const textClass = useHeroTextInLightMode
+    ? "dp-nav-hero-text"
+    : useDarkText
+      ? "text-black"
+      : "text-white";
   const hoverClass = "hover:text-amber-300";
   const navItemClass = `${textClass} ${hoverClass} transition-colors duration-300`;
   const activeNavLinkClass = "text-amber-300";

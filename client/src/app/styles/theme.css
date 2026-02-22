@@ -44,6 +44,8 @@
   --dp-btn-hero-fg: rgb(255 255 255);
   --dp-btn-hero-bg-hover: rgb(30 41 59);
   --dp-btn-hero-fg-hover: rgb(255 255 255);
+  --dp-hero-fg: rgb(255 255 255);
+  --dp-hero-muted: rgb(255 255 255 / 0.82);
 
   /* Sidebar primitives */
   --dp-sidebar-bg: rgb(255 255 255 / 0.96);
@@ -115,6 +117,8 @@
   --dp-btn-hero-fg: rgb(0 0 0);
   --dp-btn-hero-bg-hover: rgb(220 220 220);
   --dp-btn-hero-fg-hover: rgb(0 0 0);
+  --dp-hero-fg: rgb(255 255 255);
+  --dp-hero-muted: rgb(255 255 255 / 0.82);
 
   /* Sidebar */
   --dp-sidebar-bg: rgb(15 15 15 / 0.96);
@@ -392,6 +396,18 @@ body {
   color: var(--dp-muted);
 }
 
+.dp-nav-hero-text {
+  color: rgb(255 255 255) !important;
+}
+
+.dp-hero-text {
+  color: var(--dp-hero-fg);
+}
+
+.dp-hero-muted {
+  color: var(--dp-hero-muted);
+}
+
 .dp-text-subtle {
   color: var(--dp-subtle);
 }
@@ -492,4 +508,17 @@ body {
   background: var(--dp-showcase-gradient);
   pointer-events: none;
   z-index: -1; /* stay behind content */
+}
+
+.dp-hero-accent {
+  color: var(--dp-toast-info);
+}
+
+.dp-hero-vignette {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--dp-bg) 18%, transparent) 0%,
+    transparent 50%,
+    color-mix(in srgb, var(--dp-bg) 70%, transparent) 100%
+  );
 }

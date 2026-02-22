@@ -116,12 +116,12 @@ export default function HeroSection() {
       <section
         id="hero"
         ref={sectionRef}
-        className="relative overflow-clip bg-slate-950"
+        className="dp-bg relative overflow-clip"
         style={{ height: isMobile ? "170vh" : "200vh" }}
       >
         <div className="sticky top-0 h-screen overflow-hidden">
           {/* Background */}
-          <div className="absolute inset-0 bg-black" />
+          <div className="dp-bg absolute inset-0" />
 
           {/* Background Image */}
           <div
@@ -172,12 +172,14 @@ export default function HeroSection() {
                   filter: blurFilter,
                 }}
               >
-                <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white">
+                <h1 className="dp-hero-text text-4xl font-bold leading-tight md:text-6xl">
                   One place for your
-                  <span className="block text-blue-400">tasks and content</span>
+                  <span className="dp-hero-accent block">
+                    tasks and content
+                  </span>
                 </h1>
 
-                <p className="mt-6 text-base md:text-lg text-white/80 leading-relaxed max-w-xl">
+                <p className="dp-hero-muted mt-6 max-w-xl text-base leading-relaxed md:text-lg">
                   DashPoint brings your daily tools into a fast, clean
                   workspace. Plan your day, extract content, and stay organized
                   — without juggling tabs.
@@ -196,7 +198,7 @@ export default function HeroSection() {
               {/* Screen */}
               <div className="flex-1 flex justify-center">
                 <div className="w-[90%] md:w-[520px] shadow-2xl">
-                  <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                  <div className="dp-surface relative aspect-[16/10] overflow-hidden">
                     <video
                       ref={videoRef}
                       className="h-full w-full object-cover"
@@ -216,7 +218,7 @@ export default function HeroSection() {
 
           {/* Vignette */}
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/50"
+            className="dp-hero-vignette pointer-events-none absolute inset-0"
             style={{ opacity: vignetteOpacity }}
           />
         </div>
