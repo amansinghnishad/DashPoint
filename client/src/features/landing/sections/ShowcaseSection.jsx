@@ -9,7 +9,7 @@ import {
 } from "../components/showcase/showcaseConstants";
 
 export default function ShowcaseSection() {
-  const [activeKey, setActiveKey] = useState(DEFAULT_ACTIVE_CARD_KEY);
+  const [activeKey, setActiveKey] = useState(null);
   const reduceMotion = useReducedMotion();
   const [isWide, setIsWide] = useState(false);
 
@@ -17,9 +17,13 @@ export default function ShowcaseSection() {
     if (typeof window === "undefined") return;
 
     const mq = window.matchMedia(SHOWCASE_BREAKPOINT_QUERY);
-    const handleChange = (e) => setIsWide(e.matches);
+    const handleChange = (e) => {
+      setIsWide(e.matches);
+      setActiveKey(e.matches ? DEFAULT_ACTIVE_CARD_KEY : null);
+    };
 
     setIsWide(mq.matches);
+    setActiveKey(mq.matches ? DEFAULT_ACTIVE_CARD_KEY : null);
     mq.addEventListener("change", handleChange);
 
     return () => mq.removeEventListener("change", handleChange);
@@ -60,8 +64,10 @@ export default function ShowcaseSection() {
                   card={card}
                   index={index}
                   isWide={isWide}
-                  isActive={activeKey === card.key}
+                  isActive={isWide ? activeKey === card.key : true}
+                  isVideoActive={activeKey === card.key}
                   onHover={(nextKey) => isWide && setActiveKey(nextKey)}
+                  onTouch={(nextKey) => !isWide && setActiveKey(nextKey)}
                   motionTransition={motionTransition}
                 />
               ))}

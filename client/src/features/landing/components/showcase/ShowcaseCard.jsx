@@ -41,7 +41,9 @@ export default function ShowcaseCard({
   index,
   isWide,
   isActive,
+  isVideoActive,
   onHover,
+  onTouch,
   motionTransition,
 }) {
   return (
@@ -49,6 +51,7 @@ export default function ShowcaseCard({
       layout
       style={{ flexBasis: 0 }}
       onMouseEnter={() => onHover(card.key)}
+      onTouchStart={() => onTouch(card.key)}
       animate={getCardAnimation(isWide, isActive)}
       transition={motionTransition}
       className="flex flex-col"
@@ -63,7 +66,7 @@ export default function ShowcaseCard({
           transition={{ duration: 0.6 }}
         />
 
-        {isWide && <VideoPreview src={card.video} isActive={isActive} />}
+        <VideoPreview src={card.video} isActive={isVideoActive} />
 
         <m.div
           className="absolute inset-0 pointer-events-none"
