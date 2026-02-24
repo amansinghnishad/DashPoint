@@ -214,6 +214,50 @@
   border: 1px solid var(--dp-danger-border);
 }
 
+.dp-markdown > * + * {
+  margin-top: 0.5rem;
+}
+
+.dp-markdown p {
+  margin: 0;
+}
+
+.dp-markdown ul,
+.dp-markdown ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.dp-markdown li + li {
+  margin-top: 0.2rem;
+}
+
+.dp-markdown a {
+  color: var(--dp-toast-info);
+  text-decoration: underline;
+}
+
+.dp-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--dp-surface-muted) 82%, transparent);
+}
+
+.dp-markdown pre {
+  margin: 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  background: color-mix(in srgb, var(--dp-surface-muted) 90%, transparent);
+}
+
+.dp-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+
 /* Base page colors */
 html,
 body {

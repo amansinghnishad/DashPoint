@@ -2,7 +2,11 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 const YouTubeTranscriptChunk = require('../models/YouTubeTranscriptChunk');
-const { EMBEDDING_MODEL, createEmbedding } = require('./embeddingsService');
+const {
+  createEmbedding,
+  resolveEmbeddingConfig,
+  getEmbeddingModelLabel
+} = require('./embeddingsService');
 
 const TIMEDTEXT_BASE_URL = 'https://video.google.com/timedtext';
 const VECTOR_INDEX_NAME = process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX || 'youtube_transcript_chunks_embedding_idx';
@@ -189,9 +193,16 @@ const indexTranscriptForVideo = async (videoDoc) => {
 
     const chunkDocs = [];
 
+    const embeddingConfig = resolveEmbeddingConfig();
+    const embeddingModelLabel = getEmbeddingModelLabel(embeddingConfig);
+
     for (let index = 0; index < chunks.length; index += 1) {
       const chunk = chunks[index];
-      const vector = await createEmbedding(chunk.text);
+      const vector = await createEmbedding(chunk.text, {
+        provider: embeddingConfig?.provider,
+        model: embeddingConfig?.model,
+        taskType: 'RETRIEVAL_DOCUMENT'
+      });
 
       chunkDocs.push({
         userId: videoDoc.userId,
@@ -202,7 +213,7 @@ const indexTranscriptForVideo = async (videoDoc) => {
         durationSec: chunk.durationSec,
         text: chunk.text,
         embedding: vector || undefined,
-        embeddingModel: EMBEDDING_MODEL,
+        embeddingModel: vector ? embeddingModelLabel || undefined : undefined,
         embeddingUpdatedAt: vector ? new Date() : null,
         sourceLanguage: selectedTrack.langCode || ''
       });
@@ -240,9 +251,13 @@ const indexTranscriptForVideo = async (videoDoc) => {
 };
 
 const findRelevantTranscriptChunks = async ({ userId, youtubeId, query, limit = 6, numCandidates = 120 }) => {
-  const queryVector = await createEmbedding(query);
+  const queryVector = await createEmbedding(query, {
+    taskType: 'RETRIEVAL_QUERY'
+  });
   if (!queryVector) {
-    throw new Error('Unable to create query embedding. Check OPENAI_API_KEY.');
+    throw new Error(
+      'Unable to create query embedding. Configure OPENAI_API_KEY or GEMINI_API_KEY.'
+    );
   }
 
   const parsedLimit = Math.max(1, Math.min(Number(limit) || 6, 15));

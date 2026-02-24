@@ -7,6 +7,7 @@ import {
 } from "@/shared/ui/icons";
 import { collectionsAPI } from "../../../../services/modules/collectionsApi";
 import { useToast } from "../../../../hooks/useToast";
+import { DASHPOINT_COLLECTIONS_CHANGED_EVENT } from "../../../../shared/lib/dashboardEvents";
 import useCollectionsHomeState from "./useCollectionsHomeState";
 import CollectionsHomeView from "./CollectionsHomeView";
 
@@ -198,6 +199,25 @@ export default function CollectionsHome({ onOpenCollection }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    const handleCollectionsChanged = () => {
+      errorToastShown.current = false;
+      load();
+    };
+
+    window.addEventListener(
+      DASHPOINT_COLLECTIONS_CHANGED_EVENT,
+      handleCollectionsChanged,
+    );
+
+    return () => {
+      window.removeEventListener(
+        DASHPOINT_COLLECTIONS_CHANGED_EVENT,
+        handleCollectionsChanged,
+      );
+    };
+  }, [load, errorToastShown]);
 
   const createCollection = useCallback(async () => {
     const name = createName.trim();
