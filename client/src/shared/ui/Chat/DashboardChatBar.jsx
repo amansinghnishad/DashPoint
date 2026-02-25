@@ -303,7 +303,7 @@ export default function DashboardChatBar({
             id: assistantMessageId,
             role: "assistant",
             content:
-              "OpenAI support will be available soon. Please switch to Gemini for now.",
+              "This model is under development. Try using Gemini.",
             status: "done",
           },
         ]);
@@ -487,7 +487,7 @@ export default function DashboardChatBar({
 
           {openAiComingSoon ? (
             <p className="mb-2 rounded-lg border border-amber-300/60 bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
-              OpenAI will be available soon. Use Gemini for now.
+              This model is under development. Try using Gemini.
             </p>
           ) : null}
 

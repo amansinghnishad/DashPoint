@@ -10,10 +10,14 @@ const providerRunners = {
   gemini: runGeminiChat
 };
 
+const MISSING_VIDEO_CONTEXT_RESPONSE =
+  'I could not find indexed transcript context in the selected collections. Add the YouTube video to the collection (or reindex its transcript), then ask again.';
+
 const COLLECTION_MUTATION_TOOL_NAMES = new Set([
   'createCollection',
   'createCollectionWithNote',
-  'addNote'
+  'addNote',
+  'addYouTubeVideoToCollection'
 ]);
 
 const buildMutationSummary = (executions = []) => {
@@ -26,6 +30,22 @@ const buildMutationSummary = (executions = []) => {
     collectionChanged: toolNames.some((name) => COLLECTION_MUTATION_TOOL_NAMES.has(name))
   };
 };
+
+const isWorkspaceVideoSummaryRequest = (message) => {
+  const normalized = String(message || '').trim().toLowerCase();
+  if (!normalized) return false;
+
+  const asksSummary = /(summar|key points?|recap|bullets?)/.test(normalized);
+  const mentionsVideo = /(video|youtube|transcript)/.test(normalized);
+  const mentionsWorkspaceScope = /(collection|selected sources?|workspace)/.test(normalized);
+
+  return asksSummary && mentionsVideo && mentionsWorkspaceScope;
+};
+
+const isCapabilityRefusalResponse = (text) =>
+  /(i can(?:not|\'t)|unable to|tools? (?:lack|are limited)|capabilities are limited)/i.test(
+    String(text || '')
+  );
 
 const runChat = async ({
   userId,
@@ -101,8 +121,17 @@ const runChat = async ({
         }
       });
 
+      let finalResponseText = result.text;
+      if (
+        retrieval.items.length === 0 &&
+        isWorkspaceVideoSummaryRequest(message) &&
+        isCapabilityRefusalResponse(finalResponseText)
+      ) {
+        finalResponseText = MISSING_VIDEO_CONTEXT_RESPONSE;
+      }
+
       return {
-        response: result.text,
+        response: finalResponseText,
         provider: attempt.provider,
         model: attempt.model,
         mutations: buildMutationSummary(toolExecutions),
