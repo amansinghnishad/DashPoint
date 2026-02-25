@@ -56,6 +56,24 @@ const functionDefinitions = [
       required: ['name', 'note'],
       additionalProperties: false
     }
+  },
+  {
+    name: 'addYouTubeVideoToCollection',
+    description:
+      'Save a YouTube video for the authenticated user and add it to a collection. Provide a direct URL/videoId or a search query.',
+    parameters: {
+      type: 'object',
+      properties: {
+        collectionId: { type: 'string', minLength: 1 },
+        collectionName: { type: 'string', minLength: 1, maxLength: 100 },
+        youtubeUrl: { type: 'string', minLength: 5, maxLength: 400 },
+        videoId: { type: 'string', minLength: 6, maxLength: 30 },
+        searchQuery: { type: 'string', minLength: 2, maxLength: 200 },
+        category: { type: 'string', maxLength: 50 },
+        isFavorite: { type: 'boolean' }
+      },
+      additionalProperties: false
+    }
   }
 ];
 
