@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
 const YouTube = require('../models/YouTube');
-const YouTubeTranscriptChunk = require('../models/YouTubeTranscriptChunk');
+const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
 const { createEmbedding } = require('./embeddingsService');
 const { runAtlasVectorSearch } = require('./vectorSearchService');
 
@@ -14,7 +14,9 @@ const NUM_CANDIDATES = 120;
 const PLANNER_WIDGET_VECTOR_INDEX =
   process.env.PLANNER_WIDGET_VECTOR_INDEX || 'planner_widget_embedding_idx';
 const YOUTUBE_TRANSCRIPT_VECTOR_INDEX =
-  process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX || 'youtube_transcript_chunks_embedding_idx';
+  process.env.VIDEO_INTELLIGENCE_VECTOR_INDEX ||
+  process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX ||
+  'video_intelligence_embedding_idx';
 
 const toObjectId = (value) => {
   if (value instanceof mongoose.Types.ObjectId) {
@@ -191,7 +193,7 @@ const searchYouTubeContext = async ({
 
   try {
     const rows = await runAtlasVectorSearch({
-      model: YouTubeTranscriptChunk,
+      model: VideoIntelligenceChunk,
       indexName: YOUTUBE_TRANSCRIPT_VECTOR_INDEX,
       queryVector,
       limit,
