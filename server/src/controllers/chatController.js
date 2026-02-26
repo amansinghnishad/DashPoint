@@ -143,10 +143,29 @@ exports.approveActionItems = async (req, res, next) => {
     const title = normalizeTitle(req.body?.title);
     const todoItems = normalizeApprovedTodoItems(req.body?.approvedItems);
 
+    if (!collectionId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Choose a collection to save approved items'
+      });
+    }
+
     if (!todoItems.length) {
       return res.status(400).json({
         success: false,
         message: 'No valid approved items provided'
+      });
+    }
+
+    const collection = await Collection.findOne({
+      _id: collectionId,
+      userId
+    });
+
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        message: 'Collection not found'
       });
     }
 
@@ -161,27 +180,7 @@ exports.approveActionItems = async (req, res, next) => {
 
     await attachEmbeddingToPlannerWidget(widget);
     await widget.save();
-
-    let collectionPayload = null;
-    if (collectionId) {
-      const collection = await Collection.findOne({
-        _id: collectionId,
-        userId
-      });
-
-      if (!collection) {
-        return res.status(404).json({
-          success: false,
-          message: 'Collection not found'
-        });
-      }
-
-      await collection.addItem('planner', String(widget._id));
-      collectionPayload = {
-        _id: String(collection._id),
-        name: collection.name
-      };
-    }
+    await collection.addItem('planner', String(widget._id));
 
     return res.status(201).json({
       success: true,
@@ -189,7 +188,10 @@ exports.approveActionItems = async (req, res, next) => {
       data: {
         widget,
         itemCount: todoItems.length,
-        collection: collectionPayload
+        collection: {
+          _id: String(collection._id),
+          name: collection.name
+        }
       }
     });
   } catch (error) {

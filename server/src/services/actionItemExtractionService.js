@@ -5,6 +5,91 @@ const EXTRACTION_MODEL =
 const MAX_RAW_TEXT_CHARS = 25000;
 const DEFAULT_MAX_ITEMS = 8;
 const MAX_ITEMS = 20;
+const ACTION_VERBS = [
+  'add',
+  'analyze',
+  'build',
+  'call',
+  'create',
+  'debug',
+  'deploy',
+  'document',
+  'email',
+  'fix',
+  'implement',
+  'improve',
+  'learn',
+  'manage',
+  'plan',
+  'practice',
+  'prepare',
+  'refactor',
+  'research',
+  'review',
+  'schedule',
+  'send',
+  'test',
+  'train',
+  'update',
+  'write',
+  'work'
+];
+const ACTION_PREFIXES = [
+  'i need to',
+  'we need to',
+  'need to',
+  'should',
+  'must',
+  'have to',
+  'todo',
+  'action item',
+  'task'
+];
+const GERUND_TO_BASE = {
+  analyzing: 'analyze',
+  building: 'build',
+  creating: 'create',
+  debugging: 'debug',
+  deploying: 'deploy',
+  documenting: 'document',
+  emailing: 'email',
+  fixing: 'fix',
+  implementing: 'implement',
+  improving: 'improve',
+  learning: 'learn',
+  managing: 'manage',
+  planning: 'plan',
+  practicing: 'practice',
+  preparing: 'prepare',
+  refactoring: 'refactor',
+  researching: 'research',
+  reviewing: 'review',
+  scheduling: 'schedule',
+  sending: 'send',
+  testing: 'test',
+  training: 'train',
+  updating: 'update',
+  writing: 'write',
+  working: 'work'
+};
+const NON_TASK_STARTERS = new Set([
+  'a',
+  'an',
+  'the',
+  'this',
+  'that',
+  'there',
+  'it',
+  'is',
+  'are',
+  'was',
+  'were'
+]);
+const NEGATIVE_TASK_PATTERNS = [
+  /\bno\b\s+(action item|action items|task|tasks|todo|todos)\b/i,
+  /\bnothing\s+to\s+(do|action)\b/i,
+  /\bnot\s+actionable\b/i
+];
 
 let client = null;
 
@@ -54,6 +139,72 @@ const normalizeConfidence = (value) => {
   }
 
   return Math.max(0, Math.min(1, parsed));
+};
+
+const hasNegativeTaskCue = (line) =>
+  NEGATIVE_TASK_PATTERNS.some((pattern) => pattern.test(String(line || '')));
+
+const splitIntoCandidates = (rawText) => {
+  const roughSegments = String(rawText || '')
+    .split(/\r?\n|[.!?;]+|,+/g)
+    .flatMap((segment) => segment.split(/\s+\band\b\s+/i));
+
+  return roughSegments
+    .map((line) => normalizeText(line, 280))
+    .filter(Boolean);
+};
+
+const normalizeCandidateTaskText = (value) => {
+  let text = normalizeText(value, 280)
+    .replace(/^(todo|action item|task)\s*[:\-]\s*/i, '')
+    .replace(/^(i|we)\s+(need to|should|must|have to|want to|will|am going to)\s+/i, '')
+    .replace(/^(need to|should|must|have to|please)\s+/i, '')
+    .trim();
+
+  if (!text) return '';
+
+  const words = text.split(/\s+/);
+  const firstWordLower = words[0].toLowerCase();
+  if (GERUND_TO_BASE[firstWordLower]) {
+    words[0] = GERUND_TO_BASE[firstWordLower];
+    text = words.join(' ');
+  }
+
+  const topicPracticeMatch = text.match(/^([a-z0-9+#._-]+)\s+practice\b(.*)$/i);
+  if (topicPracticeMatch) {
+    const topic = topicPracticeMatch[1];
+    const remainder = topicPracticeMatch[2] || '';
+    text = `practice ${topic}${remainder}`;
+  }
+
+  return normalizeText(text, 280);
+};
+
+const hasActionCue = (line) => {
+  const lowered = String(line || '').toLowerCase();
+  if (!lowered) return false;
+  if (hasNegativeTaskCue(lowered)) return false;
+
+  if (ACTION_PREFIXES.some((prefix) => lowered.startsWith(prefix))) {
+    return true;
+  }
+
+  return ACTION_VERBS.some((verb) => {
+    const verbPattern = new RegExp(`\\b${verb}\\b`, 'i');
+    return verbPattern.test(lowered);
+  });
+};
+
+const isLikelyTaskPhrase = (line) => {
+  const lowered = String(line || '').trim().toLowerCase();
+  if (!lowered || lowered.endsWith('?')) return false;
+  if (hasNegativeTaskCue(lowered)) return false;
+
+  const words = lowered.split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.length > 10) return false;
+  if (NON_TASK_STARTERS.has(words[0])) return false;
+
+  return true;
 };
 
 const buildPrompt = ({ rawText, maxItems }) => ({
@@ -126,57 +277,35 @@ const normalizeActionItems = (actionItems, maxItems) => {
 };
 
 const fallbackExtractFromText = ({ rawText, maxItems }) => {
-  const candidates = rawText
-    .split(/\r?\n|[.!?]+/g)
-    .map((line) => normalizeText(line, 280))
-    .filter(Boolean);
-
-  const verbs = [
-    'create',
-    'add',
-    'update',
-    'review',
-    'fix',
-    'send',
-    'schedule',
-    'call',
-    'email',
-    'prepare',
-    'write',
-    'implement',
-    'test',
-    'deploy',
-    'refactor'
-  ];
+  const candidates = splitIntoCandidates(rawText);
 
   const seen = new Set();
   const output = [];
 
-  for (const line of candidates) {
-    const lowered = line.toLowerCase();
-    const looksActionable =
-      verbs.some((verb) => lowered.includes(`${verb} `) || lowered.startsWith(`${verb}`)) ||
-      lowered.includes('need to') ||
-      lowered.includes('todo') ||
-      lowered.includes('action item');
+  for (const candidate of candidates) {
+    const text = normalizeCandidateTaskText(candidate);
+    if (!text) continue;
+    if (hasNegativeTaskCue(text)) continue;
 
+    const looksActionable = hasActionCue(text) || isLikelyTaskPhrase(text);
     if (!looksActionable) {
       continue;
     }
-
-    const text = line.replace(/^(todo|action item)\s*[:\-]\s*/i, '').trim();
-    if (!text) continue;
 
     const dedupeKey = text.toLowerCase();
     if (seen.has(dedupeKey)) continue;
     seen.add(dedupeKey);
 
+    const hasVerbCue = hasActionCue(text);
+
     output.push({
       id: `fallback-task-${output.length + 1}`,
-      text: normalizeText(text, 280),
-      reason: 'Extracted using fallback rules',
+      text,
+      reason: hasVerbCue
+        ? 'Detected actionable wording'
+        : 'Detected concise task phrase',
       priority: 'medium',
-      confidence: 0.35
+      confidence: hasVerbCue ? 0.45 : 0.3
     });
 
     if (output.length >= maxItems) {

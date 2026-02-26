@@ -66,7 +66,8 @@ const actionItemApproveValidation = [
     .isLength({ min: 1, max: 280 })
     .withMessage('each approved item text must be between 1 and 280 characters'),
   body('collectionId')
-    .optional()
+    .exists({ checkFalsy: true })
+    .withMessage('collectionId is required')
     .isString()
     .isMongoId()
     .withMessage('collectionId must be a valid MongoDB id'),

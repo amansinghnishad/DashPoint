@@ -117,12 +117,22 @@ function PendingBubble({ mode }) {
 function SuggestionsPanel({
   suggestions,
   approval,
+  collections,
+  collectionsLoading,
+  collectionsError,
   onToggle,
   onSelectAll,
   onClearAll,
+  onCollectionChange,
   onApprove,
 }) {
   const selectedCount = suggestions.filter((item) => item.selected).length;
+  const selectedCollectionId = String(approval?.collectionId || "");
+  const canApprove =
+    selectedCount > 0 &&
+    selectedCollectionId &&
+    approval?.status !== "saving" &&
+    approval?.status !== "approved";
 
   return (
     <div className="mt-3 rounded-xl border dp-border dp-surface-muted p-3">
@@ -158,6 +168,36 @@ function SuggestionsPanel({
         ))}
       </div>
 
+      <div className="mt-3">
+        <label className="dp-text mb-1 block text-[11px] font-semibold uppercase tracking-wide">
+          Save To Collection
+        </label>
+
+        <select
+          value={selectedCollectionId}
+          onChange={(event) => onCollectionChange(event.target.value)}
+          className="dp-surface dp-border dp-text w-full rounded-lg border px-2 py-1.5 text-xs outline-none"
+          disabled={approval?.status === "saving" || approval?.status === "approved"}
+        >
+          <option value="">
+            {collectionsLoading
+              ? "Loading collections..."
+              : collections.length
+                ? "Select collection"
+                : "No collections available"}
+          </option>
+          {collections.map((collection) => (
+            <option key={collection.id} value={collection.id}>
+              {collection.name}
+            </option>
+          ))}
+        </select>
+
+        {collectionsError ? (
+          <p className="mt-1 text-xs dp-text-danger">{collectionsError}</p>
+        ) : null}
+      </div>
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -181,11 +221,7 @@ function SuggestionsPanel({
           type="button"
           onClick={onApprove}
           className="dp-btn-primary rounded-lg px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={
-            !selectedCount ||
-            approval?.status === "saving" ||
-            approval?.status === "approved"
-          }
+          disabled={!canApprove}
         >
           {approval?.status === "saving"
             ? "Saving..."
@@ -330,6 +366,35 @@ export default function DashboardChatBar({
   }, [collections]);
 
   useEffect(() => {
+    setMessages((current) => {
+      let changed = false;
+
+      const next = current.map((entry) => {
+        const currentTargetId = String(entry?.approval?.collectionId || "");
+        if (!currentTargetId) {
+          return entry;
+        }
+
+        const exists = collections.some((collection) => collection.id === currentTargetId);
+        if (exists) {
+          return entry;
+        }
+
+        changed = true;
+        return {
+          ...entry,
+          approval: {
+            ...entry.approval,
+            collectionId: "",
+          },
+        };
+      });
+
+      return changed ? next : current;
+    });
+  }, [collections]);
+
+  useEffect(() => {
     return () => {
       if (streamTimerRef.current) {
         clearInterval(streamTimerRef.current);
@@ -418,25 +483,28 @@ export default function DashboardChatBar({
     [updateMessage]
   );
 
+  const setSuggestionCollection = useCallback(
+    (messageId, collectionId) => {
+      updateMessage(messageId, (entry) => ({
+        approval: {
+          ...(entry.approval || {}),
+          collectionId: String(collectionId || ""),
+          message: "",
+          status:
+            entry?.approval?.status === "approved" ? "idle" : entry?.approval?.status || "idle",
+        },
+      }));
+    },
+    [updateMessage]
+  );
+
   const approveSuggestions = useCallback(
-    async (messageId) => {
-      let approvedItems = [];
-
-      updateMessage(messageId, (entry) => {
-        approvedItems = (entry.suggestions || [])
-          .filter((suggestion) => suggestion.selected)
-          .map((suggestion) => ({
-            text: suggestion.text,
-          }));
-
-        return {
-          approval: {
-            ...(entry.approval || {}),
-            status: "saving",
-            message: "",
-          },
-        };
-      });
+    async ({ messageId, suggestions, collectionId }) => {
+      const approvedItems = (Array.isArray(suggestions) ? suggestions : [])
+        .filter((suggestion) => suggestion.selected)
+        .map((suggestion) => ({
+          text: suggestion.text,
+        }));
 
       if (!approvedItems.length) {
         updateMessage(messageId, (entry) => ({
@@ -449,41 +517,54 @@ export default function DashboardChatBar({
         return;
       }
 
-      try {
-        const selectedCollectionId =
-          selectedCollectionIds.length === 1 ? selectedCollectionIds[0] : undefined;
+      const targetCollectionId = String(collectionId || "").trim();
+      if (!targetCollectionId) {
+        updateMessage(messageId, (entry) => ({
+          approval: {
+            ...(entry.approval || {}),
+            status: "failed",
+            message: "Choose a collection to save the approved items.",
+          },
+        }));
+        return;
+      }
 
+      updateMessage(messageId, (entry) => ({
+        approval: {
+          ...(entry.approval || {}),
+          status: "saving",
+          message: "",
+        },
+      }));
+
+      try {
         const response = await chatApi.approveActionItems({
           title: DEFAULT_ACTION_ITEM_TITLE,
           approvedItems,
-          collectionId: selectedCollectionId,
+          collectionId: targetCollectionId,
         });
 
         const payload = response?.data || {};
         const itemCount = Number(payload?.itemCount || approvedItems.length);
-        const savedToCollection = Boolean(payload?.collection?._id);
+        const collectionName = payload?.collection?.name || "selected collection";
 
         updateMessage(messageId, (entry) => ({
           approval: {
             ...(entry.approval || {}),
             status: "approved",
-            message: savedToCollection
-              ? `Saved ${itemCount} items and attached the todo widget to ${payload.collection.name}.`
-              : `Saved ${itemCount} items to a new todo widget.`,
+            message: `Saved ${itemCount} items to ${collectionName}.`,
           },
         }));
 
-        if (savedToCollection) {
-          window.dispatchEvent(
-            new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
-              detail: {
-                collectionChanged: true,
-                tools: ["approveActionItems"],
-              },
-            })
-          );
-          loadCollections();
-        }
+        window.dispatchEvent(
+          new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
+            detail: {
+              collectionChanged: true,
+              tools: ["approveActionItems"],
+            },
+          })
+        );
+        loadCollections();
       } catch (error) {
         const errorText =
           error?.response?.data?.message ||
@@ -499,7 +580,7 @@ export default function DashboardChatBar({
         }));
       }
     },
-    [loadCollections, selectedCollectionIds, updateMessage]
+    [loadCollections, updateMessage]
   );
 
   const handleSubmit = useCallback(
@@ -606,6 +687,8 @@ export default function DashboardChatBar({
             approval: {
               status: "idle",
               message: "",
+              collectionId:
+                selectedCollectionIds.length === 1 ? selectedCollectionIds[0] : "",
             },
             meta: null,
           });
@@ -723,12 +806,24 @@ export default function DashboardChatBar({
                     <SuggestionsPanel
                       suggestions={entry.suggestions}
                       approval={entry.approval}
+                      collections={collections}
+                      collectionsLoading={collectionsLoading}
+                      collectionsError={collectionsError}
                       onToggle={(suggestionId) =>
                         toggleSuggestionSelection(entry.id, suggestionId)
                       }
                       onSelectAll={() => selectAllSuggestions(entry.id, true)}
                       onClearAll={() => selectAllSuggestions(entry.id, false)}
-                      onApprove={() => approveSuggestions(entry.id)}
+                      onCollectionChange={(collectionId) =>
+                        setSuggestionCollection(entry.id, collectionId)
+                      }
+                      onApprove={() =>
+                        approveSuggestions({
+                          messageId: entry.id,
+                          suggestions: entry.suggestions,
+                          collectionId: entry?.approval?.collectionId,
+                        })
+                      }
                     />
                   ) : null}
                 </div>
@@ -810,7 +905,7 @@ export default function DashboardChatBar({
 
           {mode === "action_items" ? (
             <p className="mb-2 rounded-lg border dp-border dp-surface-muted px-3 py-1.5 text-xs dp-text-muted">
-              Action Items mode extracts suggested todos from raw text. If one collection is selected, approved todos are attached to it.
+              Action Items mode extracts suggested todos from raw text. Choose the target collection in each suggestion panel before approving.
             </p>
           ) : null}
 
