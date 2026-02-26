@@ -2,7 +2,7 @@ const axios = require('axios');
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 const YouTube = require('../models/YouTube');
-const YouTubeTranscriptChunk = require('../models/YouTubeTranscriptChunk');
+const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
 const {
   indexTranscriptForVideo,
   findRelevantTranscriptChunks
@@ -134,7 +134,7 @@ exports.deleteVideo = async (req, res, next) => {
       });
     }
 
-    await YouTubeTranscriptChunk.deleteMany({
+    await VideoIntelligenceChunk.deleteMany({
       userId: req.user._id,
       youtubeId: video._id
     });

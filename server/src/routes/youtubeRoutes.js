@@ -57,7 +57,7 @@ router.post('/videos/:id/reindex-transcript', [
   ...updateVideoValidation
 ], reindexVideoTranscript);
 
-// Retrieve transcript chunks by semantic similarity for Talking to Video
+// Retrieve Video Intelligence chunks by semantic similarity for Talking to Video
 router.post('/videos/:id/talk-context', [
   auth,
   ...updateVideoValidation
