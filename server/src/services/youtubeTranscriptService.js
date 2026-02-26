@@ -1,11 +1,33 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const YouTubeTranscriptChunk = require('../models/YouTubeTranscriptChunk');
-const { EMBEDDING_MODEL, createEmbedding } = require('./embeddingsService');
+const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
+const {
+  createEmbedding,
+  resolveEmbeddingConfig,
+  getEmbeddingModelLabel
+} = require('./embeddingsService');
 
 const TIMEDTEXT_BASE_URL = 'https://video.google.com/timedtext';
-const VECTOR_INDEX_NAME = process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX || 'youtube_transcript_chunks_embedding_idx';
+const VECTOR_INDEX_NAME =
+  process.env.VIDEO_INTELLIGENCE_VECTOR_INDEX ||
+  process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX ||
+  'video_intelligence_embedding_idx';
+const CHUNK_MAX_CHARS = Math.max(
+  400,
+  Number.parseInt(process.env.VIDEO_INTELLIGENCE_CHUNK_MAX_CHARS || '1200', 10) || 1200
+);
+const CHUNK_OVERLAP_CHARS = Math.max(
+  0,
+  Math.min(
+    CHUNK_MAX_CHARS - 1,
+    Number.parseInt(process.env.VIDEO_INTELLIGENCE_CHUNK_OVERLAP_CHARS || '220', 10) || 220
+  )
+);
+const EMBED_BATCH_SIZE = Math.max(
+  1,
+  Number.parseInt(process.env.VIDEO_INTELLIGENCE_EMBED_BATCH_SIZE || '8', 10) || 8
+);
 
 const decodeText = (value) =>
   String(value || '')
@@ -86,53 +108,204 @@ const fetchTranscriptSegments = async (videoId, track) => {
   return segments;
 };
 
-const chunkSegments = (segments, maxChars = 1200) => {
+const normalizeTranscriptSegments = (segments) =>
+  (Array.isArray(segments) ? segments : [])
+    .map((segment) => {
+      const text = decodeText(segment?.text);
+      if (!text) return null;
+
+      const startSec = Number(segment?.startSec);
+      const durationSec = Number(segment?.durationSec);
+      const normalizedStart = Number.isFinite(startSec) ? startSec : 0;
+      const normalizedDuration = Number.isFinite(durationSec) ? durationSec : 0;
+
+      return {
+        text,
+        startSec: normalizedStart,
+        durationSec: normalizedDuration,
+        charLength: text.length
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.startSec - b.startSec);
+
+const resolveNextChunkStart = ({
+  normalizedSegments,
+  currentStartIndex,
+  currentEndIndex,
+  overlapChars
+}) => {
+  if (currentEndIndex >= normalizedSegments.length) {
+    return currentEndIndex;
+  }
+
+  if (overlapChars <= 0) {
+    return currentEndIndex;
+  }
+
+  let overlapTotal = 0;
+  let nextStartIndex = currentEndIndex;
+
+  while (nextStartIndex > currentStartIndex) {
+    const segment = normalizedSegments[nextStartIndex - 1];
+    const addedLength = segment.charLength + (overlapTotal > 0 ? 1 : 0);
+    overlapTotal += addedLength;
+    nextStartIndex -= 1;
+
+    if (overlapTotal >= overlapChars) {
+      break;
+    }
+  }
+
+  if (nextStartIndex <= currentStartIndex) {
+    return Math.max(currentStartIndex + 1, currentEndIndex - 1);
+  }
+
+  return nextStartIndex;
+};
+
+const chunkSegments = (
+  segments,
+  {
+    maxChars = CHUNK_MAX_CHARS,
+    overlapChars = CHUNK_OVERLAP_CHARS
+  } = {}
+) => {
+  const normalizedSegments = normalizeTranscriptSegments(segments);
+  if (!normalizedSegments.length) {
+    return [];
+  }
+
   const chunks = [];
-  let currentTexts = [];
-  let currentLength = 0;
-  let currentStart = 0;
-  let currentEnd = 0;
+  let startIndex = 0;
 
-  const flush = () => {
-    if (!currentTexts.length) return;
-    const text = currentTexts.join(' ').trim();
-    if (!text) return;
+  while (startIndex < normalizedSegments.length) {
+    let endIndex = startIndex;
+    let currentChars = 0;
 
-    chunks.push({
-      text,
-      startSec: currentStart,
-      durationSec: Math.max(currentEnd - currentStart, 0)
+    while (endIndex < normalizedSegments.length) {
+      const segment = normalizedSegments[endIndex];
+      const candidateChars = currentChars + segment.charLength + (currentChars > 0 ? 1 : 0);
+
+      if (candidateChars > maxChars && endIndex > startIndex) {
+        break;
+      }
+
+      currentChars = candidateChars;
+      endIndex += 1;
+
+      if (currentChars >= maxChars) {
+        break;
+      }
+    }
+
+    if (endIndex <= startIndex) {
+      endIndex = startIndex + 1;
+    }
+
+    const chunkSegmentsSlice = normalizedSegments.slice(startIndex, endIndex);
+    const chunkText = chunkSegmentsSlice.map((segment) => segment.text).join(' ').trim();
+
+    if (chunkText) {
+      const firstSegment = chunkSegmentsSlice[0];
+      const lastSegment = chunkSegmentsSlice[chunkSegmentsSlice.length - 1];
+      const chunkStartSec = firstSegment.startSec;
+      const chunkEndSec = lastSegment.startSec + lastSegment.durationSec;
+
+      chunks.push({
+        text: chunkText,
+        startSec: chunkStartSec,
+        durationSec: Math.max(chunkEndSec - chunkStartSec, 0),
+        chunkCharCount: chunkText.length
+      });
+    }
+
+    const nextStartIndex = resolveNextChunkStart({
+      normalizedSegments,
+      currentStartIndex: startIndex,
+      currentEndIndex: endIndex,
+      overlapChars
     });
 
-    currentTexts = [];
-    currentLength = 0;
-    currentStart = 0;
-    currentEnd = 0;
-  };
-
-  segments.forEach((segment) => {
-    const segmentText = decodeText(segment.text);
-    if (!segmentText) return;
-
-    const nextLength = currentLength + segmentText.length + 1;
-    if (currentTexts.length && nextLength > maxChars) {
-      flush();
-    }
-
-    if (!currentTexts.length) {
-      currentStart = segment.startSec || 0;
-      currentEnd = (segment.startSec || 0) + (segment.durationSec || 0);
+    if (nextStartIndex <= startIndex) {
+      startIndex = endIndex;
     } else {
-      currentEnd = (segment.startSec || 0) + (segment.durationSec || 0);
+      startIndex = nextStartIndex;
+    }
+  }
+
+  return chunks.map((chunk, index, array) => {
+    if (index === 0) {
+      return { ...chunk, overlapCharsUsed: 0 };
     }
 
-    currentTexts.push(segmentText);
-    currentLength += segmentText.length + 1;
+    const previousText = array[index - 1].text;
+    const currentText = chunk.text;
+    let overlapCount = 0;
+    const maxProbe = Math.min(previousText.length, currentText.length, overlapChars);
+
+    for (let probe = maxProbe; probe > 0; probe -= 1) {
+      if (previousText.slice(-probe) === currentText.slice(0, probe)) {
+        overlapCount = probe;
+        break;
+      }
+    }
+
+    return {
+      ...chunk,
+      overlapCharsUsed: overlapCount
+    };
   });
+};
 
-  flush();
+const buildChunkDocsWithBatchEmbeddings = async ({
+  chunks,
+  videoDoc,
+  sourceLanguage,
+  embeddingConfig
+}) => {
+  const chunkDocs = [];
+  const embeddingModelLabel = getEmbeddingModelLabel(embeddingConfig);
 
-  return chunks;
+  for (let start = 0; start < chunks.length; start += EMBED_BATCH_SIZE) {
+    const batch = chunks.slice(start, start + EMBED_BATCH_SIZE);
+    const vectors = await Promise.all(
+      batch.map((chunk) =>
+        createEmbedding(chunk.text, {
+          provider: embeddingConfig?.provider,
+          model: embeddingConfig?.model,
+          taskType: 'RETRIEVAL_DOCUMENT'
+        }).catch((error) => {
+          console.warn('[Video Intelligence] Embedding generation failed:', error.message);
+          return null;
+        })
+      )
+    );
+
+    batch.forEach((chunk, idx) => {
+      const embeddingVector = vectors[idx];
+      const chunkIndex = start + idx;
+
+      chunkDocs.push({
+        userId: videoDoc.userId,
+        youtubeId: videoDoc._id,
+        videoId: videoDoc.videoId,
+        chunkIndex,
+        startSec: chunk.startSec,
+        durationSec: chunk.durationSec,
+        text: chunk.text,
+        chunkCharCount: chunk.chunkCharCount,
+        overlapCharsUsed: chunk.overlapCharsUsed || 0,
+        transcriptProvider: 'youtube_timedtext_api',
+        sourceLanguage,
+        embedding: embeddingVector || undefined,
+        embeddingModel: embeddingVector ? embeddingModelLabel || undefined : undefined,
+        embeddingUpdatedAt: embeddingVector ? new Date() : null
+      });
+    });
+  }
+
+  return chunkDocs;
 };
 
 const indexTranscriptForVideo = async (videoDoc) => {
@@ -145,7 +318,7 @@ const indexTranscriptForVideo = async (videoDoc) => {
     const selectedTrack = pickBestTrack(tracks);
 
     if (!selectedTrack) {
-      await YouTubeTranscriptChunk.deleteMany({
+      await VideoIntelligenceChunk.deleteMany({
         userId: videoDoc.userId,
         youtubeId: videoDoc._id
       });
@@ -163,7 +336,7 @@ const indexTranscriptForVideo = async (videoDoc) => {
 
     const segments = await fetchTranscriptSegments(videoDoc.videoId, selectedTrack);
     if (!segments.length) {
-      await YouTubeTranscriptChunk.deleteMany({
+      await VideoIntelligenceChunk.deleteMany({
         userId: videoDoc.userId,
         youtubeId: videoDoc._id
       });
@@ -179,37 +352,31 @@ const indexTranscriptForVideo = async (videoDoc) => {
       return { indexed: false, reason: 'empty' };
     }
 
-    const chunks = chunkSegments(segments);
-    const fullText = segments.map((segment) => segment.text).join(' ').trim().slice(0, 200000);
+    const chunks = chunkSegments(segments, {
+      maxChars: CHUNK_MAX_CHARS,
+      overlapChars: CHUNK_OVERLAP_CHARS
+    });
+    const fullText = segments
+      .map((segment) => segment.text)
+      .join(' ')
+      .trim()
+      .slice(0, 200000);
 
-    await YouTubeTranscriptChunk.deleteMany({
+    await VideoIntelligenceChunk.deleteMany({
       userId: videoDoc.userId,
       youtubeId: videoDoc._id
     });
 
-    const chunkDocs = [];
-
-    for (let index = 0; index < chunks.length; index += 1) {
-      const chunk = chunks[index];
-      const vector = await createEmbedding(chunk.text);
-
-      chunkDocs.push({
-        userId: videoDoc.userId,
-        youtubeId: videoDoc._id,
-        videoId: videoDoc.videoId,
-        chunkIndex: index,
-        startSec: chunk.startSec,
-        durationSec: chunk.durationSec,
-        text: chunk.text,
-        embedding: vector || undefined,
-        embeddingModel: EMBEDDING_MODEL,
-        embeddingUpdatedAt: vector ? new Date() : null,
-        sourceLanguage: selectedTrack.langCode || ''
-      });
-    }
+    const embeddingConfig = resolveEmbeddingConfig();
+    const chunkDocs = await buildChunkDocsWithBatchEmbeddings({
+      chunks,
+      videoDoc,
+      sourceLanguage: selectedTrack.langCode || '',
+      embeddingConfig
+    });
 
     if (chunkDocs.length) {
-      await YouTubeTranscriptChunk.insertMany(chunkDocs, { ordered: false });
+      await VideoIntelligenceChunk.insertMany(chunkDocs, { ordered: false });
     }
 
     videoDoc.transcriptStatus = 'indexed';
@@ -223,7 +390,14 @@ const indexTranscriptForVideo = async (videoDoc) => {
     return {
       indexed: true,
       chunkCount: chunkDocs.length,
-      language: selectedTrack.langCode || ''
+      language: selectedTrack.langCode || '',
+      chunking: {
+        maxChars: CHUNK_MAX_CHARS,
+        overlapChars: CHUNK_OVERLAP_CHARS
+      },
+      embeddingBatchSize: EMBED_BATCH_SIZE,
+      vectorCollection: 'video_intelligence',
+      vectorIndex: VECTOR_INDEX_NAME
     };
   } catch (error) {
     videoDoc.transcriptStatus = 'failed';
@@ -239,16 +413,29 @@ const indexTranscriptForVideo = async (videoDoc) => {
   }
 };
 
-const findRelevantTranscriptChunks = async ({ userId, youtubeId, query, limit = 6, numCandidates = 120 }) => {
-  const queryVector = await createEmbedding(query);
+const findRelevantTranscriptChunks = async ({
+  userId,
+  youtubeId,
+  query,
+  limit = 6,
+  numCandidates = 120
+}) => {
+  const queryVector = await createEmbedding(query, {
+    taskType: 'RETRIEVAL_QUERY'
+  });
   if (!queryVector) {
-    throw new Error('Unable to create query embedding. Check OPENAI_API_KEY.');
+    throw new Error(
+      'Unable to create query embedding. Configure OPENAI_API_KEY or GEMINI_API_KEY.'
+    );
   }
 
   const parsedLimit = Math.max(1, Math.min(Number(limit) || 6, 15));
-  const parsedCandidates = Math.max(parsedLimit, Math.min(Number(numCandidates) || 120, 400));
+  const parsedCandidates = Math.max(
+    parsedLimit,
+    Math.min(Number(numCandidates) || 120, 400)
+  );
 
-  return YouTubeTranscriptChunk.aggregate([
+  return VideoIntelligenceChunk.aggregate([
     {
       $vectorSearch: {
         index: VECTOR_INDEX_NAME,
@@ -278,5 +465,6 @@ const findRelevantTranscriptChunks = async ({ userId, youtubeId, query, limit = 
 
 module.exports = {
   indexTranscriptForVideo,
-  findRelevantTranscriptChunks
+  findRelevantTranscriptChunks,
+  chunkSegments
 };

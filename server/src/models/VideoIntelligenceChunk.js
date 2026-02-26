@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const youtubeTranscriptChunkSchema = new mongoose.Schema(
+const videoIntelligenceChunkSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +39,24 @@ const youtubeTranscriptChunkSchema = new mongoose.Schema(
       trim: true,
       maxlength: 8000
     },
+    chunkCharCount: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    overlapCharsUsed: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    transcriptProvider: {
+      type: String,
+      default: 'youtube_timedtext_api'
+    },
+    sourceLanguage: {
+      type: String,
+      default: ''
+    },
     embedding: {
       type: [Number],
       default: undefined
@@ -50,18 +68,21 @@ const youtubeTranscriptChunkSchema = new mongoose.Schema(
     embeddingUpdatedAt: {
       type: Date,
       default: null
-    },
-    sourceLanguage: {
-      type: String,
-      default: ''
     }
   },
   {
+    collection: 'video_intelligence',
     timestamps: true
   }
 );
 
-youtubeTranscriptChunkSchema.index({ userId: 1, youtubeId: 1, chunkIndex: 1 }, { unique: true });
-youtubeTranscriptChunkSchema.index({ userId: 1, youtubeId: 1, createdAt: -1 });
+videoIntelligenceChunkSchema.index(
+  { userId: 1, youtubeId: 1, chunkIndex: 1 },
+  { unique: true }
+);
+videoIntelligenceChunkSchema.index({ userId: 1, youtubeId: 1, createdAt: -1 });
 
-module.exports = mongoose.model('YouTubeTranscriptChunk', youtubeTranscriptChunkSchema);
+module.exports = mongoose.model(
+  'VideoIntelligenceChunk',
+  videoIntelligenceChunkSchema
+);

@@ -18,11 +18,10 @@ const isReducedMotionPreferred = () => {
 };
 
 const TopBar = () => {
-  const navRef = useRef(null);
   const menuId = useId();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isPastHero, setIsPastHero] = useState(false);
+  const [isInHeroSection, setIsInHeroSection] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
@@ -32,26 +31,25 @@ const TopBar = () => {
     location.pathname === APP_ROUTES.LOGIN ||
     location.pathname === APP_ROUTES.REGISTER;
 
-  const isLandingPage = location.pathname === APP_ROUTES.HOME;
-
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);
+  }, []);
 
-    if (!isLandingPage) {
-      setIsPastHero(false);
+  const handleHeroPosition = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const heroSection = document.getElementById("hero");
+    if (!heroSection) {
+      setIsInHeroSection(false);
       return;
     }
 
-    const hero = document.getElementById("hero");
-    if (!hero) {
-      setIsPastHero(false);
-      return;
-    }
+    const rect = heroSection.getBoundingClientRect();
+    const navAnchorY = 96;
+    const isInsideHero = rect.top <= navAnchorY && rect.bottom > navAnchorY;
 
-    const navHeight = navRef.current?.getBoundingClientRect().height ?? 0;
-    const heroRect = hero.getBoundingClientRect();
-    setIsPastHero(heroRect.bottom <= navHeight + 8);
-  }, [isLandingPage]);
+    setIsInHeroSection(isInsideHero);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -59,6 +57,19 @@ const TopBar = () => {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.addEventListener("scroll", handleHeroPosition, { passive: true });
+    window.addEventListener("resize", handleHeroPosition);
+    handleHeroPosition();
+
+    return () => {
+      window.removeEventListener("scroll", handleHeroPosition);
+      window.removeEventListener("resize", handleHeroPosition);
+    };
+  }, [handleHeroPosition, location.pathname]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -109,9 +120,14 @@ const TopBar = () => {
     return `${base} ${bg} ${scrolled}`;
   }, [isMenuOpen, isScrolled]);
 
-  const useDarkText =
-    theme === "dark" && isLandingPage && isPastHero && !isMenuOpen;
-  const textClass = useDarkText ? "text-black" : "text-white";
+  const useHeroTextInLightMode =
+    theme === "light" && isInHeroSection && !isMenuOpen;
+  const useDarkText = theme === "light" && !useHeroTextInLightMode;
+  const textClass = useHeroTextInLightMode
+    ? "dp-nav-hero-text"
+    : useDarkText
+      ? "text-black"
+      : "text-white";
   const hoverClass = "hover:text-amber-300";
   const navItemClass = `${textClass} ${hoverClass} transition-colors duration-300`;
   const activeNavLinkClass = "text-amber-300";
@@ -143,7 +159,7 @@ const TopBar = () => {
   }, [isAuthPage, location.pathname]);
 
   return (
-    <nav ref={navRef} className={navClassName} aria-label="Primary">
+    <nav className={navClassName} aria-label="Primary">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <Link

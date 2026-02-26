@@ -44,6 +44,8 @@
   --dp-btn-hero-fg: rgb(255 255 255);
   --dp-btn-hero-bg-hover: rgb(30 41 59);
   --dp-btn-hero-fg-hover: rgb(255 255 255);
+  --dp-hero-fg: rgb(255 255 255);
+  --dp-hero-muted: rgb(255 255 255 / 0.82);
 
   /* Sidebar primitives */
   --dp-sidebar-bg: rgb(255 255 255 / 0.96);
@@ -115,6 +117,8 @@
   --dp-btn-hero-fg: rgb(0 0 0);
   --dp-btn-hero-bg-hover: rgb(220 220 220);
   --dp-btn-hero-fg-hover: rgb(0 0 0);
+  --dp-hero-fg: rgb(255 255 255);
+  --dp-hero-muted: rgb(255 255 255 / 0.82);
 
   /* Sidebar */
   --dp-sidebar-bg: rgb(15 15 15 / 0.96);
@@ -144,18 +148,6 @@
   --dp-chat-bubble-error: rgb(239 68 68 / 0.2);
   --dp-chat-bubble-error-fg: rgb(255 200 200);
   --dp-chat-avatar-bg: rgb(255 255 255 / 0.08);
-
-  --dp-showcase-gradient:
-    radial-gradient(
-      1000px 500px at 50% -250px,
-      rgba(212, 117, 28, 0.979),
-      transparent 60%
-    ),
-    radial-gradient(
-      800px 400px at 20% 40%,
-      rgba(169, 85, 247, 0.151),
-      transparent 60%
-    );
 }
 
 /* Chat UI helpers */
@@ -220,6 +212,50 @@
   background-color: var(--dp-chat-bubble-error);
   color: var(--dp-chat-bubble-error-fg);
   border: 1px solid var(--dp-danger-border);
+}
+
+.dp-markdown > * + * {
+  margin-top: 0.5rem;
+}
+
+.dp-markdown p {
+  margin: 0;
+}
+
+.dp-markdown ul,
+.dp-markdown ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.dp-markdown li + li {
+  margin-top: 0.2rem;
+}
+
+.dp-markdown a {
+  color: var(--dp-toast-info);
+  text-decoration: underline;
+}
+
+.dp-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--dp-surface-muted) 82%, transparent);
+}
+
+.dp-markdown pre {
+  margin: 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  background: color-mix(in srgb, var(--dp-surface-muted) 90%, transparent);
+}
+
+.dp-markdown pre code {
+  background: transparent;
+  padding: 0;
 }
 
 /* Base page colors */
@@ -404,6 +440,18 @@ body {
   color: var(--dp-muted);
 }
 
+.dp-nav-hero-text {
+  color: rgb(255 255 255) !important;
+}
+
+.dp-hero-text {
+  color: var(--dp-hero-fg);
+}
+
+.dp-hero-muted {
+  color: var(--dp-hero-muted);
+}
+
 .dp-text-subtle {
   color: var(--dp-subtle);
 }
@@ -504,4 +552,17 @@ body {
   background: var(--dp-showcase-gradient);
   pointer-events: none;
   z-index: -1; /* stay behind content */
+}
+
+.dp-hero-accent {
+  color: var(--dp-toast-info);
+}
+
+.dp-hero-vignette {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--dp-bg) 18%, transparent) 0%,
+    transparent 50%,
+    color-mix(in srgb, var(--dp-bg) 70%, transparent) 100%
+  );
 }
