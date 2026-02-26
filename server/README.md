@@ -81,6 +81,7 @@ Rate limiting:
 
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
+- `ACTION_ITEM_EXTRACTION_MODEL`
 
 Google OAuth / Calendar:
 
