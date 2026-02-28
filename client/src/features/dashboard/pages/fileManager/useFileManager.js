@@ -38,7 +38,11 @@ export function useFileManager() {
 
       const mappedItems = toFileItems(response.data);
       setItems(mappedItems);
-      setSelectedId((previousId) => previousId || mappedItems[0]?.id || null);
+      setSelectedId((previousId) => {
+        if (!previousId) return null;
+        const stillExists = mappedItems.some((item) => item.id === previousId);
+        return stillExists ? previousId : null;
+      });
     } catch (error) {
       toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.load));
     } finally {

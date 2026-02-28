@@ -79,7 +79,8 @@ exports.chat = async (req, res, next) => {
         provider: result.provider,
         model: result.model,
         mutations: result.mutations,
-        retrieval: result.retrieval
+        retrieval: result.retrieval,
+        cache: result.cache || { hit: false }
       }
     });
   } catch (error) {

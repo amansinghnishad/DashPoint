@@ -48,4 +48,20 @@ export const collectionsAPI = {
   getCollectionsForItem(itemType, itemId) {
     return getResponseData(apiClient.get(`/collections/item/${itemType}/${itemId}`));
   },
+
+  summarizeDocument(collectionId, file, options = {}) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const noteTitle = String(options.noteTitle || "").trim();
+    if (noteTitle) {
+      formData.append("noteTitle", noteTitle);
+    }
+
+    return getResponseData(
+      apiClient.post(`/collections/${collectionId}/summarize-document`, formData, {
+        timeout: 2 * 60 * 1000,
+      })
+    );
+  },
 };
