@@ -7,6 +7,7 @@ const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
+const { connectRedis, disconnectRedis } = require('./config/redis');
 const errorHandler = require('./middleware/errorHandler');
 
 // Import routes
@@ -27,6 +28,7 @@ if (!process.env.NODE_ENV) {
 
 // Connect to MongoDB
 connectDB();
+connectRedis();
 
 // Rate limiting
 const limiter = rateLimit({
@@ -156,20 +158,18 @@ const server = app.listen(PORT, () => {
   console.log(`Health check at http://localhost:${PORT}/health`);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Process terminated');
-  });
-});
+const shutdown = (signal) => {
+  console.log(`${signal} received. Shutting down gracefully...`);
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received. Shutting down gracefully...');
-  server.close(() => {
+  server.close(async () => {
+    await disconnectRedis();
     console.log('Process terminated');
   });
-});
+};
+
+// Graceful shutdown
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 module.exports = app;
 

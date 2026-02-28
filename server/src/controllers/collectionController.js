@@ -2,6 +2,10 @@ const Collection = require('../models/Collection');
 const { validationResult } = require('express-validator');
 const PlannerWidget = require('../models/PlannerWidget');
 const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
+const {
+  summarizePdfBuffer,
+  buildSummaryNoteTitle
+} = require('../services/documentSummarizationService');
 
 // Get all collections for user
 exports.getCollections = async (req, res, next) => {
@@ -391,6 +395,107 @@ exports.addPlannerWidgetToCollection = async (req, res, next) => {
       data: {
         widget,
         collection
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Upload a PDF, summarize it with Gemini, and save summary as a notes widget in collection
+exports.summarizeDocumentToCollectionNote = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const userId = req.user._id;
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file?.buffer) {
+      return res.status(400).json({
+        success: false,
+        message: 'PDF file is required'
+      });
+    }
+
+    const extension = String(file.originalname || '')
+      .toLowerCase()
+      .trim();
+    const isPdfMime = file.mimetype === 'application/pdf';
+    const isPdfByExt = extension.endsWith('.pdf');
+    if (!isPdfMime && !isPdfByExt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only PDF files are supported for summarization'
+      });
+    }
+
+    const collection = await Collection.findOne({ _id: id, userId });
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        message: 'Collection not found'
+      });
+    }
+
+    const summaryResult = await summarizePdfBuffer({
+      buffer: file.buffer,
+      filename: file.originalname
+    });
+
+    const requestedTitle = String(req.body?.noteTitle || '').trim();
+    const noteTitle = buildSummaryNoteTitle({
+      filename: file.originalname,
+      customTitle: requestedTitle
+    });
+
+    const noteBody = [
+      `Source: ${String(file.originalname || 'Uploaded PDF').trim()}`,
+      summaryResult.pageCount ? `Pages: ${summaryResult.pageCount}` : null,
+      summaryResult.wasTruncated
+        ? 'Note: Source text was truncated before summarization.'
+        : null,
+      '',
+      summaryResult.summaryText || summaryResult.summaryMarkdown
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const widget = new PlannerWidget({
+      userId,
+      widgetType: 'notes',
+      title: noteTitle,
+      data: {
+        text: noteBody
+      }
+    });
+
+    await attachEmbeddingToPlannerWidget(widget);
+    await widget.save();
+    await collection.addItem('planner', String(widget._id));
+
+    return res.status(201).json({
+      success: true,
+      message: 'Document summarized and saved as note',
+      data: {
+        widget,
+        collection: {
+          _id: String(collection._id),
+          name: collection.name
+        },
+        summaryMeta: {
+          model: summaryResult.model,
+          pageCount: summaryResult.pageCount,
+          sourceCharacters: summaryResult.sourceCharacters,
+          wasTruncated: summaryResult.wasTruncated
+        }
       }
     });
   } catch (error) {

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   FileText,
   Image,
@@ -11,6 +13,8 @@ import {
 import { PlannerWidgetBody } from "./plannerWidgets";
 
 import { extractYouTubeId } from "../../../../../shared/lib/urlUtils";
+import { SERVER_BASE_URL } from "../../../../../shared/config/appConfig";
+import fileService from "../../../../../services/modules/fileService";
 
 import { useResizableCard } from "./useResizableCard";
 
@@ -21,8 +25,8 @@ const getTitleForItem = (item) => {
   return (
     data.title ||
     data.name ||
-    data.filename ||
     data.originalName ||
+    data.filename ||
     data.url ||
     data.videoTitle ||
     "Item"
@@ -63,6 +67,29 @@ const getYouTubeEmbedSrc = (data) => {
   return `https://www.youtube-nocookie.com/embed/${videoId}`;
 };
 
+const resolveFileUrl = (value) => {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${SERVER_BASE_URL}${url}`;
+};
+
+const getFileDownloadUrl = (data) => {
+  const id = String(data?._id || "").trim();
+  if (!id) return "";
+  return `${SERVER_BASE_URL}/api/files/${id}/download`;
+};
+
+const isImageFile = (data) => String(data?.mimetype || "").toLowerCase().startsWith("image/");
+
+const isPdfFile = (data) => {
+  const mimetype = String(data?.mimetype || "").toLowerCase();
+  const originalName = String(data?.originalName || data?.filename || "")
+    .toLowerCase()
+    .trim();
+  return mimetype === "application/pdf" || originalName.endsWith(".pdf");
+};
+
 export default function ResizableItemCard({
   item,
   layout,
@@ -72,6 +99,8 @@ export default function ResizableItemCard({
   onEdit,
   onDelete,
 }) {
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState("");
+
   // When the canvas is zoomed (Ctrl+wheel), drag/resize deltas must be scaled back
   // into world coordinates.
   // Default to 1 to preserve existing behavior.
@@ -100,9 +129,68 @@ export default function ResizableItemCard({
 
   const youtubeEmbedSrc =
     type === "youtube" ? getYouTubeEmbedSrc(item?.itemData) : null;
+  const fileUrl = resolveFileUrl(item?.itemData?.url);
+  const fileId = String(item?.itemData?._id || "").trim();
+  const fileDownloadUrl = getFileDownloadUrl(item?.itemData);
+  const shouldLoadPdfPreview =
+    (type === "file" || type === "photo") &&
+    isPdfFile(item?.itemData) &&
+    Boolean(fileId);
+
+  useEffect(() => {
+    if (!shouldLoadPdfPreview) {
+      setPdfPreviewUrl((previous) => {
+        if (previous) {
+          window.URL.revokeObjectURL(previous);
+        }
+        return "";
+      });
+      return undefined;
+    }
+
+    let isDisposed = false;
+    let objectUrl = "";
+
+    const loadPdfPreview = async () => {
+      try {
+        const blob = await fileService.getFilePreviewBlob(fileId);
+        objectUrl = window.URL.createObjectURL(blob);
+
+        if (isDisposed) {
+          window.URL.revokeObjectURL(objectUrl);
+          return;
+        }
+
+        setPdfPreviewUrl((previous) => {
+          if (previous) {
+            window.URL.revokeObjectURL(previous);
+          }
+          return objectUrl;
+        });
+      } catch {
+        if (!isDisposed) {
+          setPdfPreviewUrl((previous) => {
+            if (previous) {
+              window.URL.revokeObjectURL(previous);
+            }
+            return "";
+          });
+        }
+      }
+    };
+
+    loadPdfPreview();
+
+    return () => {
+      isDisposed = true;
+      if (objectUrl) {
+        window.URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [fileId, shouldLoadPdfPreview]);
 
   const bodyClassName =
-    type === "youtube"
+    type === "youtube" || type === "file" || type === "photo"
       ? "flex-1 min-h-0 overflow-hidden touch-auto"
       : "flex-1 min-h-0 overflow-auto touch-auto";
 
@@ -180,6 +268,60 @@ export default function ResizableItemCard({
                   allowFullScreen
                   referrerPolicy="strict-origin-when-cross-origin"
                 />
+              ) : null}
+            </div>
+          ) : type === "file" || type === "photo" ? (
+            <div className="h-full w-full dp-border rounded-xl border overflow-hidden">
+              {isImageFile(item?.itemData) && fileUrl ? (
+                <img
+                  src={fileUrl}
+                  alt={title}
+                  className="h-full w-full object-contain dp-surface"
+                />
+              ) : isPdfFile(item?.itemData) ? (
+                <object
+                  data={pdfPreviewUrl || undefined}
+                  type="application/pdf"
+                  className="h-full w-full dp-surface"
+                >
+                  <div className="h-full w-full p-3 flex flex-col justify-center">
+                    <p className="dp-text text-sm font-semibold">
+                      {pdfPreviewUrl
+                        ? "PDF preview is not available in this browser."
+                        : "Loading PDF preview..."}
+                    </p>
+                    {fileUrl ? (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="dp-text text-xs underline mt-2"
+                      >
+                        Open PDF
+                      </a>
+                    ) : null}
+                  </div>
+                </object>
+              ) : (
+                <div className="h-full w-full p-3 flex flex-col justify-center">
+                  <p className="dp-text text-sm font-semibold">Preview not available</p>
+                  <p className="dp-text-muted text-xs mt-1">
+                    Open or download this file to view it.
+                  </p>
+                </div>
+              )}
+
+              {fileDownloadUrl ? (
+                <div className="dp-surface/80 dp-border border-t px-3 py-2">
+                  <a
+                    href={fileDownloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dp-text text-xs underline"
+                  >
+                    Open / Download
+                  </a>
+                </div>
               ) : null}
             </div>
           ) : (

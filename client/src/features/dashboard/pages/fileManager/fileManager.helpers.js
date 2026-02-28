@@ -5,6 +5,7 @@ export const FILE_MANAGER_ERRORS = {
   upload: "Failed to upload files",
   delete: "Failed to delete file",
   download: "Failed to download file",
+  summarize: "Failed to summarize file",
 };
 
 export const FILE_MANAGER_ACCEPT =

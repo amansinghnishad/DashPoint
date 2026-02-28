@@ -9,6 +9,13 @@ import { DASHPOINT_COLLECTIONS_CHANGED_EVENT } from "../../../shared/lib/dashboa
 const DEFAULT_TOP_K = 3;
 const STREAM_STEP_CHARS = 10;
 const STREAM_STEP_MS = 24;
+const DEFAULT_ACTION_ITEM_MAX_ITEMS = 8;
+const DEFAULT_ACTION_ITEM_TITLE = "Action Items";
+
+const CHAT_MODES = [
+  { value: "chat", label: "Chat" },
+  { value: "action_items", label: "Action Items" },
+];
 
 const PROVIDER_OPTIONS = [
   { value: "auto", label: "Auto" },
@@ -77,6 +84,19 @@ const buildMetaLabel = (meta) => {
   return parts.join(" | ");
 };
 
+const buildSuggestionMeta = (suggestion) => {
+  const parts = [];
+  if (suggestion?.priority) {
+    parts.push(String(suggestion.priority).toUpperCase());
+  }
+
+  if (typeof suggestion?.confidence === "number") {
+    parts.push(`${Math.round(suggestion.confidence * 100)}% confidence`);
+  }
+
+  return parts.join(" | ");
+};
+
 function MarkdownBubble({ content }) {
   return (
     <div className="dp-markdown text-sm leading-6">
@@ -85,11 +105,141 @@ function MarkdownBubble({ content }) {
   );
 }
 
-function PendingBubble() {
+function PendingBubble({ mode }) {
   return (
     <div className="flex items-center gap-2 text-sm dp-text-muted">
       <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full dp-status-online" />
-      <span>Thinking...</span>
+      <span>{mode === "action_items" ? "Extracting action items..." : "Thinking..."}</span>
+    </div>
+  );
+}
+
+function SuggestionsPanel({
+  suggestions,
+  approval,
+  collections,
+  collectionsLoading,
+  collectionsError,
+  onToggle,
+  onSelectAll,
+  onClearAll,
+  onCollectionChange,
+  onApprove,
+}) {
+  const selectedCount = suggestions.filter((item) => item.selected).length;
+  const selectedCollectionId = String(approval?.collectionId || "");
+  const canApprove =
+    selectedCount > 0 &&
+    selectedCollectionId &&
+    approval?.status !== "saving" &&
+    approval?.status !== "approved";
+
+  return (
+    <div className="mt-3 rounded-xl border dp-border dp-surface-muted p-3">
+      <p className="dp-text text-xs font-semibold uppercase tracking-wide">
+        Suggested To-Dos
+      </p>
+
+      <div className="mt-2 max-h-48 space-y-2 overflow-auto pr-1">
+        {suggestions.map((suggestion) => (
+          <label
+            key={suggestion.id}
+            className="dp-surface dp-border flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2"
+          >
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4"
+              checked={Boolean(suggestion.selected)}
+              onChange={() => onToggle(suggestion.id)}
+              disabled={approval?.status === "saving" || approval?.status === "approved"}
+            />
+            <div className="min-w-0">
+              <p className="dp-text text-sm">{suggestion.text}</p>
+              {suggestion.reason ? (
+                <p className="dp-text-muted mt-0.5 text-[11px]">{suggestion.reason}</p>
+              ) : null}
+              {buildSuggestionMeta(suggestion) ? (
+                <p className="dp-text-subtle mt-0.5 text-[11px]">
+                  {buildSuggestionMeta(suggestion)}
+                </p>
+              ) : null}
+            </div>
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-3">
+        <label className="dp-text mb-1 block text-[11px] font-semibold uppercase tracking-wide">
+          Save To Collection
+        </label>
+
+        <select
+          value={selectedCollectionId}
+          onChange={(event) => onCollectionChange(event.target.value)}
+          className="dp-surface dp-border dp-text w-full rounded-lg border px-2 py-1.5 text-xs outline-none"
+          disabled={approval?.status === "saving" || approval?.status === "approved"}
+        >
+          <option value="">
+            {collectionsLoading
+              ? "Loading collections..."
+              : collections.length
+                ? "Select collection"
+                : "No collections available"}
+          </option>
+          {collections.map((collection) => (
+            <option key={collection.id} value={collection.id}>
+              {collection.name}
+            </option>
+          ))}
+        </select>
+
+        {collectionsError ? (
+          <p className="mt-1 text-xs dp-text-danger">{collectionsError}</p>
+        ) : null}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={onSelectAll}
+          className="dp-btn-secondary rounded-lg px-2 py-1 text-xs"
+          disabled={approval?.status === "saving" || approval?.status === "approved"}
+        >
+          Select all
+        </button>
+
+        <button
+          type="button"
+          onClick={onClearAll}
+          className="dp-btn-secondary rounded-lg px-2 py-1 text-xs"
+          disabled={approval?.status === "saving" || approval?.status === "approved"}
+        >
+          Clear
+        </button>
+
+        <button
+          type="button"
+          onClick={onApprove}
+          className="dp-btn-primary rounded-lg px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={!canApprove}
+        >
+          {approval?.status === "saving"
+            ? "Saving..."
+            : approval?.status === "approved"
+              ? "Approved"
+              : `Approve ${selectedCount}`}
+        </button>
+      </div>
+
+      {approval?.message ? (
+        <p
+          className={`mt-2 text-xs ${
+            approval.status === "approved" ? "dp-text-muted" : "dp-text-danger"
+          }`}
+        >
+          {approval.message}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -99,6 +249,7 @@ export default function DashboardChatBar({
   show = true,
   placeholder = "Ask anything about your workspace...",
 }) {
+  const [mode, setMode] = useState("chat");
   const [provider, setProvider] = useState("auto");
   const [model, setModel] = useState("auto");
   const [message, setMessage] = useState("");
@@ -107,8 +258,10 @@ export default function DashboardChatBar({
       id: "assistant-welcome",
       role: "assistant",
       content:
-        "Chat is ready. You can scope RAG to selected collections, then ask questions or trigger actions.",
+        "Chat is ready. Use Chat mode for workspace Q&A or Action Items mode to extract and approve todos from raw text.",
       status: "done",
+      suggestions: null,
+      approval: null,
     },
   ]);
   const [isSending, setIsSending] = useState(false);
@@ -124,9 +277,7 @@ export default function DashboardChatBar({
   const scrollAnchorRef = useRef(null);
 
   const modelOptions = useMemo(() => {
-    return (
-      MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto
-    );
+    return MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto;
   }, [provider]);
 
   const loadCollections = useCallback(async () => {
@@ -138,9 +289,7 @@ export default function DashboardChatBar({
       setCollections(normalizeCollectionsResponse(response));
     } catch (error) {
       setCollectionsError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Unable to load collections",
+        error?.response?.data?.message || error?.message || "Unable to load collections"
       );
     } finally {
       setCollectionsLoading(false);
@@ -212,10 +361,37 @@ export default function DashboardChatBar({
 
   useEffect(() => {
     setSelectedCollectionIds((current) =>
-      current.filter((id) =>
-        collections.some((collection) => collection.id === id),
-      ),
+      current.filter((id) => collections.some((collection) => collection.id === id))
     );
+  }, [collections]);
+
+  useEffect(() => {
+    setMessages((current) => {
+      let changed = false;
+
+      const next = current.map((entry) => {
+        const currentTargetId = String(entry?.approval?.collectionId || "");
+        if (!currentTargetId) {
+          return entry;
+        }
+
+        const exists = collections.some((collection) => collection.id === currentTargetId);
+        if (exists) {
+          return entry;
+        }
+
+        changed = true;
+        return {
+          ...entry,
+          approval: {
+            ...entry.approval,
+            collectionId: "",
+          },
+        };
+      });
+
+      return changed ? next : current;
+    });
   }, [collections]);
 
   useEffect(() => {
@@ -226,11 +402,13 @@ export default function DashboardChatBar({
     };
   }, []);
 
-  const updateMessage = useCallback((id, updates) => {
+  const updateMessage = useCallback((id, updater) => {
     setMessages((current) =>
-      current.map((entry) =>
-        entry.id === id ? { ...entry, ...updates } : entry,
-      ),
+      current.map((entry) => {
+        if (entry.id !== id) return entry;
+        const patch = typeof updater === "function" ? updater(entry) : updater;
+        return { ...entry, ...patch };
+      })
     );
   }, []);
 
@@ -267,7 +445,7 @@ export default function DashboardChatBar({
         step();
         streamTimerRef.current = setInterval(step, STREAM_STEP_MS);
       }),
-    [updateMessage],
+    [updateMessage]
   );
 
   const toggleCollection = useCallback((collectionId) => {
@@ -280,6 +458,131 @@ export default function DashboardChatBar({
     });
   }, []);
 
+  const toggleSuggestionSelection = useCallback(
+    (messageId, suggestionId) => {
+      updateMessage(messageId, (entry) => ({
+        suggestions: (entry.suggestions || []).map((suggestion) =>
+          suggestion.id === suggestionId
+            ? { ...suggestion, selected: !suggestion.selected }
+            : suggestion
+        ),
+      }));
+    },
+    [updateMessage]
+  );
+
+  const selectAllSuggestions = useCallback(
+    (messageId, selected) => {
+      updateMessage(messageId, (entry) => ({
+        suggestions: (entry.suggestions || []).map((suggestion) => ({
+          ...suggestion,
+          selected,
+        })),
+      }));
+    },
+    [updateMessage]
+  );
+
+  const setSuggestionCollection = useCallback(
+    (messageId, collectionId) => {
+      updateMessage(messageId, (entry) => ({
+        approval: {
+          ...(entry.approval || {}),
+          collectionId: String(collectionId || ""),
+          message: "",
+          status:
+            entry?.approval?.status === "approved" ? "idle" : entry?.approval?.status || "idle",
+        },
+      }));
+    },
+    [updateMessage]
+  );
+
+  const approveSuggestions = useCallback(
+    async ({ messageId, suggestions, collectionId }) => {
+      const approvedItems = (Array.isArray(suggestions) ? suggestions : [])
+        .filter((suggestion) => suggestion.selected)
+        .map((suggestion) => ({
+          text: suggestion.text,
+        }));
+
+      if (!approvedItems.length) {
+        updateMessage(messageId, (entry) => ({
+          approval: {
+            ...(entry.approval || {}),
+            status: "failed",
+            message: "Select at least one item to approve.",
+          },
+        }));
+        return;
+      }
+
+      const targetCollectionId = String(collectionId || "").trim();
+      if (!targetCollectionId) {
+        updateMessage(messageId, (entry) => ({
+          approval: {
+            ...(entry.approval || {}),
+            status: "failed",
+            message: "Choose a collection to save the approved items.",
+          },
+        }));
+        return;
+      }
+
+      updateMessage(messageId, (entry) => ({
+        approval: {
+          ...(entry.approval || {}),
+          status: "saving",
+          message: "",
+        },
+      }));
+
+      try {
+        const response = await chatApi.approveActionItems({
+          title: DEFAULT_ACTION_ITEM_TITLE,
+          approvedItems,
+          collectionId: targetCollectionId,
+        });
+
+        const payload = response?.data || {};
+        const itemCount = Number(payload?.itemCount || approvedItems.length);
+        const collectionName = payload?.collection?.name || "selected collection";
+
+        updateMessage(messageId, (entry) => ({
+          approval: {
+            ...(entry.approval || {}),
+            status: "approved",
+            message: `Saved ${itemCount} items to ${collectionName}.`,
+          },
+        }));
+
+        window.dispatchEvent(
+          new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
+            detail: {
+              collectionChanged: true,
+              tools: ["approveActionItems"],
+            },
+          })
+        );
+        loadCollections();
+      } catch (error) {
+        const errorText =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to save approved action items.";
+
+        updateMessage(messageId, (entry) => ({
+          approval: {
+            ...(entry.approval || {}),
+            status: "failed",
+            message: errorText,
+          },
+        }));
+      }
+    },
+    [loadCollections, updateMessage]
+  );
+
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -287,7 +590,7 @@ export default function DashboardChatBar({
       const trimmed = message.trim();
       if (!trimmed || isSending) return;
 
-      if (openAiComingSoon) {
+      if (mode === "chat" && openAiComingSoon) {
         const userMessageId = nextMessageId();
         const assistantMessageId = nextMessageId();
 
@@ -302,8 +605,7 @@ export default function DashboardChatBar({
           {
             id: assistantMessageId,
             role: "assistant",
-            content:
-              "This model is under development. Try using Gemini.",
+            content: "This model is under development. Try using Gemini.",
             status: "done",
           },
         ]);
@@ -322,12 +624,16 @@ export default function DashboardChatBar({
           role: "user",
           content: trimmed,
           status: "done",
+          suggestions: null,
+          approval: null,
         },
         {
           id: assistantMessageId,
           role: "assistant",
           content: "",
           status: "loading",
+          suggestions: null,
+          approval: null,
         },
       ]);
 
@@ -335,6 +641,60 @@ export default function DashboardChatBar({
       setIsSending(true);
 
       try {
+        if (mode === "action_items") {
+          const response = await chatApi.extractActionItems({
+            rawText: trimmed,
+            maxItems: DEFAULT_ACTION_ITEM_MAX_ITEMS,
+            title: DEFAULT_ACTION_ITEM_TITLE,
+          });
+
+          const payload = response?.data || {};
+          const rawSuggestions = Array.isArray(payload?.suggestions)
+            ? payload.suggestions
+            : [];
+
+          const suggestions = rawSuggestions
+            .map((item, index) => ({
+              id: String(item?.id || `suggestion-${index + 1}`),
+              text: String(item?.text || "").trim(),
+              reason: String(item?.reason || "").trim(),
+              priority: String(item?.priority || "").trim().toLowerCase(),
+              confidence: typeof item?.confidence === "number" ? item.confidence : null,
+              selected: true,
+            }))
+            .filter((item) => item.text);
+
+          if (!suggestions.length) {
+            updateMessage(assistantMessageId, {
+              role: "assistant",
+              content:
+                "No actionable tasks were detected in that text. Try adding more explicit next steps.",
+              status: "done",
+              suggestions: null,
+              approval: null,
+              meta: null,
+            });
+            return;
+          }
+
+          updateMessage(assistantMessageId, {
+            role: "assistant",
+            content: `I found ${suggestions.length} suggested action item${
+              suggestions.length === 1 ? "" : "s"
+            }. Review and approve the ones you want to save.`,
+            status: "done",
+            suggestions,
+            approval: {
+              status: "idle",
+              message: "",
+              collectionId:
+                selectedCollectionIds.length === 1 ? selectedCollectionIds[0] : "",
+            },
+            meta: null,
+          });
+          return;
+        }
+
         const response = await chatApi.sendMessage({
           message: trimmed,
           provider,
@@ -351,7 +711,7 @@ export default function DashboardChatBar({
           window.dispatchEvent(
             new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
               detail: payload?.mutations || {},
-            }),
+            })
           );
           loadCollections();
         }
@@ -366,13 +726,17 @@ export default function DashboardChatBar({
         const errorText =
           error?.response?.data?.message ||
           error?.message ||
-          "Unable to complete chat request.";
+          (mode === "action_items"
+            ? "Unable to extract action items right now."
+            : "Unable to complete chat request.");
 
         updateMessage(assistantMessageId, {
           role: "error",
           content: errorText,
           status: "done",
           meta: null,
+          suggestions: null,
+          approval: null,
         });
       } finally {
         setIsSending(false);
@@ -381,18 +745,27 @@ export default function DashboardChatBar({
     [
       isSending,
       message,
+      mode,
       model,
       nextMessageId,
+      openAiComingSoon,
       provider,
       selectedCollectionIds,
       loadCollections,
-      openAiComingSoon,
       streamAssistantText,
       updateMessage,
-    ],
+    ]
   );
 
   if (!show) return null;
+
+  const inputPlaceholder =
+    mode === "action_items"
+      ? "Paste notes, meeting transcript, or plain text..."
+      : placeholder;
+  const submitLabel = mode === "action_items" ? "Extract" : "Send";
+  const isSubmitDisabled =
+    isSending || !message.trim() || (mode === "chat" && openAiComingSoon);
 
   return (
     <div
@@ -418,7 +791,7 @@ export default function DashboardChatBar({
                   className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[82%] ${bubbleClass}`}
                 >
                   {entry.status === "loading" ? (
-                    <PendingBubble />
+                    <PendingBubble mode={mode} />
                   ) : (
                     <MarkdownBubble content={entry.content} />
                   )}
@@ -427,6 +800,31 @@ export default function DashboardChatBar({
                     <p className="mt-2 text-[11px] dp-text-subtle">
                       {buildMetaLabel(entry.meta)}
                     </p>
+                  ) : null}
+
+                  {Array.isArray(entry.suggestions) && entry.suggestions.length ? (
+                    <SuggestionsPanel
+                      suggestions={entry.suggestions}
+                      approval={entry.approval}
+                      collections={collections}
+                      collectionsLoading={collectionsLoading}
+                      collectionsError={collectionsError}
+                      onToggle={(suggestionId) =>
+                        toggleSuggestionSelection(entry.id, suggestionId)
+                      }
+                      onSelectAll={() => selectAllSuggestions(entry.id, true)}
+                      onClearAll={() => selectAllSuggestions(entry.id, false)}
+                      onCollectionChange={(collectionId) =>
+                        setSuggestionCollection(entry.id, collectionId)
+                      }
+                      onApprove={() =>
+                        approveSuggestions({
+                          messageId: entry.id,
+                          suggestions: entry.suggestions,
+                          collectionId: entry?.approval?.collectionId,
+                        })
+                      }
+                    />
                   ) : null}
                 </div>
               </div>
@@ -438,11 +836,25 @@ export default function DashboardChatBar({
         <div className="border-t dp-border p-2">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <select
+              value={mode}
+              onChange={(event) => setMode(event.target.value)}
+              className="dp-surface-muted dp-border dp-text rounded-lg border px-2 py-1 text-xs outline-none"
+              aria-label="Chat mode"
+              disabled={isSending}
+            >
+              {CHAT_MODES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <select
               value={provider}
               onChange={(event) => setProvider(event.target.value)}
               className="dp-surface-muted dp-border dp-text rounded-lg border px-2 py-1 text-xs outline-none"
               aria-label="Model provider"
-              disabled={isSending}
+              disabled={isSending || mode !== "chat"}
             >
               {PROVIDER_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -456,7 +868,7 @@ export default function DashboardChatBar({
               onChange={(event) => setModel(event.target.value)}
               className="dp-surface-muted dp-border dp-text rounded-lg border px-2 py-1 text-xs outline-none"
               aria-label="Model selection"
-              disabled={isSending}
+              disabled={isSending || mode !== "chat"}
             >
               {modelOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -485,9 +897,15 @@ export default function DashboardChatBar({
             ) : null}
           </div>
 
-          {openAiComingSoon ? (
+          {mode === "chat" && openAiComingSoon ? (
             <p className="mb-2 rounded-lg border border-amber-300/60 bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
               This model is under development. Try using Gemini.
+            </p>
+          ) : null}
+
+          {mode === "action_items" ? (
+            <p className="mb-2 rounded-lg border dp-border dp-surface-muted px-3 py-1.5 text-xs dp-text-muted">
+              Action Items mode extracts suggested todos from raw text. Choose the target collection in each suggestion panel before approving.
             </p>
           ) : null}
 
@@ -502,9 +920,7 @@ export default function DashboardChatBar({
               ) : (
                 <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
                   {collections.map((collection) => {
-                    const selected = selectedCollectionIds.includes(
-                      collection.id,
-                    );
+                    const selected = selectedCollectionIds.includes(collection.id);
                     return (
                       <button
                         key={collection.id}
@@ -530,7 +946,7 @@ export default function DashboardChatBar({
               ref={inputRef}
               value={message}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder={placeholder}
+              placeholder={inputPlaceholder}
               className="dp-surface dp-text min-h-[44px] w-full resize-none rounded-xl px-4 py-2 text-sm outline-none"
               aria-label="Chat prompt"
               rows={1}
@@ -545,12 +961,12 @@ export default function DashboardChatBar({
 
             <button
               type="submit"
-              disabled={isSending || !message.trim() || openAiComingSoon}
+              disabled={isSubmitDisabled}
               className="dp-btn-primary inline-flex h-11 min-w-11 items-center justify-center rounded-xl px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-              aria-label="Send"
-              title="Send"
+              aria-label={submitLabel}
+              title={submitLabel}
             >
-              {isSending ? "..." : "Send"}
+              {isSending ? "..." : submitLabel}
             </button>
           </form>
 

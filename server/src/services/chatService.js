@@ -2,6 +2,11 @@ const { executeToolCall } = require('./chatToolExecutor');
 const { retrieveChatContext, DEFAULT_TOP_K } = require('./chatContextService');
 const { buildAugmentedChatPrompt } = require('./chatPromptService');
 const { buildChatProviderAttempts } = require('./chatModelRouter');
+const {
+  buildChatContextId,
+  getCachedChatResponse,
+  setCachedChatResponse
+} = require('./chatResponseCacheService');
 const { runOpenAiChat } = require('./chatProviders/openaiChatProvider');
 const { runGeminiChat } = require('./chatProviders/geminiChatProvider');
 
@@ -47,6 +52,37 @@ const isCapabilityRefusalResponse = (text) =>
     String(text || '')
   );
 
+const buildAttemptSignature = (attempts = []) =>
+  attempts.map((attempt) => `${attempt.provider}:${attempt.model}`).join('>');
+
+const shouldCacheChatResponse = (payload = {}) => {
+  if (!String(payload?.response || '').trim()) {
+    return false;
+  }
+
+  const mutations = payload?.mutations || {};
+  if (Number(mutations.toolCalls) > 0 || mutations.collectionChanged === true) {
+    return false;
+  }
+
+  return true;
+};
+
+const normalizeCachedPayload = (cachedValue = {}) => ({
+  response: String(cachedValue?.response || ''),
+  provider: String(cachedValue?.provider || ''),
+  model: String(cachedValue?.model || ''),
+  mutations:
+    cachedValue?.mutations && typeof cachedValue.mutations === 'object'
+      ? cachedValue.mutations
+      : { toolCalls: 0, tools: [], collectionChanged: false },
+  retrieval:
+    cachedValue?.retrieval && typeof cachedValue.retrieval === 'object'
+      ? cachedValue.retrieval
+      : { topK: DEFAULT_TOP_K, hitCount: 0, scope: { mode: 'all' }, sources: [] },
+  cachedAt: cachedValue?.cachedAt || null
+});
+
 const runChat = async ({
   userId,
   message,
@@ -59,6 +95,35 @@ const runChat = async ({
     provider,
     model
   });
+  const cacheContextId = buildChatContextId({
+    userId,
+    provider,
+    model,
+    topK,
+    collectionIds,
+    attemptSignature: buildAttemptSignature(attempts)
+  });
+
+  const cached = await getCachedChatResponse({
+    prompt: message,
+    contextId: cacheContextId
+  });
+
+  if (cached?.value) {
+    const normalized = normalizeCachedPayload(cached.value);
+    return {
+      response: normalized.response,
+      provider: normalized.provider,
+      model: normalized.model,
+      mutations: normalized.mutations,
+      retrieval: normalized.retrieval,
+      cache: {
+        hit: true,
+        contextId: cacheContextId,
+        cachedAt: normalized.cachedAt
+      }
+    };
+  }
 
   const embeddingProviders = [
     ...new Set(
@@ -130,7 +195,7 @@ const runChat = async ({
         finalResponseText = MISSING_VIDEO_CONTEXT_RESPONSE;
       }
 
-      return {
+      const responsePayload = {
         response: finalResponseText,
         provider: attempt.provider,
         model: attempt.model,
@@ -146,6 +211,22 @@ const runChat = async ({
             sourceLabel: item.sourceLabel,
             score: item.score
           }))
+        }
+      };
+
+      if (shouldCacheChatResponse(responsePayload)) {
+        await setCachedChatResponse({
+          prompt: message,
+          contextId: cacheContextId,
+          responsePayload
+        });
+      }
+
+      return {
+        ...responsePayload,
+        cache: {
+          hit: false,
+          contextId: cacheContextId
         }
       };
     } catch (error) {

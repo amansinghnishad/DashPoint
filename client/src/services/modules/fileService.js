@@ -31,6 +31,14 @@ const fileService = {
     return getResponseData(apiClient.get(`/files/${fileId}`));
   },
 
+  async getFilePreviewBlob(fileId) {
+    const response = await apiClient.get(`/files/${fileId}/preview`, {
+      responseType: "blob",
+      timeout: 60 * 1000,
+    });
+    return response.data;
+  },
+
   async downloadFile(fileId, filename) {
     const response = await apiClient.get(`/files/${fileId}/download`, {
       responseType: "blob",
@@ -62,6 +70,14 @@ const fileService = {
 
   getStorageStats() {
     return getResponseData(apiClient.get("/files/stats"));
+  },
+
+  summarizeFileToCollection(fileId, payload = {}) {
+    return getResponseData(
+      apiClient.post(`/files/${fileId}/summarize-to-collection`, payload, {
+        timeout: 2 * 60 * 1000,
+      })
+    );
   },
 
   formatFileSize(bytes) {

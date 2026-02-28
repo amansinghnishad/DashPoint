@@ -8,6 +8,9 @@ import Clock from "../../../../shared/ui/Clock/Clock";
 import ResizableItemCard from "./components/ResizableItemCard";
 import DeleteConfirmModal from "../../../../shared/ui/modals/DeleteConfirmModal";
 import CollectionPickerModal from "./components/CollectionPickerModal";
+import DocumentSummaryModal, {
+  isPdfFile,
+} from "./components/DocumentSummaryModal";
 import useCollectionLayouts from "./hooks/useCollectionLayouts";
 import useCollectionData from "./hooks/useCollectionData";
 import useCollectionViewport from "./hooks/useCollectionViewport";
@@ -34,6 +37,8 @@ export default function CollectionView({ collectionId, onBack }) {
   const [activeTool, setActiveTool] = useState("youtube");
 
   const [pickerState, setPickerState] = useState({ open: false, tool: null });
+  const [isSummarizingDocument, setIsSummarizingDocument] = useState(false);
+  const [documentSummaryOpen, setDocumentSummaryOpen] = useState(false);
 
   const [deleteState, setDeleteState] = useState({
     item: null,
@@ -179,9 +184,48 @@ export default function CollectionView({ collectionId, onBack }) {
     (toolId) => {
       setActiveTool(toolId);
       if (toolId === "planner") return;
+      if (toolId === "file" || toolId === "document") {
+        setDocumentSummaryOpen(true);
+        return;
+      }
       openPicker(toolId);
     },
     [openPicker],
+  );
+
+  const summarizeUploadedPdf = useCallback(
+    async (file) => {
+      if (!file) return;
+
+      if (!isPdfFile(file)) {
+        toast.warning("Please upload a PDF file.");
+        return;
+      }
+
+      try {
+        setIsSummarizingDocument(true);
+        const response = await collectionsAPI.summarizeDocument(collectionId, file);
+        if (!response?.success) {
+          throw new Error(response?.message || "Failed to summarize document");
+        }
+
+        const title =
+          response?.data?.widget?.title || String(file?.name || "document").trim();
+        toast.success(`Summary note saved: ${title}`);
+        setDocumentSummaryOpen(false);
+        setActiveTool("planner");
+        await reload();
+      } catch (error) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to summarize document";
+        toast.error(message);
+      } finally {
+        setIsSummarizingDocument(false);
+      }
+    },
+    [collectionId, reload, toast],
   );
 
   if (!collectionId) return null;
@@ -241,6 +285,16 @@ export default function CollectionView({ collectionId, onBack }) {
               collectionId={collectionId}
               existingKeys={existingKeys}
               onAdded={reload}
+            />
+
+            <DocumentSummaryModal
+              open={documentSummaryOpen}
+              busy={isSummarizingDocument}
+              onClose={() => {
+                if (isSummarizingDocument) return;
+                setDocumentSummaryOpen(false);
+              }}
+              onSubmit={summarizeUploadedPdf}
             />
 
             {/* World layer (Figma-like): items are positioned in world space and the layer is transformed. */}
