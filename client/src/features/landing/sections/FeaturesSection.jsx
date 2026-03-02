@@ -70,7 +70,7 @@ export default function FeaturesSection() {
               className="sticky top-0 h-screen flex flex-col items-center justify-center text-center px-6"
             >
               {/* Background Word */}
-              <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none select-none">
+              <div className="absolute top-[30%] -translate-y-1/2 pointer-events-none select-none">
                 <h2
                   className="text-[80px] sm:text-[100px] md:text-[130px] lg:text-[150px]
 font-extrabold tracking-widest dp-text-subtle opacity-10"
@@ -109,7 +109,7 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
               </div>
 
               {/* Monitor */}
-              <div className="relative mt-28 md:mt-32 [perspective:2000px]">
+              <div className="relative mt-28 md:mt-32 w-[92vw] max-w-[980px] [perspective:500px]">
                 <motion.div
                   style={{ scale, rotateX, rotateY }}
                   className="relative [transform-style:preserve-3d]"
@@ -131,7 +131,7 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
                   >
                     <div
                       className="rounded-[2rem] bg-black/90 dp-border border
-                      p-8 md:p-12 relative overflow-hidden"
+                      p-10 md:p-14 min-h-[360px] md:min-h-[460px] relative overflow-hidden"
                     >
                       {/* Glass reflection */}
                       <div
