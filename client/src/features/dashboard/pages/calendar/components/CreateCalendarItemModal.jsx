@@ -14,8 +14,8 @@ export default function CreateCalendarItemModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Create"
-      description="Add an event, task, or to-do and sync to Google Calendar."
+      title="Create Calendar Item"
+      description="Add an event, task, or to-do and sync it to Google Calendar."
       size="sm"
       footer={
         <div className="flex justify-end gap-2">
@@ -39,26 +39,49 @@ export default function CreateCalendarItemModal({
         </div>
       }
     >
-      <div className="space-y-3">
-        <div>
-          <label
-            htmlFor="calendar-item-type"
-            className="dp-text text-sm font-semibold"
-          >
-            Type
-          </label>
-          <select
-            id="calendar-item-type"
-            value={form.type}
-            onChange={(event) => onChangeField("type", event.target.value)}
-            className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
-          >
-            {CREATE_ITEM_TYPES.map((itemType) => (
-              <option key={itemType.value} value={itemType.value}>
-                {itemType.label}
-              </option>
-            ))}
-          </select>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="calendar-item-type"
+              className="dp-text text-sm font-semibold"
+            >
+              Type
+            </label>
+            <select
+              id="calendar-item-type"
+              value={form.type}
+              onChange={(event) => onChangeField("type", event.target.value)}
+              className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+            >
+              {CREATE_ITEM_TYPES.map((itemType) => (
+                <option key={itemType.value} value={itemType.value}>
+                  {itemType.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="calendar-item-color"
+              className="dp-text text-sm font-semibold"
+            >
+              Color
+            </label>
+            <select
+              id="calendar-item-color"
+              value={form.color}
+              onChange={(event) => onChangeField("color", event.target.value)}
+              className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+            >
+              {CREATE_ITEM_COLORS.map((itemColor) => (
+                <option key={itemColor.value} value={itemColor.value}>
+                  {itemColor.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
@@ -79,27 +102,6 @@ export default function CreateCalendarItemModal({
 
         <div>
           <label
-            htmlFor="calendar-item-color"
-            className="dp-text text-sm font-semibold"
-          >
-            Color
-          </label>
-          <select
-            id="calendar-item-color"
-            value={form.color}
-            onChange={(event) => onChangeField("color", event.target.value)}
-            className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
-          >
-            {CREATE_ITEM_COLORS.map((itemColor) => (
-              <option key={itemColor.value} value={itemColor.value}>
-                {itemColor.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label
             htmlFor="calendar-item-date"
             className="dp-text text-sm font-semibold"
           >
@@ -115,7 +117,7 @@ export default function CreateCalendarItemModal({
         </div>
 
         {isTimedEvent ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label
                 htmlFor="calendar-item-start"

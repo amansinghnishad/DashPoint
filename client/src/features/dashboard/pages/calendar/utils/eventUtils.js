@@ -18,6 +18,30 @@ export const getEventChipClass = (event) =>
   getEventChipClassByColor(event?.dashpointColor) ||
   getEventChipClassByType(event?.dashpointType);
 
+const isAllDayEvent = (event) => {
+  if (event?.allDay) return true;
+
+  if (typeof event?.start === "object" && event?.start?.date && !event?.start?.dateTime) {
+    return true;
+  }
+
+  return false;
+};
+
+export const formatEventTimeLabel = (event) => {
+  if (isAllDayEvent(event)) {
+    return "All day";
+  }
+
+  const start = parseEventStartDate(event?.start);
+  if (!start) return "";
+
+  return start.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
 export const groupEventsByDay = (events = []) => {
   const eventsByDay = new Map();
 

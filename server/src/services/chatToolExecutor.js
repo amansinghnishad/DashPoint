@@ -6,6 +6,13 @@ const PlannerWidget = require('../models/PlannerWidget');
 const YouTube = require('../models/YouTube');
 const { attachEmbeddingToPlannerWidget } = require('./embeddingsService');
 const { indexTranscriptForVideo } = require('./youtubeTranscriptService');
+const {
+  getGoogleCalendarStatusTool,
+  getGoogleCalendarAuthUrlTool,
+  listGoogleCalendarEventsTool,
+  createGoogleCalendarEventTool,
+  scheduleGoogleCalendarBlockTool
+} = require('./chatCalendarToolService');
 
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
 const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
@@ -435,6 +442,16 @@ const executeToolCall = async ({ name, args, userId }) => {
       return createCollectionWithNote(userId, args);
     case 'addYouTubeVideoToCollection':
       return addYouTubeVideoToCollection(userId, args);
+    case 'getGoogleCalendarStatus':
+      return getGoogleCalendarStatusTool(userId, args);
+    case 'getGoogleCalendarAuthUrl':
+      return getGoogleCalendarAuthUrlTool(userId, args);
+    case 'listGoogleCalendarEvents':
+      return listGoogleCalendarEventsTool(userId, args);
+    case 'createGoogleCalendarEvent':
+      return createGoogleCalendarEventTool(userId, args);
+    case 'scheduleGoogleCalendarBlock':
+      return scheduleGoogleCalendarBlockTool(userId, args);
     default:
       throw new Error(`Unsupported tool: ${name}`);
   }

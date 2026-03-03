@@ -74,6 +74,103 @@ const functionDefinitions = [
       },
       additionalProperties: false
     }
+  },
+  {
+    name: 'getGoogleCalendarStatus',
+    description:
+      'Check whether Google Calendar is connected for the authenticated user. Optionally include an auth URL if disconnected.',
+    parameters: {
+      type: 'object',
+      properties: {
+        includeAuthUrl: { type: 'boolean' },
+        redirectPath: { type: 'string', maxLength: 200 }
+      },
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'getGoogleCalendarAuthUrl',
+    description:
+      'Generate a Google OAuth URL for connecting the authenticated user calendar.',
+    parameters: {
+      type: 'object',
+      properties: {
+        redirectPath: { type: 'string', maxLength: 200 }
+      },
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'listGoogleCalendarEvents',
+    description:
+      'List upcoming Google Calendar events in a time window. If dates are omitted, defaults to now through the next 14 days.',
+    parameters: {
+      type: 'object',
+      properties: {
+        timeMin: { type: 'string', maxLength: 64 },
+        timeMax: { type: 'string', maxLength: 64 },
+        maxResults: { type: 'integer', minimum: 1, maximum: 100 }
+      },
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'createGoogleCalendarEvent',
+    description:
+      'Create a Google Calendar event. Use either date for all-day events, or startDateTime/endDateTime for timed events.',
+    parameters: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string', minLength: 1, maxLength: 200 },
+        description: { type: 'string', maxLength: 5000 },
+        date: { type: 'string', maxLength: 20 },
+        endDate: { type: 'string', maxLength: 20 },
+        startDateTime: { type: 'string', maxLength: 64 },
+        endDateTime: { type: 'string', maxLength: 64 },
+        colorId: { type: 'integer', minimum: 1, maximum: 11 },
+        dashpointType: { type: 'string', maxLength: 50 },
+        dashpointColor: {
+          type: 'string',
+          enum: ['info', 'success', 'warning', 'danger']
+        }
+      },
+      required: ['summary'],
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'scheduleGoogleCalendarBlock',
+    description:
+      'Find and optionally create focused work/practice event blocks based on free-busy availability in Google Calendar.',
+    parameters: {
+      type: 'object',
+      properties: {
+        summary: { type: 'string', maxLength: 200 },
+        description: { type: 'string', maxLength: 5000 },
+        durationMinutes: { type: 'integer', minimum: 5, maximum: 480 },
+        timeMin: { type: 'string', maxLength: 64 },
+        timeMax: { type: 'string', maxLength: 64 },
+        timezone: { type: 'string', maxLength: 100 },
+        conflictStrategy: {
+          type: 'string',
+          enum: ['auto', 'split', 'shorten', 'next-window']
+        },
+        minSessionMinutes: { type: 'integer', minimum: 5, maximum: 240 },
+        maxSplitParts: { type: 'integer', minimum: 1, maximum: 24 },
+        allowLightPractice: { type: 'boolean' },
+        searchDays: { type: 'integer', minimum: 0, maximum: 60 },
+        createEvents: { type: 'boolean' },
+        calendarId: { type: 'string', maxLength: 256 },
+        colorId: { type: 'integer', minimum: 1, maximum: 11 },
+        dashpointType: { type: 'string', maxLength: 50 },
+        dashpointColor: {
+          type: 'string',
+          enum: ['info', 'success', 'warning', 'danger']
+        }
+      },
+      required: ['durationMinutes', 'timeMin', 'timeMax'],
+      additionalProperties: false
+    }
   }
 ];
 
@@ -119,9 +216,9 @@ const toGeminiSchema = (schema) => {
     out.enum = [...schema.enum];
   }
 
-  if (Array.isArray(schema.required) && schema.required.length) {
-    out.required = [...schema.required];
-  }
+  // Keep Gemini function schemas lenient. Strict required-field enforcement here
+  // can trigger MALFORMED_FUNCTION_CALL before the tool executor gets a chance
+  // to validate and return a recoverable error.
 
   if (schema.items && typeof schema.items === 'object') {
     const itemSchema = toGeminiSchema(schema.items);

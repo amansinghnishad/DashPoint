@@ -1,36 +1,30 @@
 "use client";
 
-import { Calendar, FileText, Youtube, Zap } from "@/shared/ui/icons";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 const features = [
   {
-    icon: Calendar,
     title: "Smart Calendar",
-    description:
-      "Track events, deadlines, and daily plans in one organized view.",
+    videoSrc: "/feature/smartCalendar.mp4",
     story: "Your day should feel clear focused and under control.",
     backgroundWord: "CLARITY",
   },
   {
-    icon: Youtube,
     title: "YouTube Integration",
-    description: "Embed and manage videos directly inside your workspace.",
+    videoSrc: "/feature/youtube.mp4",
     story: "Learning should live inside your workflow.",
     backgroundWord: "LEARN",
   },
   {
-    icon: FileText,
     title: "File Management",
-    description: "Upload organize and access important files anytime.",
+    videoSrc: "/feature/fileManagement.mp4",
     story: "Everything important in one structured place.",
     backgroundWord: "STRUCTURE",
   },
   {
-    icon: Zap,
     title: "AI Chat Assistant",
-    description: "Ask plan and generate ideas instantly with built-in AI chat.",
+    videoSrc: "/feature/aiChatAssistant.mp4",
     story: "Ideas move faster when intelligence supports you.",
     backgroundWord: "INTELLIGENCE",
   },
@@ -142,18 +136,17 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
                         }}
                       />
 
-                      <div className="relative z-10 text-center">
-                        <div className="mb-8 flex justify-center dp-text-soft">
-                          <feature.icon size={72} />
-                        </div>
-
-                        <h3 className="text-3xl font-semibold mb-4 tracking-tight dp-text">
-                          {feature.title}
-                        </h3>
-
-                        <p className="dp-text-muted text-lg max-w-md mx-auto leading-relaxed">
-                          {feature.description}
-                        </p>
+                      <div className="relative z-10 h-full w-full">
+                        <video
+                          key={feature.videoSrc}
+                          src={feature.videoSrc}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          controls
+                          className="h-full w-full rounded-2xl object-cover"
+                        />
                       </div>
                     </div>
 

@@ -3,10 +3,11 @@ import { useCalendar } from "../../../hooks/useCalendar";
 import { WEEKDAYS } from "./calendar/constants";
 import CalendarHeader from "./calendar/components/CalendarHeader";
 import CalendarMonthGrid from "./calendar/components/CalendarMonthGrid";
-import CalendarSidebar from "./calendar/components/CalendarSidebar";
+import CalendarAgendaPanel from "./calendar/components/CalendarAgendaPanel";
 import CreateCalendarItemModal from "./calendar/components/CreateCalendarItemModal";
 import { useCalendarCreateItem } from "./calendar/hooks/useCalendarCreateItem";
 import { useCalendarMonthData } from "./calendar/hooks/useCalendarMonthData";
+import { dayKey } from "./calendar/utils/dateUtils";
 
 export default function CalendarPage() {
   const today = useMemo(() => new Date(), []);
@@ -40,6 +41,11 @@ export default function CalendarPage() {
     setSelectedDate,
   });
 
+  const selectedDayEvents = useMemo(() => {
+    const key = dayKey(selectedDate);
+    return eventsByDay.get(key) || [];
+  }, [eventsByDay, selectedDate]);
+
   const {
     createOpen,
     creating,
@@ -63,45 +69,50 @@ export default function CalendarPage() {
   }, [loadMonthEvents, refreshStatus]);
 
   return (
-    <section className="rounded-3xl border dp-border dp-surface p-6">
+    <section className="relative overflow-hidden rounded-3xl border dp-border dp-surface p-4 lg:p-6">
+      <div className="pointer-events-none absolute inset-0 opacity-70">
+        <div className="absolute -top-16 -left-8 h-36 w-36 rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="absolute -bottom-16 right-8 h-44 w-44 rounded-full bg-indigo-500/10 blur-3xl" />
+      </div>
+
       <CalendarHeader
         monthLabel={monthLabel}
+        selectedDate={selectedDate}
+        connected={connected}
+        loadingStatus={loadingStatus}
+        connectError={connectError}
+        monthError={monthError}
+        monthLoading={monthLoading}
+        onConnect={connectGoogleCalendar}
+        onDisconnect={disconnectGoogleCalendar}
+        onOpenCreate={openCreate}
+        onRefresh={onRefresh}
         onGoToToday={goToToday}
         onGoToPreviousMonth={goToPreviousMonth}
         onGoToNextMonth={goToNextMonth}
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <CalendarSidebar
-          month={month}
-          monthLabel={monthLabel}
-          monthGrid={monthGrid}
-          weekdays={WEEKDAYS}
-          selectedDate={selectedDate}
-          today={today}
-          connected={connected}
-          loadingStatus={loadingStatus}
-          connectError={connectError}
-          monthError={monthError}
-          monthLoading={monthLoading}
-          onSelectDate={setSelectedDate}
-          onOpenCreate={openCreate}
-          onConnect={connectGoogleCalendar}
-          onDisconnect={disconnectGoogleCalendar}
-          onGoToPreviousMonth={goToPreviousMonth}
-          onGoToNextMonth={goToNextMonth}
-          onRefresh={onRefresh}
-        />
+      <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div>
+          <CalendarMonthGrid
+            month={month}
+            monthGrid={monthGrid}
+            weekdays={WEEKDAYS}
+            selectedDate={selectedDate}
+            today={today}
+            eventsByDay={eventsByDay}
+            onSelectDate={setSelectedDate}
+          />
+        </div>
 
-        <CalendarMonthGrid
-          month={month}
-          monthGrid={monthGrid}
-          weekdays={WEEKDAYS}
-          selectedDate={selectedDate}
-          today={today}
-          eventsByDay={eventsByDay}
-          onSelectDate={setSelectedDate}
-        />
+        <div>
+          <CalendarAgendaPanel
+            connected={connected}
+            selectedDate={selectedDate}
+            selectedDayEvents={selectedDayEvents}
+            onOpenCreate={openCreate}
+          />
+        </div>
       </div>
 
       <CreateCalendarItemModal

@@ -107,7 +107,7 @@ export default function DashboardChatBar({
       id: "assistant-welcome",
       role: "assistant",
       content:
-        "Chat is ready. You can scope RAG to selected collections, then ask questions or trigger actions.",
+        "Chat is ready. You can scope RAG to selected collections, then ask questions or trigger actions like collections, notes, YouTube, and calendar scheduling.",
       status: "done",
     },
   ]);
