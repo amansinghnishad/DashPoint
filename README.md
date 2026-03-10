@@ -1,7 +1,7 @@
 # DashPoint
 DashPoint is a MERN-stack productivity dashboard application. It combines content management (YouTube videos, files, notes), AI-assisted interaction (conversational chat with RAG, tool-calling), calendar scheduling, and a planner widget system into a single web application.
 
-[![DeepWiki](https://img.shields.io/badge/DeepWiki-Explore%20Project%20Wiki-0B1220?style=for-the-badge&logo=bookstack&logoColor=F7C948)](https://deepwiki.com)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-Explore%20Project%20Wiki-0B1220?style=for-the-badge&logo=bookstack&logoColor=F7C948)](https://deepwiki.com/amansinghnishad/DashPoint)
 
 ## Feature Videos
 
