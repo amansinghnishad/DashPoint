@@ -5,26 +5,28 @@ DashPoint is a MERN-stack productivity dashboard application. It combines conten
 
 ## Feature Videos
 
+GitHub README does not reliably render inline `<video>` playback. Use the links below to open videos.
+
 ### AI Chat Assistant
-<video src="client/public/feature/aiChatAssistant.mp4" controls width="900"></video>
+[Watch video](client/public/feature/aiChatAssistant.mp4)
 
 ### File Management
-<video src="client/public/feature/fileManagement.mp4" controls width="900"></video>
+[Watch video](client/public/feature/fileManagement.mp4)
 
 ### Smart Calendar
-<video src="client/public/feature/smartCalendar.mp4" controls width="900"></video>
+[Watch video](client/public/feature/smartCalendar.mp4)
 
 ### YouTube Integration
-<video src="client/public/feature/youtube.mp4" controls width="900"></video>
+[Watch video](client/public/feature/youtube.mp4)
 
 ## Showcase Videos
 
 ### Calendar
-<video src="client/public/showCase/calendar.mp4"  controls width="900"></video>
+[Watch video](client/public/showCase/calendar.mp4)
 
 ### Collection
-<video src="client/public/showCase/collection.mp4" controls width="900"></video>
+[Watch video](client/public/showCase/collection.mp4)
 
 ### Resize
-<video src="client/public/showCase/resize.mp4" poster="client/public/showCase/resize.jpeg" controls width="900"></video>
+[Watch video](client/public/showCase/resize.mp4)
 
