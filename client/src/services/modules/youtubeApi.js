@@ -6,7 +6,7 @@ export const youtubeAPI = {
     return getResponseData(
       apiClient.get("/youtube/videos", {
         params: { page, limit },
-      })
+      }),
     );
   },
 
@@ -28,7 +28,7 @@ export const youtubeAPI = {
         query,
         limit: options.limit,
         numCandidates: options.numCandidates,
-      })
+      }),
     );
   },
 
@@ -44,7 +44,7 @@ export const youtubeAPI = {
     return getResponseData(
       apiClient.get("/youtube/search", {
         params: { q: query, maxResults, order },
-      })
+      }),
     );
   },
 };

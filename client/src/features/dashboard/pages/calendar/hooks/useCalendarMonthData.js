@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { calendarAPI } from "../../../../../services/modules/calendarApi";
 import {
   buildMonthGrid,
@@ -28,8 +29,7 @@ export function useCalendarMonthData({ connected, selectedDate, setSelectedDate 
 
   const loadMonthEvents = useCallback(
     async ({ connected: connectedOverride } = {}) => {
-      const isConnected =
-        typeof connectedOverride === "boolean" ? connectedOverride : connected;
+      const isConnected = typeof connectedOverride === "boolean" ? connectedOverride : connected;
 
       if (!isConnected) {
         setMonthLoading(false);
@@ -52,7 +52,7 @@ export function useCalendarMonthData({ connected, selectedDate, setSelectedDate 
         setMonthLoading(false);
       }
     },
-    [connected, monthRange]
+    [connected, monthRange],
   );
 
   useEffect(() => {
@@ -69,17 +69,13 @@ export function useCalendarMonthData({ connected, selectedDate, setSelectedDate 
 
   const goToPreviousMonth = useCallback(() => {
     setMonth((previousMonth) =>
-      startOfMonth(
-        new Date(previousMonth.getFullYear(), previousMonth.getMonth() - 1, 1)
-      )
+      startOfMonth(new Date(previousMonth.getFullYear(), previousMonth.getMonth() - 1, 1)),
     );
   }, []);
 
   const goToNextMonth = useCallback(() => {
     setMonth((previousMonth) =>
-      startOfMonth(
-        new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 1)
-      )
+      startOfMonth(new Date(previousMonth.getFullYear(), previousMonth.getMonth() + 1, 1)),
     );
   }, []);
 

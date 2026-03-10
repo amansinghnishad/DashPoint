@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client";
 
 import "./app/styles/globals.css";
 
-import App from "./App.jsx";
 import AppProviders from "./app/providers/AppProviders";
+import App from "./App.jsx";
 import { initTheme } from "./shared/lib/theme";
 
 // Prevent duplicate custom element registration errors
@@ -24,5 +24,5 @@ createRoot(document.getElementById("root")).render(
     <AppProviders>
       <App />
     </AppProviders>
-  </StrictMode>
+  </StrictMode>,
 );

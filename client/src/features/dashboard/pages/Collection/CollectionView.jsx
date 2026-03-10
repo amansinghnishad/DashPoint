@@ -1,24 +1,21 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowLeft, FolderOpen } from "@/shared/ui/icons";
-import { collectionsAPI } from "../../../../services/modules/collectionsApi";
-import { plannerWidgetsAPI } from "../../../../services/modules/plannerWidgetsApi";
-import { useToast } from "../../../../hooks/useToast";
-import BottomBar from "../../../../shared/ui/Navbars/BottomBar";
-import Clock from "../../../../shared/ui/Clock/Clock";
-import ResizableItemCard from "./components/ResizableItemCard";
-import DeleteConfirmModal from "../../../../shared/ui/modals/DeleteConfirmModal";
+import { useCallback, useMemo, useRef } from "react";
+
+import { ArrowLeft, FolderOpen } from "@/shared/ui/icons/icons";
+
 import CollectionPickerModal from "./components/CollectionPickerModal";
-import DocumentSummaryModal, {
-  isPdfFile,
-} from "./components/DocumentSummaryModal";
-import useCollectionLayouts from "./hooks/useCollectionLayouts";
+import DocumentSummaryModal from "./components/DocumentSummaryModal";
+import { isPdfFile } from "./components/documentSummaryUtils";
+import ResizableItemCard from "./components/ResizableItemCard";
 import useCollectionData from "./hooks/useCollectionData";
+import useCollectionLayouts from "./hooks/useCollectionLayouts";
+import useCollectionViewActions from "./hooks/useCollectionViewActions";
 import useCollectionViewport from "./hooks/useCollectionViewport";
-import {
-  getDefaultPlannerWidgetData,
-  getPlannerWidgetLabel,
-  PLANNER_WIDGET_MENU_OPTIONS,
-} from "./utils/plannerWidgetDefaults";
+import { PLANNER_WIDGET_MENU_OPTIONS } from "./utils/plannerWidgetDefaults";
+import { useToast } from "../../../../hooks/useToast";
+import { collectionsAPI } from "../../../../services/modules/collectionsApi";
+import Clock from "../../../../shared/ui/Clock/Clock";
+import DeleteConfirmModal from "../../../../shared/ui/modals/DeleteConfirmModal";
+import BottomBar from "../../../../shared/ui/Navbars/BottomBar";
 
 const getItemKey = (it) => {
   if (!it) return "";
@@ -33,16 +30,6 @@ export default function CollectionView({ collectionId, onBack }) {
   const { collection, items, loading, reload } = useCollectionData({
     collectionId,
     onError: toast.error,
-  });
-  const [activeTool, setActiveTool] = useState("youtube");
-
-  const [pickerState, setPickerState] = useState({ open: false, tool: null });
-  const [isSummarizingDocument, setIsSummarizingDocument] = useState(false);
-  const [documentSummaryOpen, setDocumentSummaryOpen] = useState(false);
-
-  const [deleteState, setDeleteState] = useState({
-    item: null,
-    isRemoving: false,
   });
 
   const canvasSurfaceRef = useRef(null);
@@ -71,162 +58,42 @@ export default function CollectionView({ collectionId, onBack }) {
     persistLayouts: persistCollectionLayouts,
   });
 
-  const { viewportScale, viewportOffset, recenterViewport } =
-    useCollectionViewport({
-      canvasRef: canvasSurfaceRef,
-      worldRef,
-      layoutsByItemKey,
-    });
+  const { viewportScale, viewportOffset, recenterViewport } = useCollectionViewport({
+    canvasRef: canvasSurfaceRef,
+    worldRef,
+    layoutsByItemKey,
+  });
+
+  const {
+    activeTool,
+    creatingPlanner,
+    pickerState,
+    isSummarizingDocument,
+    documentSummaryOpen,
+    deleteState,
+    setPickerState,
+    setDeleteState,
+    setDocumentSummaryOpen,
+    createPlannerAndAdd,
+    confirmRemove,
+    handleSelectTool,
+    summarizeUploadedPdf,
+  } = useCollectionViewActions({
+    collectionId,
+    reload,
+    getItemKey,
+    setLayoutsByItemKey,
+    isPdfFile,
+    toast,
+  });
 
   const title = useMemo(() => {
     return collection?.name ? String(collection.name) : "Collection";
   }, [collection?.name]);
 
   const existingKeys = useMemo(() => {
-    return new Set(
-      items.map(getItemKey).filter((k) => typeof k === "string" && k.length),
-    );
+    return new Set(items.map(getItemKey).filter((k) => typeof k === "string" && k.length));
   }, [items]);
-
-  const openPicker = useCallback((toolId) => {
-    setPickerState({ open: true, tool: toolId });
-  }, []);
-
-  const [creatingPlanner, setCreatingPlanner] = useState(false);
-
-  const createPlannerAndAdd = useCallback(
-    async (widgetType) => {
-      const type = String(widgetType || "").trim();
-      if (!type) return;
-
-      try {
-        setCreatingPlanner(true);
-        setActiveTool("planner");
-
-        const createRes = await plannerWidgetsAPI.create({
-          widgetType: type,
-          title: getPlannerWidgetLabel(type),
-          data: getDefaultPlannerWidgetData(type),
-        });
-        if (!createRes?.success) {
-          throw new Error(
-            createRes?.message || "Failed to create planner widget",
-          );
-        }
-
-        const created = createRes.data;
-        if (!created?._id) throw new Error("Create succeeded but missing id");
-
-        const addRes = await collectionsAPI.addItemToCollection(
-          collectionId,
-          "planner",
-          String(created._id),
-        );
-        if (!addRes?.success) {
-          throw new Error(
-            addRes?.message || "Failed to add item to collection",
-          );
-        }
-
-        toast.success("Planner widget added.");
-        await reload();
-      } catch (err) {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to create planner widget";
-        toast.error(message);
-      } finally {
-        setCreatingPlanner(false);
-      }
-    },
-    [collectionId, reload, toast],
-  );
-
-  const confirmRemove = useCallback(async () => {
-    const itemType = deleteState.item?.itemType;
-    const itemId = deleteState.item?.itemId;
-    if (!itemType || !itemId) return;
-
-    try {
-      setDeleteState((prev) => ({ ...prev, isRemoving: true }));
-      const res = await collectionsAPI.removeItemFromCollection(
-        collectionId,
-        itemType,
-        itemId,
-      );
-      if (!res?.success) {
-        throw new Error(res?.message || "Failed to remove item");
-      }
-
-      const key = getItemKey(deleteState.item);
-      if (key) {
-        setLayoutsByItemKey((prev) => {
-          const next = { ...prev };
-          delete next[key];
-          return next;
-        });
-      }
-
-      toast.success("Removed from collection.");
-      setDeleteState({ item: null, isRemoving: false });
-      await reload();
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || err?.message || "Failed to remove item";
-      toast.error(message);
-    } finally {
-      setDeleteState((prev) => ({ ...prev, isRemoving: false }));
-    }
-  }, [collectionId, deleteState.item, reload, setLayoutsByItemKey, toast]);
-
-  const handleSelectTool = useCallback(
-    (toolId) => {
-      setActiveTool(toolId);
-      if (toolId === "planner") return;
-      if (toolId === "file" || toolId === "document") {
-        setDocumentSummaryOpen(true);
-        return;
-      }
-      openPicker(toolId);
-    },
-    [openPicker],
-  );
-
-  const summarizeUploadedPdf = useCallback(
-    async (file) => {
-      if (!file) return;
-
-      if (!isPdfFile(file)) {
-        toast.warning("Please upload a PDF file.");
-        return;
-      }
-
-      try {
-        setIsSummarizingDocument(true);
-        const response = await collectionsAPI.summarizeDocument(collectionId, file);
-        if (!response?.success) {
-          throw new Error(response?.message || "Failed to summarize document");
-        }
-
-        const title =
-          response?.data?.widget?.title || String(file?.name || "document").trim();
-        toast.success(`Summary note saved: ${title}`);
-        setDocumentSummaryOpen(false);
-        setActiveTool("planner");
-        await reload();
-      } catch (error) {
-        const message =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to summarize document";
-        toast.error(message);
-      } finally {
-        setIsSummarizingDocument(false);
-      }
-    },
-    [collectionId, reload, toast],
-  );
 
   if (!collectionId) return null;
 
@@ -249,9 +116,7 @@ export default function CollectionView({ collectionId, onBack }) {
               <div className="min-w-0">
                 <p className="dp-text font-semibold truncate">{title}</p>
                 <p className="dp-text-muted text-sm">
-                  {loading
-                    ? "Loading..."
-                    : `${items.length} item${items.length === 1 ? "" : "s"}`}
+                  {loading ? "Loading..." : `${items.length} item${items.length === 1 ? "" : "s"}`}
                 </p>
               </div>
             </div>
@@ -279,9 +144,7 @@ export default function CollectionView({ collectionId, onBack }) {
             <CollectionPickerModal
               open={pickerState.open}
               tool={pickerState.tool}
-              onClose={() =>
-                setPickerState((prev) => ({ ...prev, open: false }))
-              }
+              onClose={() => setPickerState((prev) => ({ ...prev, open: false }))}
               collectionId={collectionId}
               existingKeys={existingKeys}
               onAdded={reload}
@@ -297,7 +160,6 @@ export default function CollectionView({ collectionId, onBack }) {
               onSubmit={summarizeUploadedPdf}
             />
 
-            {/* World layer (Figma-like): items are positioned in world space and the layer is transformed. */}
             <div
               ref={worldRef}
               className="absolute inset-0 origin-top-left"
@@ -322,9 +184,7 @@ export default function CollectionView({ collectionId, onBack }) {
                             [key]: nextLayout,
                           }))
                         }
-                        onDelete={() =>
-                          setDeleteState((prev) => ({ ...prev, item }))
-                        }
+                        onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
                       />
                     ))
                 : null}
@@ -333,9 +193,7 @@ export default function CollectionView({ collectionId, onBack }) {
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="dp-surface dp-border rounded-2xl border px-4 py-3">
-                  <p className="dp-text-soft text-sm font-medium">
-                    Loading collection...
-                  </p>
+                  <p className="dp-text-soft text-sm font-medium">Loading collection...</p>
                 </div>
               </div>
             ) : items.length === 0 ? (

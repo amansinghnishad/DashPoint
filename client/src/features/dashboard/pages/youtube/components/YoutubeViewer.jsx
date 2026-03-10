@@ -12,18 +12,14 @@ export default function YoutubeViewer({
   return (
     <div className="h-full">
       <div className="dp-surface dp-border border-b px-4 py-3">
-        <p className="dp-text font-semibold truncate">
-          {selected ? selected.title : "Viewer"}
-        </p>
+        <p className="dp-text font-semibold truncate">{selected ? selected.title : "Viewer"}</p>
       </div>
 
       <div className="p-4">
         {isAdding ? (
           <div className="dp-surface-muted dp-border rounded-2xl border p-4">
             <p className="dp-text font-semibold">Add a YouTube video</p>
-            <p className="dp-text-muted mt-1 text-sm">
-              Paste a YouTube URL or video id.
-            </p>
+            <p className="dp-text-muted mt-1 text-sm">Paste a YouTube URL or video id.</p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <input
                 ref={inputRef}

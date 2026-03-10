@@ -7,9 +7,7 @@ import { buildMetaLabel } from "../chatBar.utils";
 function MarkdownBubble({ content, isStreaming = false }) {
   if (isStreaming) {
     return (
-      <div className="whitespace-pre-wrap text-sm leading-6 dp-text break-words">
-        {content}
-      </div>
+      <div className="whitespace-pre-wrap text-sm leading-6 dp-text break-words">{content}</div>
     );
   }
 
@@ -40,22 +38,15 @@ function ChatMessageBubble({ entry }) {
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[82%] ${bubbleClass}`}
-      >
+      <div className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[82%] ${bubbleClass}`}>
         {entry.status === "loading" ? (
           <PendingBubble />
         ) : (
-          <MarkdownBubble
-            content={entry.content}
-            isStreaming={entry.status === "streaming"}
-          />
+          <MarkdownBubble content={entry.content} isStreaming={entry.status === "streaming"} />
         )}
 
         {entry.role === "assistant" && entry.meta ? (
-          <p className="mt-2 text-[11px] dp-text-subtle">
-            {buildMetaLabel(entry.meta)}
-          </p>
+          <p className="mt-2 text-[11px] dp-text-subtle">{buildMetaLabel(entry.meta)}</p>
         ) : null}
       </div>
     </div>

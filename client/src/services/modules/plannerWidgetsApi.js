@@ -6,7 +6,7 @@ export const plannerWidgetsAPI = {
     return getResponseData(
       apiClient.get("/planner-widgets", {
         params: { page, limit },
-      })
+      }),
     );
   },
 

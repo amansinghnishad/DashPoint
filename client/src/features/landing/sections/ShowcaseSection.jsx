@@ -1,5 +1,6 @@
 import { LazyMotion, domAnimation, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
+
 import SectionHeader from "../components/SectionHeader";
 import ShowcaseCard from "../components/showcase/ShowcaseCard";
 import {
@@ -41,10 +42,7 @@ export default function ShowcaseSection() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <section
-        id="showcase"
-        className="dp-showcase-bg dp-bg relative overflow-hidden py-24"
-      >
+      <section id="showcase" className="dp-showcase-bg dp-bg relative overflow-hidden py-24">
         <div className="mx-auto max-w-7xl px-6">
           <SectionHeader
             title="Everything you need, right where you work"
@@ -54,9 +52,7 @@ export default function ShowcaseSection() {
           <div className="mt-16">
             <div
               className="flex flex-col gap-6 md:flex-row"
-              onMouseLeave={() =>
-                isWide && setActiveKey(DEFAULT_ACTIVE_CARD_KEY)
-              }
+              onMouseLeave={() => isWide && setActiveKey(DEFAULT_ACTIVE_CARD_KEY)}
             >
               {cards.map((card, index) => (
                 <ShowcaseCard

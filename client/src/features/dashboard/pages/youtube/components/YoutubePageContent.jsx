@@ -1,9 +1,10 @@
-import DashboardPageLayout from "../../../layouts/DashboardPageLayout";
+import { BookmarkPlus, IconAdd, IconDelete } from "@/shared/ui/icons/icons";
 import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
 import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
-import { BookmarkPlus, IconAdd, IconDelete } from "@/shared/ui/icons";
+
 import SearchEmptyState from "./SearchEmptyState";
 import YoutubeViewer from "./YoutubeViewer";
+import DashboardPageLayout from "../../../layouts/DashboardPageLayout";
 
 export default function YoutubePageContent({
   search,
@@ -27,16 +28,8 @@ export default function YoutubePageContent({
       <DashboardPageLayout
         title="YouTube"
         searchValue={search}
-        onSearchChange={(value) =>
-          dispatchSearch({ type: "SET_QUERY", payload: value })
-        }
-        addLabel={
-          uiState.isAdding
-            ? uiState.isLoading
-              ? "Saving..."
-              : "Save"
-            : "Search"
-        }
+        onSearchChange={(value) => dispatchSearch({ type: "SET_QUERY", payload: value })}
+        addLabel={uiState.isAdding ? (uiState.isLoading ? "Saving..." : "Save") : "Search"}
         onAdd={() => {
           if (!uiState.isAdding) {
             dispatchUi({ type: "SET_ADDING", payload: true });
@@ -121,20 +114,14 @@ export default function YoutubePageContent({
           );
         }}
         renderEmptySidebar={
-          <SearchEmptyState
-            isSearchMode={isSearchMode}
-            search={search}
-            searchState={searchState}
-          />
+          <SearchEmptyState isSearchMode={isSearchMode} search={search} searchState={searchState} />
         }
         viewer={
           <YoutubeViewer
             selected={selected}
             isAdding={uiState.isAdding}
             urlInput={uiState.urlInput}
-            onUrlChange={(value) =>
-              dispatchUi({ type: "SET_URL", payload: value })
-            }
+            onUrlChange={(value) => dispatchUi({ type: "SET_URL", payload: value })}
             onAdd={addVideo}
             onCancel={() => dispatchUi({ type: "RESET_ADD_FORM" })}
             viewer={viewer}
@@ -159,11 +146,7 @@ export default function YoutubePageContent({
           dispatchUi({ type: "CLOSE_DELETE" });
         }}
         onConfirm={confirmDelete}
-        title={
-          uiState.deleteItem?.title
-            ? `Delete: ${uiState.deleteItem.title}`
-            : "Delete video"
-        }
+        title={uiState.deleteItem?.title ? `Delete: ${uiState.deleteItem.title}` : "Delete video"}
         description="Delete this saved video?"
         busy={uiState.isDeleting}
       />

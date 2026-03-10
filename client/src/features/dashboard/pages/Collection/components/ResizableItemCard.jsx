@@ -8,15 +8,13 @@ import {
   LayoutGrid,
   Move,
   Youtube,
-} from "@/shared/ui/icons";
+} from "@/shared/ui/icons/icons";
 
-import { PlannerWidgetBody } from "./plannerWidgets";
-
-import { extractYouTubeId } from "../../../../../shared/lib/urlUtils";
-import { SERVER_BASE_URL } from "../../../../../shared/config/appConfig";
-import fileService from "../../../../../services/modules/fileService";
-
+import PlannerWidgetBody from "./plannerWidgets/PlannerWidgetBody";
 import { useResizableCard } from "./useResizableCard";
+import fileService from "../../../../../services/modules/fileService";
+import { SERVER_BASE_URL } from "../../../../../shared/config/appConfig";
+import { extractYouTubeId } from "../../../../../shared/lib/urlUtils";
 
 const getTitleForItem = (item) => {
   const data = item?.itemData;
@@ -80,7 +78,10 @@ const getFileDownloadUrl = (data) => {
   return `${SERVER_BASE_URL}/api/files/${id}/download`;
 };
 
-const isImageFile = (data) => String(data?.mimetype || "").toLowerCase().startsWith("image/");
+const isImageFile = (data) =>
+  String(data?.mimetype || "")
+    .toLowerCase()
+    .startsWith("image/");
 
 const isPdfFile = (data) => {
   const mimetype = String(data?.mimetype || "").toLowerCase();
@@ -104,8 +105,7 @@ export default function ResizableItemCard({
   // When the canvas is zoomed (Ctrl+wheel), drag/resize deltas must be scaled back
   // into world coordinates.
   // Default to 1 to preserve existing behavior.
-  const effectiveScale =
-    typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
+  const effectiveScale = typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
 
   const resizable = useResizableCard({
     layout,
@@ -115,27 +115,18 @@ export default function ResizableItemCard({
     constrainToContainer: false,
   });
 
-  const {
-    currentLayout,
-    isDragging,
-    isResizing,
-    handleDragStart,
-    handleResizeStart,
-  } = resizable;
+  const { currentLayout, isDragging, isResizing, handleDragStart, handleResizeStart } = resizable;
 
   const title = getTitleForItem(item);
   const type = item?.itemType || "item";
   const Icon = getTypeIcon(type);
 
-  const youtubeEmbedSrc =
-    type === "youtube" ? getYouTubeEmbedSrc(item?.itemData) : null;
+  const youtubeEmbedSrc = type === "youtube" ? getYouTubeEmbedSrc(item?.itemData) : null;
   const fileUrl = resolveFileUrl(item?.itemData?.url);
   const fileId = String(item?.itemData?._id || "").trim();
   const fileDownloadUrl = getFileDownloadUrl(item?.itemData);
   const shouldLoadPdfPreview =
-    (type === "file" || type === "photo") &&
-    isPdfFile(item?.itemData) &&
-    Boolean(fileId);
+    (type === "file" || type === "photo") && isPdfFile(item?.itemData) && Boolean(fileId);
 
   useEffect(() => {
     if (!shouldLoadPdfPreview) {

@@ -1,19 +1,17 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { Toaster } from "../../shared/ui/Toaster";
-import { PWAUpdatePrompt } from "../../shared/ui/PWAStatus";
-import { DashboardProvider } from "../../context/DashboardContext";
-import { APP_ROUTES } from "../routes/paths";
 import RouteLoader from "./RouteLoader";
+import { DashboardProvider } from "../../context/DashboardContext";
+import PWAUpdatePrompt from "../../shared/ui/PWAStatus/PWAUpdatePrompt";
+import Toaster from "../../shared/ui/Toaster/Toaster";
+import { APP_ROUTES } from "../routes/paths";
 import ProtectedRoute from "./guards/ProtectedRoute";
 import PublicRoute from "./guards/PublicRoute";
 
 const LoginPage = lazy(() => import("../../features/auth/pages/LoginPage"));
 const RegisterPage = lazy(() => import("../../features/auth/pages/RegisterPage"));
-const DashboardPage = lazy(
-  () => import("../../features/dashboard/pages/DashboardPage")
-);
+const DashboardPage = lazy(() => import("../../features/dashboard/pages/DashboardPage"));
 const LandingPage = lazy(() => import("../../features/landing/pages/LandingPage"));
 
 export default function AppRouter() {
@@ -64,4 +62,3 @@ export default function AppRouter() {
     </BrowserRouter>
   );
 }
-

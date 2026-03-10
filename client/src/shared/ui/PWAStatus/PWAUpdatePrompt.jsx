@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
+
 import { usePWAUpdates } from "../../../hooks/usePWAUpdates";
 import { useToast } from "../../../hooks/useToast";
 
 export default function PWAUpdatePrompt() {
-  const { showUpdatePrompt, offlineReady, updateApp, dismissUpdate } =
-    usePWAUpdates();
+  const { showUpdatePrompt, offlineReady, updateApp, dismissUpdate } = usePWAUpdates();
   const toast = useToast();
   const hasShownOfflineReady = useRef(false);
 
@@ -22,9 +22,7 @@ export default function PWAUpdatePrompt() {
       <div className="dp-surface dp-border dp-text flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-sm">
         <div className="min-w-0">
           <p className="text-sm font-semibold">Update available</p>
-          <p className="dp-text-muted text-xs">
-            Refresh to get the latest version.
-          </p>
+          <p className="dp-text-muted text-xs">Refresh to get the latest version.</p>
         </div>
 
         <div className="flex items-center gap-2">

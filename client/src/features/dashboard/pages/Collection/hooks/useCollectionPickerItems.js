@@ -57,9 +57,7 @@ export function useCollectionPickerItems({ open, tool, toast }) {
     async (filterPhotos) => {
       const response = await fileService.getFiles({ page: 1, limit: 200 });
       if (!response?.success) {
-        throw new Error(
-          response?.error || response?.message || "Failed to load files"
-        );
+        throw new Error(response?.error || response?.message || "Failed to load files");
       }
 
       const list = normalizeList(response.data);
@@ -69,7 +67,7 @@ export function useCollectionPickerItems({ open, tool, toast }) {
 
       setLoadedItems(nextItems);
     },
-    [setLoadedItems]
+    [setLoadedItems],
   );
 
   const loadPlannerItems = useCallback(async () => {
@@ -112,7 +110,7 @@ export function useCollectionPickerItems({ open, tool, toast }) {
         setLoading(false);
       }
     },
-    [loadFileItems, loadPlannerItems, loadYouTubeItems, resetPicker, setLoadedItems, toast]
+    [loadFileItems, loadPlannerItems, loadYouTubeItems, resetPicker, setLoadedItems, toast],
   );
 
   useEffect(() => {

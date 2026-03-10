@@ -10,7 +10,7 @@ export const calendarAPI = {
     return getResponseData(
       apiClient.get("/calendar/google/auth-url", {
         params: { redirect },
-      })
+      }),
     );
   },
 
@@ -22,7 +22,7 @@ export const calendarAPI = {
     return getResponseData(
       apiClient.get("/calendar/google/events", {
         params: { timeMin, timeMax },
-      })
+      }),
     );
   },
 

@@ -50,7 +50,7 @@ export function useResizableCard({
         width: 320,
         height: 240,
       },
-    [layout]
+    [layout],
   );
 
   useEffect(() => {
@@ -72,18 +72,15 @@ export function useResizableCard({
       if (constrainToContainer) {
         const containerEl = containerRef?.current;
         const rawContainerRect =
-          containerRectOverride ||
-          (containerEl ? containerEl.getBoundingClientRect() : null);
+          containerRectOverride || (containerEl ? containerEl.getBoundingClientRect() : null);
 
         const safeScale =
-          typeof viewportScale === "number" && viewportScale > 0
-            ? viewportScale
-            : 1;
+          typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
         const containerRect = rawContainerRect
           ? {
-            width: rawContainerRect.width / safeScale,
-            height: rawContainerRect.height / safeScale,
-          }
+              width: rawContainerRect.width / safeScale,
+              height: rawContainerRect.height / safeScale,
+            }
           : null;
 
         if (containerRect) {
@@ -107,27 +104,24 @@ export function useResizableCard({
       currentLayout.x,
       currentLayout.y,
       viewportScale,
-    ]
+    ],
   );
 
   const commitLayout = useCallback(
     (next) => {
       onLayoutChange?.(clampLayout(next));
     },
-    [clampLayout, onLayoutChange]
+    [clampLayout, onLayoutChange],
   );
 
-  const scheduleLiveLayout = useCallback(
-    (next) => {
-      liveLayoutRef.current = next;
-      if (rafRef.current) return;
-      rafRef.current = window.requestAnimationFrame(() => {
-        rafRef.current = null;
-        setLiveLayout(liveLayoutRef.current);
-      });
-    },
-    []
-  );
+  const scheduleLiveLayout = useCallback((next) => {
+    liveLayoutRef.current = next;
+    if (rafRef.current) return;
+    rafRef.current = window.requestAnimationFrame(() => {
+      rafRef.current = null;
+      setLiveLayout(liveLayoutRef.current);
+    });
+  }, []);
 
   const handleResizeStart = useCallback(
     (e, dir) => {
@@ -218,14 +212,7 @@ export function useResizableCard({
       document.body.style.cursor = getCursorForResizeDir(dir);
       document.body.style.userSelect = "none";
     },
-    [
-      clampLayout,
-      commitLayout,
-      containerRef,
-      currentLayout,
-      scheduleLiveLayout,
-      viewportScale,
-    ]
+    [clampLayout, commitLayout, containerRef, currentLayout, scheduleLiveLayout, viewportScale],
   );
 
   const handleDragStart = useCallback(
@@ -278,8 +265,8 @@ export function useResizableCard({
               x: start.startLayout.x + dx,
               y: start.startLayout.y + dy,
             },
-            start.containerRect
-          )
+            start.containerRect,
+          ),
         );
       };
 
@@ -306,14 +293,7 @@ export function useResizableCard({
       document.body.style.cursor = e.pointerType === "mouse" ? "move" : "";
       document.body.style.userSelect = "none";
     },
-    [
-      clampLayout,
-      commitLayout,
-      containerRef,
-      currentLayout,
-      scheduleLiveLayout,
-      viewportScale,
-    ]
+    [clampLayout, commitLayout, containerRef, currentLayout, scheduleLiveLayout, viewportScale],
   );
 
   useEffect(() => {

@@ -1,10 +1,5 @@
-import {
-  MAX_MESSAGE_LENGTH,
-  STREAM_MAX_UPDATES,
-  STREAM_MIN_UPDATES,
-} from "./chatBar.constants";
+import { MAX_MESSAGE_LENGTH, STREAM_MAX_UPDATES, STREAM_MIN_UPDATES } from "./chatBar.constants";
 
-const CONTROL_CHAR_PATTERN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 const EXTRA_HORIZONTAL_SPACE_PATTERN = /[ \t]{2,}/g;
 const EXTRA_NEWLINE_PATTERN = /\n{3,}/g;
 
@@ -16,9 +11,26 @@ const normalizeUnicode = (value) => {
   }
 };
 
+const isDisallowedControlCode = (code) =>
+  (code >= 0 && code <= 8) ||
+  code === 11 ||
+  code === 12 ||
+  (code >= 14 && code <= 31) ||
+  code === 127;
+
+const replaceControlCharsWithSpace = (value) => {
+  let mutated = false;
+  const sanitized = Array.from(value, (char) => {
+    const code = char.charCodeAt(0);
+    if (!isDisallowedControlCode(code)) return char;
+    mutated = true;
+    return " ";
+  });
+  return mutated ? sanitized.join("") : value;
+};
+
 export const sanitizeMessageForSubmit = (value) =>
-  normalizeUnicode(value)
-    .replace(CONTROL_CHAR_PATTERN, " ")
+  replaceControlCharsWithSpace(normalizeUnicode(value))
     .replace(/\r\n?/g, "\n")
     .replace(EXTRA_HORIZONTAL_SPACE_PATTERN, " ")
     .replace(EXTRA_NEWLINE_PATTERN, "\n\n")
@@ -34,24 +46,6 @@ export const getStreamStepSize = (textLength) => {
   );
 
   return Math.max(20, Math.ceil(textLength / targetUpdates));
-};
-
-export const normalizeCollectionsResponse = (response) => {
-  const list =
-    response?.data?.collections ?? response?.data?.data?.collections ?? [];
-  if (!Array.isArray(list)) return [];
-
-  return list
-    .map((collection) => {
-      const id = String(collection?._id || collection?.id || "").trim();
-      if (!id) return null;
-
-      return {
-        id,
-        name: String(collection?.name || "Untitled").trim() || "Untitled",
-      };
-    })
-    .filter(Boolean);
 };
 
 export const buildMetaLabel = (meta) => {

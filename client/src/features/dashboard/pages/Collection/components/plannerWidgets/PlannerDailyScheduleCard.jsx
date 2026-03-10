@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { IconAdd, IconDelete, IconEdit } from "@/shared/ui/icons/icons";
+
 import { normalizeDailyScheduleData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
-import { IconAdd, IconDelete, IconEdit } from "@/shared/ui/icons";
 
 const withClientKeys = (blocks = []) =>
   blocks.map((block) => ({
@@ -58,9 +59,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
 
       <div className="dp-border rounded-2xl border p-3">
         {blocks.length === 0 ? (
-          <div className="dp-text-muted text-sm">
-            No blocks yet. Add one below.
-          </div>
+          <div className="dp-text-muted text-sm">No blocks yet. Add one below.</div>
         ) : (
           <div className="max-h-48 space-y-2 overflow-auto pr-1">
             {blocks.map((b, idx) => {
@@ -110,8 +109,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
                           {(b.title || "").trim() || "(Untitled)"}
                         </div>
                         <div className="dp-text-muted text-xs">
-                          {(b.start || "").trim() || "--:--"} -{" "}
-                          {(b.end || "").trim() || "--:--"}
+                          {(b.start || "").trim() || "--:--"} - {(b.end || "").trim() || "--:--"}
                         </div>
                       </div>
                     )}
@@ -120,9 +118,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        setEditingIndex((prev) => (prev === idx ? null : idx))
-                      }
+                      onClick={() => setEditingIndex((prev) => (prev === idx ? null : idx))}
                       className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label={isEditing ? "Done editing" : "Edit"}
                       title={isEditing ? "Done" : "Edit"}
@@ -131,9 +127,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        setBlocks((prev) => prev.filter((_, i) => i !== idx))
-                      }
+                      onClick={() => setBlocks((prev) => prev.filter((_, i) => i !== idx))}
                       className="dp-text-danger inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
                       aria-label="Delete"
                       title="Delete"
@@ -152,24 +146,18 @@ export default function PlannerDailyScheduleCard({ widget }) {
         <input
           type="time"
           value={draft.start}
-          onChange={(e) =>
-            setDraft((prev) => ({ ...prev, start: e.target.value }))
-          }
+          onChange={(e) => setDraft((prev) => ({ ...prev, start: e.target.value }))}
           className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
         />
         <input
           type="time"
           value={draft.end}
-          onChange={(e) =>
-            setDraft((prev) => ({ ...prev, end: e.target.value }))
-          }
+          onChange={(e) => setDraft((prev) => ({ ...prev, end: e.target.value }))}
           className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
         />
         <input
           value={draft.title}
-          onChange={(e) =>
-            setDraft((prev) => ({ ...prev, title: e.target.value }))
-          }
+          onChange={(e) => setDraft((prev) => ({ ...prev, title: e.target.value }))}
           onKeyDown={(e) => {
             if (e.key === "Enter") addDraftBlock();
           }}

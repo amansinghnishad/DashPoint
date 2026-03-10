@@ -1,4 +1,5 @@
-import { CalendarClock, Clock } from "@/shared/ui/icons";
+import { CalendarClock, Clock } from "@/shared/ui/icons/icons";
+
 import { formatEventTimeLabel, getEventChipClass } from "../utils/eventUtils";
 
 const formatSelectedDay = (value) =>
@@ -27,9 +28,7 @@ export default function CalendarAgendaPanel({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="dp-text text-sm font-semibold">Agenda</p>
-          <p className="dp-text-muted mt-1 text-xs truncate">
-            {formatSelectedDay(selectedDate)}
-          </p>
+          <p className="dp-text-muted mt-1 text-xs truncate">{formatSelectedDay(selectedDate)}</p>
         </div>
 
         <button
@@ -76,9 +75,7 @@ export default function CalendarAgendaPanel({
                     <p className="dp-text text-sm font-semibold truncate">
                       {event?.summary || "(No title)"}
                     </p>
-                    <span className="dp-text-subtle text-[11px] font-semibold">
-                      {typeLabel}
-                    </span>
+                    <span className="dp-text-subtle text-[11px] font-semibold">{typeLabel}</span>
                   </div>
 
                   <div className="mt-2 flex items-center gap-1.5">
@@ -87,9 +84,7 @@ export default function CalendarAgendaPanel({
                   </div>
 
                   {event?.description ? (
-                    <p className="dp-text-muted mt-2 line-clamp-2 text-xs">
-                      {event.description}
-                    </p>
+                    <p className="dp-text-muted mt-2 line-clamp-2 text-xs">{event.description}</p>
                   ) : null}
                 </div>
               );

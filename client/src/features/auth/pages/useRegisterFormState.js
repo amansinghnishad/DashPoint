@@ -48,55 +48,49 @@ export default function useRegisterFormState({ registerUser, navigate, onError, 
     return null;
   }, [confirmPassword, password, touched.confirmPassword]);
 
-  const onSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setFormError(null);
-    setTouched({
-      name: true,
-      email: true,
-      password: true,
-      confirmPassword: true,
-    });
+  const onSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setFormError(null);
+      setTouched({
+        name: true,
+        email: true,
+        password: true,
+        confirmPassword: true,
+      });
 
-    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      setFormError("Please fill in all fields.");
-      return;
-    }
+      if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+        setFormError("Please fill in all fields.");
+        return;
+      }
 
-    if (!isValidEmail(email)) {
-      setFormError("Please enter a valid email.");
-      return;
-    }
+      if (!isValidEmail(email)) {
+        setFormError("Please enter a valid email.");
+        return;
+      }
 
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match.");
-      return;
-    }
+      if (password !== confirmPassword) {
+        setFormError("Passwords do not match.");
+        return;
+      }
 
-    const result = await registerUser({
-      name: name.trim(),
-      email: email.trim(),
-      password,
-    });
+      const result = await registerUser({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
-    if (result?.success) {
-      navigate(loginRoute, { replace: true });
-      return;
-    }
+      if (result?.success) {
+        navigate(loginRoute, { replace: true });
+        return;
+      }
 
-    const message = result?.error || "Registration failed.";
-    setFormError(message);
-    onError?.(message);
-  }, [
-    confirmPassword,
-    email,
-    loginRoute,
-    name,
-    navigate,
-    onError,
-    password,
-    registerUser,
-  ]);
+      const message = result?.error || "Registration failed.";
+      setFormError(message);
+      onError?.(message);
+    },
+    [confirmPassword, email, loginRoute, name, navigate, onError, password, registerUser],
+  );
 
   return {
     name,

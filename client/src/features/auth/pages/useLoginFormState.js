@@ -27,29 +27,32 @@ export default function useLoginFormState({ loginUser, navigate, dashboardRoute 
     return null;
   }, [password, touched.password]);
 
-  const onSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setFormError(null);
-    setTouched({ email: true, password: true });
+  const onSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setFormError(null);
+      setTouched({ email: true, password: true });
 
-    if (!email.trim() || !password) {
-      setFormError("Please fill in all fields.");
-      return;
-    }
+      if (!email.trim() || !password) {
+        setFormError("Please fill in all fields.");
+        return;
+      }
 
-    if (!isValidEmail(email)) {
-      setFormError("Please enter a valid email.");
-      return;
-    }
+      if (!isValidEmail(email)) {
+        setFormError("Please enter a valid email.");
+        return;
+      }
 
-    const result = await loginUser({ email: email.trim(), password });
-    if (result?.success) {
-      navigate(dashboardRoute, { replace: true });
-      return;
-    }
+      const result = await loginUser({ email: email.trim(), password });
+      if (result?.success) {
+        navigate(dashboardRoute, { replace: true });
+        return;
+      }
 
-    setFormError(result?.error || "Login failed.");
-  }, [dashboardRoute, email, loginUser, navigate, password]);
+      setFormError(result?.error || "Login failed.");
+    },
+    [dashboardRoute, email, loginUser, navigate, password],
+  );
 
   return {
     email,

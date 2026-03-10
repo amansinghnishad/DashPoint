@@ -1,10 +1,11 @@
 import { lazy, Suspense, useCallback, useMemo, useReducer } from "react";
-import { IconMenu } from "@/shared/ui/icons";
 
-import { SideBar } from "../../../shared/ui/Navbars/SideBar";
+import { IconMenu } from "@/shared/ui/icons/icons";
+
 import Clock from "../../../shared/ui/Clock/Clock";
-import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
 import InfoModal from "../../../shared/ui/modals/InfoModal";
+import { SideBar } from "../../../shared/ui/Navbars/SideBar";
+import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 
 const CollectionsHome = lazy(() => import("./Home/CollectionsHome"));
@@ -12,9 +13,7 @@ const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./youtube/YoutubePage"));
 const FileManagerPage = lazy(() => import("./FileManager"));
 const CalendarPage = lazy(() => import("./CalendarPage"));
-const DashboardChatBar = lazy(
-  () => import("../../../shared/ui/Chat/DashboardChatBar"),
-);
+const DashboardChatBar = lazy(() => import("../../../shared/ui/Chat/DashboardChatBar"));
 
 function ContentFallback() {
   return (
@@ -53,16 +52,11 @@ function dashboardUiReducer(state, action) {
 }
 
 export default function DashboardPage() {
-  const [uiState, dispatchUi] = useReducer(
-    dashboardUiReducer,
-    DASHBOARD_UI_INITIAL_STATE,
-  );
+  const [uiState, dispatchUi] = useReducer(dashboardUiReducer, DASHBOARD_UI_INITIAL_STATE);
 
   const onOpenCollection = useCallback((value) => {
     const id =
-      typeof value === "string" || typeof value === "number"
-        ? value
-        : value?._id || value?.id;
+      typeof value === "string" || typeof value === "number" ? value : value?._id || value?.id;
     if (!id) return;
     dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: String(id) });
     dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: false });
@@ -87,9 +81,7 @@ export default function DashboardPage() {
       <Suspense fallback={<ContentFallback />}>
         <CollectionView
           collectionId={uiState.openCollectionId}
-          onBack={() =>
-            dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null })
-          }
+          onBack={() => dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null })}
         />
       </Suspense>
     );
@@ -99,20 +91,12 @@ export default function DashboardPage() {
     <div className={styleTheme.layout.appPage}>
       <SideBar
         activeTab={uiState.activeTab}
-        setActiveTab={(value) =>
-          dispatchUi({ type: "SET_ACTIVE_TAB", payload: value })
-        }
+        setActiveTab={(value) => dispatchUi({ type: "SET_ACTIVE_TAB", payload: value })}
         isOpen={uiState.sidebarOpen}
         onClose={() => dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: false })}
-        onNotificationsOpen={() =>
-          dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: true })
-        }
-        onSettingsOpen={() =>
-          dispatchUi({ type: "SET_SETTINGS_OPEN", payload: true })
-        }
-        onShortcutsOpen={() =>
-          dispatchUi({ type: "SET_SHORTCUTS_OPEN", payload: true })
-        }
+        onNotificationsOpen={() => dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: true })}
+        onSettingsOpen={() => dispatchUi({ type: "SET_SETTINGS_OPEN", payload: true })}
+        onShortcutsOpen={() => dispatchUi({ type: "SET_SHORTCUTS_OPEN", payload: true })}
       />
 
       <div className="lg:pl-16">
@@ -122,18 +106,14 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3 min-w-0">
                 <button
                   type="button"
-                  onClick={() =>
-                    dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: true })
-                  }
+                  onClick={() => dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: true })}
                   className="dp-btn-secondary inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden"
                   aria-label="Open sidebar"
                 >
                   <IconMenu size={18} />
                 </button>
                 <div className="min-w-0">
-                  <p className="dp-text text-lg font-semibold truncate">
-                    Dashboard
-                  </p>
+                  <p className="dp-text text-lg font-semibold truncate">Dashboard</p>
                   <p className="dp-text-muted text-sm truncate">
                     {uiState.activeTab === "collections"
                       ? "Collections"
@@ -164,9 +144,7 @@ export default function DashboardPage() {
 
       <InfoModal
         open={uiState.notificationsOpen}
-        onClose={() =>
-          dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: false })
-        }
+        onClose={() => dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: false })}
         title="Notifications"
         description="This panel is not wired up yet."
       >
@@ -175,9 +153,7 @@ export default function DashboardPage() {
 
       <InfoModal
         open={uiState.settingsOpen}
-        onClose={() =>
-          dispatchUi({ type: "SET_SETTINGS_OPEN", payload: false })
-        }
+        onClose={() => dispatchUi({ type: "SET_SETTINGS_OPEN", payload: false })}
         title="Settings"
         description="This panel is not wired up yet."
       >
@@ -186,9 +162,7 @@ export default function DashboardPage() {
 
       <InfoModal
         open={uiState.shortcutsOpen}
-        onClose={() =>
-          dispatchUi({ type: "SET_SHORTCUTS_OPEN", payload: false })
-        }
+        onClose={() => dispatchUi({ type: "SET_SHORTCUTS_OPEN", payload: false })}
         title="Keyboard shortcuts"
         description="This panel is not wired up yet."
       >

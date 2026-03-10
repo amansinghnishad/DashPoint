@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import DashboardPageLayout from "../layouts/DashboardPageLayout";
+
+import { IconAdd, IconDelete, Sparkles } from "@/shared/ui/icons/icons";
+
+import { FILE_MANAGER_ACCEPT } from "./fileManager/fileManager.helpers";
+import FileSummarizeToCollectionModal from "./fileManager/FileSummarizeToCollectionModal";
+import { useFileManager } from "./fileManager/useFileManager";
+import { useToast } from "../../../hooks/useToast";
+import fileService from "../../../services/modules/fileService";
 import AddToCollectionModal from "../../../shared/ui/modals/AddToCollectionModal";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
-import { IconAdd, IconDelete, Sparkles } from "@/shared/ui/icons";
-import fileService from "../../../services/modules/fileService";
-import { useToast } from "../../../hooks/useToast";
-import { FILE_MANAGER_ACCEPT } from "./fileManager/fileManager.helpers";
-import { useFileManager } from "./fileManager/useFileManager";
-import FileSummarizeToCollectionModal from "./fileManager/FileSummarizeToCollectionModal";
+import DashboardPageLayout from "../layouts/DashboardPageLayout";
 
 export default function FileManagerPage() {
   const toast = useToast();
@@ -106,9 +108,7 @@ export default function FileManagerPage() {
         <div>
           <div className="mb-3">
             <p className="dp-text font-semibold truncate">{selected.title}</p>
-            <p className="dp-text-muted text-sm truncate">
-              {selected.subtitle}
-            </p>
+            <p className="dp-text-muted text-sm truncate">{selected.subtitle}</p>
           </div>
 
           {selected.mime?.startsWith("image/") && selected.remoteUrl ? (
@@ -119,11 +119,7 @@ export default function FileManagerPage() {
             />
           ) : selected.mime === "application/pdf" ? (
             pdfPreviewUrl ? (
-              <iframe
-                title={selected.title}
-                className="h-[520px] w-full"
-                src={pdfPreviewUrl}
-              />
+              <iframe title={selected.title} className="h-[520px] w-full" src={pdfPreviewUrl} />
             ) : (
               <div className="dp-surface-muted dp-border rounded-2xl border p-4">
                 <p className="dp-text font-semibold">Loading PDF preview...</p>
@@ -136,9 +132,7 @@ export default function FileManagerPage() {
           ) : (
             <div className="dp-surface-muted dp-border rounded-2xl border p-4">
               <p className="dp-text font-semibold">Preview not available</p>
-              <p className="dp-text-muted mt-1 text-sm">
-                This file type can't be previewed yet.
-              </p>
+              <p className="dp-text-muted mt-1 text-sm">This file type can't be previewed yet.</p>
               {selected.id ? (
                 <button
                   type="button"
@@ -156,9 +150,7 @@ export default function FileManagerPage() {
   ) : (
     <div className="p-6">
       <p className="dp-text font-semibold">No file selected</p>
-      <p className="dp-text-muted mt-1 text-sm">
-        Add files and select one from the playlist.
-      </p>
+      <p className="dp-text-muted mt-1 text-sm">Add files and select one from the playlist.</p>
     </div>
   );
 
@@ -192,7 +184,9 @@ export default function FileManagerPage() {
         renderItemSubtitle={(it) => it.subtitle}
         renderItemActions={(it) => {
           const disabled = isBusy;
-          const canSummarizePdf = String(it?.mime || "").toLowerCase().includes("pdf");
+          const canSummarizePdf = String(it?.mime || "")
+            .toLowerCase()
+            .includes("pdf");
           return (
             <>
               {canSummarizePdf ? (
@@ -271,9 +265,7 @@ export default function FileManagerPage() {
           setDeleteItem(null);
         }}
         onConfirm={removeFile}
-        title={
-          deleteItem?.title ? `Delete: ${deleteItem.title}` : "Delete file"
-        }
+        title={deleteItem?.title ? `Delete: ${deleteItem.title}` : "Delete file"}
         description="Delete this file?"
         busy={isDeleting}
       />

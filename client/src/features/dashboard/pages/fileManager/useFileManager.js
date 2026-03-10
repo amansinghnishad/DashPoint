@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useToast } from "../../../../hooks/useToast";
-import fileService from "../../../../services/modules/fileService";
 import {
   FILE_MANAGER_ERRORS,
   getRequestErrorMessage,
@@ -10,6 +8,8 @@ import {
   mergeUploadedItems,
   toFileItems,
 } from "./fileManager.helpers";
+import { useToast } from "../../../../hooks/useToast";
+import fileService from "../../../../services/modules/fileService";
 
 export function useFileManager() {
   const toast = useToast();
@@ -25,7 +25,7 @@ export function useFileManager() {
 
   const selected = useMemo(
     () => items.find((item) => item.id === selectedId) || null,
-    [items, selectedId]
+    [items, selectedId],
   );
 
   const loadFiles = useCallback(async () => {
@@ -63,9 +63,7 @@ export function useFileManager() {
         setIsBusy(true);
         const response = await fileService.uploadFiles(files);
         if (!response?.success) {
-          throw new Error(
-            response?.error || response?.message || FILE_MANAGER_ERRORS.upload
-          );
+          throw new Error(response?.error || response?.message || FILE_MANAGER_ERRORS.upload);
         }
 
         const uploadedItems = toFileItems(response.data);
@@ -78,7 +76,7 @@ export function useFileManager() {
         setIsBusy(false);
       }
     },
-    [toast]
+    [toast],
   );
 
   const removeFile = useCallback(async () => {
@@ -89,15 +87,13 @@ export function useFileManager() {
       setIsDeleting(true);
       const response = await fileService.deleteFile(fileId);
       if (!response?.success) {
-        throw new Error(
-          response?.error || response?.message || FILE_MANAGER_ERRORS.delete
-        );
+        throw new Error(response?.error || response?.message || FILE_MANAGER_ERRORS.delete);
       }
 
       setItems((previousItems) => {
         const remaining = previousItems.filter((item) => item.id !== fileId);
         setSelectedId((previousSelectedId) =>
-          previousSelectedId === fileId ? remaining[0]?.id || null : previousSelectedId
+          previousSelectedId === fileId ? remaining[0]?.id || null : previousSelectedId,
         );
         return remaining;
       });

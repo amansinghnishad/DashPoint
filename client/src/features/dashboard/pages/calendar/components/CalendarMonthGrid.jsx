@@ -68,14 +68,11 @@ export default function CalendarMonthGrid({
                   <div
                     key={event.id}
                     className={
-                      "dp-surface dp-border rounded-lg border px-2 py-1 " +
-                      getEventChipClass(event)
+                      "dp-surface dp-border rounded-lg border px-2 py-1 " + getEventChipClass(event)
                     }
                     title={event.summary}
                   >
-                    <p className="dp-text text-[11px] font-semibold truncate">
-                      {event.summary}
-                    </p>
+                    <p className="dp-text text-[11px] font-semibold truncate">{event.summary}</p>
                     <p className="dp-text-subtle mt-0.5 text-[10px] truncate">
                       {formatEventTimeLabel(event) || "Time"}
                     </p>

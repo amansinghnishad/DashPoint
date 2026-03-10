@@ -15,8 +15,7 @@ export const getEventChipClassByColor = (color) => {
 };
 
 export const getEventChipClass = (event) =>
-  getEventChipClassByColor(event?.dashpointColor) ||
-  getEventChipClassByType(event?.dashpointType);
+  getEventChipClassByColor(event?.dashpointColor) || getEventChipClassByType(event?.dashpointType);
 
 const isAllDayEvent = (event) => {
   if (event?.allDay) return true;

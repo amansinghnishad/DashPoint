@@ -1,28 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { styleTheme } from "../theme/styleTheme";
+
+import useApiRequest from "@/shared/hooks/useApiRequest";
+import { getCollectionsFromResponse } from "@/shared/lib/collections/collectionsResponse";
+
 import Modal from "./Modal";
-import { collectionsAPI } from "../../../services/modules/collectionsApi";
 import { useToast } from "../../../hooks/useToast";
+import { collectionsAPI } from "../../../services/modules/collectionsApi";
+import { styleTheme } from "../theme/styleTheme";
 
-const normalizeCollectionsResponse = (response) => {
-  if (!response || response.success !== true) return [];
-
-  const collections =
-    response.data?.collections ?? response.data?.data?.collections ?? [];
-  return Array.isArray(collections) ? collections : [];
-};
-
-export default function AddToCollectionModal({
-  open,
-  onClose,
-  itemType,
-  itemId,
-  itemTitle,
-}) {
+export default function AddToCollectionModal({ open, onClose, itemType, itemId, itemTitle }) {
   const toast = useToast();
   const [collections, setCollections] = useState([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { loading, run } = useApiRequest();
 
   const canSubmit = Boolean(selectedCollectionId) && !loading;
 
@@ -32,27 +22,32 @@ export default function AddToCollectionModal({
   }, [itemTitle]);
 
   const loadCollections = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await collectionsAPI.getCollections(1, 50, "");
-      if (!res?.success) {
-        throw new Error(res?.message || "Failed to load collections");
-      }
-      const normalized = normalizeCollectionsResponse(res);
-      setCollections(normalized);
-      setSelectedCollectionId((prev) => prev || normalized?.[0]?._id || null);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to load collections";
-      toast.error(message);
-      setCollections([]);
-      setSelectedCollectionId(null);
-    } finally {
-      setLoading(false);
+    const response = await run(
+      async () => {
+        const result = await collectionsAPI.getCollections(1, 50, "");
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to load collections");
+        }
+        return result;
+      },
+      {
+        fallbackMessage: "Failed to load collections",
+        onError: (message) => {
+          toast.error(message);
+          setCollections([]);
+          setSelectedCollectionId(null);
+        },
+      },
+    );
+
+    if (!response) {
+      return;
     }
-  }, [toast]);
+
+    const normalized = getCollectionsFromResponse(response);
+    setCollections(normalized);
+    setSelectedCollectionId((prev) => prev || normalized?.[0]?._id || normalized?.[0]?.id || null);
+  }, [run, toast]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,28 +64,31 @@ export default function AddToCollectionModal({
       return;
     }
 
-    try {
-      setLoading(true);
-      const res = await collectionsAPI.addItemToCollection(
-        selectedCollectionId,
-        itemType,
-        itemId
-      );
-      if (!res?.success) {
-        throw new Error(res?.message || "Failed to add item to collection");
-      }
-      toast.success("Added to collection.");
-      onClose?.();
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to add item to collection";
-      toast.error(message);
-    } finally {
-      setLoading(false);
+    const response = await run(
+      async () => {
+        const result = await collectionsAPI.addItemToCollection(
+          selectedCollectionId,
+          itemType,
+          itemId,
+        );
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to add item to collection");
+        }
+        return result;
+      },
+      {
+        fallbackMessage: "Failed to add item to collection",
+        onError: (message) => toast.error(message),
+      },
+    );
+
+    if (!response) {
+      return;
     }
-  }, [itemId, itemType, onClose, selectedCollectionId, toast]);
+
+    toast.success("Added to collection.");
+    onClose?.();
+  }, [itemId, itemType, onClose, run, selectedCollectionId, toast]);
 
   return (
     <Modal
@@ -120,7 +118,7 @@ export default function AddToCollectionModal({
       }
     >
       {loading && !collections.length ? (
-        <div className="dp-text-muted text-sm">Loading collections…</div>
+        <div className="dp-text-muted text-sm">Loading collections...</div>
       ) : collections.length ? (
         <div className="space-y-2">
           {collections.map((c) => {
@@ -141,13 +139,9 @@ export default function AddToCollectionModal({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="dp-text font-semibold truncate">
-                      {c?.name || "Untitled"}
-                    </p>
+                    <p className="dp-text font-semibold truncate">{c?.name || "Untitled"}</p>
                     {c?.description ? (
-                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">
-                        {c.description}
-                      </p>
+                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">{c.description}</p>
                     ) : null}
                   </div>
                   <div

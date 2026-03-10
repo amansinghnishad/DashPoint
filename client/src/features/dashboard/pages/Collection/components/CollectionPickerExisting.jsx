@@ -44,24 +44,18 @@ export default function CollectionPickerExisting({
                 type="button"
                 onClick={() => setSelectedId(id)}
                 className={`w-full rounded-2xl px-4 py-3 text-left transition-colors border ${
-                  isActive
-                    ? "dp-border dp-surface-muted border-2"
-                    : "dp-border dp-surface"
+                  isActive ? "dp-border dp-surface-muted border-2" : "dp-border dp-surface"
                 } ${alreadyAdded ? "opacity-60" : "dp-hover-bg"}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="dp-text font-semibold truncate">{rowTitle}</p>
                     {subtitle ? (
-                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">
-                        {subtitle}
-                      </p>
+                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">{subtitle}</p>
                     ) : null}
                   </div>
                   {alreadyAdded ? (
-                    <span className="dp-text-muted text-xs whitespace-nowrap">
-                      Added
-                    </span>
+                    <span className="dp-text-muted text-xs whitespace-nowrap">Added</span>
                   ) : null}
                 </div>
               </button>
@@ -69,17 +63,13 @@ export default function CollectionPickerExisting({
           })}
 
           {filtered.length > 60 ? (
-            <p className="dp-text-muted text-xs">
-              Showing 60 of {filtered.length}
-            </p>
+            <p className="dp-text-muted text-xs">Showing 60 of {filtered.length}</p>
           ) : null}
         </div>
       ) : (
         <div className="dp-surface-muted dp-border rounded-2xl border p-4">
           <p className="dp-text font-semibold">Nothing to add</p>
-          <p className="dp-text-muted mt-1 text-sm">
-            Use "Create new" to add items from here.
-          </p>
+          <p className="dp-text-muted mt-1 text-sm">Use "Create new" to add items from here.</p>
         </div>
       )}
     </>

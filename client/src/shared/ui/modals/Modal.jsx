@@ -1,5 +1,7 @@
 import { useEffect, useId, useMemo, useRef } from "react";
-import { IconClose } from "@/shared/ui/icons";
+
+import { IconClose } from "@/shared/ui/icons/icons";
+
 import { joinClasses, styleTheme } from "../theme/styleTheme";
 
 const getFocusableElements = (root) => {
@@ -16,11 +18,7 @@ const getFocusableElements = (root) => {
   return Array.from(root.querySelectorAll(selectors)).filter((el) => {
     const isHidden = el.getAttribute("aria-hidden") === "true";
     const isDisabled = el.hasAttribute("disabled");
-    const isVisible = !!(
-      el.offsetWidth ||
-      el.offsetHeight ||
-      el.getClientRects().length
-    );
+    const isVisible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
     return !isHidden && !isDisabled && isVisible;
   });
 };
@@ -144,19 +142,13 @@ export default function Modal({
         if (e.target === e.currentTarget) onClose?.();
       }}
     >
-      <div
-        className={joinClasses(styleTheme.modal.shell, maxWidthClass)}
-      >
+      <div className={joinClasses(styleTheme.modal.shell, maxWidthClass)}>
         <div
           ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={
-            !hasTitle && typeof title === "string"
-              ? title
-              : !hasTitle
-              ? "Dialog"
-              : undefined
+            !hasTitle && typeof title === "string" ? title : !hasTitle ? "Dialog" : undefined
           }
           aria-labelledby={hasTitle ? titleId : undefined}
           aria-describedby={hasDescription ? descriptionId : undefined}

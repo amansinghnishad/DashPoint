@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export const usePWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -9,19 +9,19 @@ export const usePWA = () => {
     // Check if app is already installed
     const checkIfInstalled = () => {
       // Check if running in standalone mode (installed as PWA)
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (window.matchMedia("(display-mode: standalone)").matches) {
         setIsInstalled(true);
         return;
       }
-      
+
       // Check for navigator.standalone (iOS Safari)
       if (window.navigator.standalone === true) {
         setIsInstalled(true);
         return;
       }
-      
+
       // Check for document.referrer (Android Chrome)
-      if (document.referrer.includes('android-app://')) {
+      if (document.referrer.includes("android-app://")) {
         setIsInstalled(true);
         return;
       }
@@ -45,12 +45,12 @@ export const usePWA = () => {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -65,10 +65,10 @@ export const usePWA = () => {
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
+    if (outcome === "accepted") {
+      console.log("User accepted the install prompt");
     } else {
-      console.log('User dismissed the install prompt');
+      console.log("User dismissed the install prompt");
     }
 
     // Clear the deferredPrompt so it can only be used once
@@ -79,6 +79,6 @@ export const usePWA = () => {
   return {
     isInstallable,
     isInstalled,
-    installApp
+    installApp,
   };
 };

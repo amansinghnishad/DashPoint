@@ -1,10 +1,12 @@
-import { CalendarDays, Home, IconUpload, Youtube } from "@/shared/ui/icons";
 import { useState } from "react";
-import { useAuth } from "../../../context/AuthContext";
-import useTheme from "../../../hooks/useTheme";
-import { usePWA } from "../../../hooks/usePWA";
-import { useToast } from "../../../hooks/useToast";
+
+import { CalendarDays, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
+
 import SideBarView from "./SideBarView";
+import { useAuth } from "../../../context/AuthContext";
+import { usePWA } from "../../../hooks/usePWA";
+import useTheme from "../../../hooks/useTheme";
+import { useToast } from "../../../hooks/useToast";
 
 export const SideBar = ({
   activeTab,
@@ -52,12 +54,10 @@ export const SideBar = ({
 
     if (!isInstallable) {
       if (isIOS()) {
-        toast.info(
-          "On iPhone/iPad: tap Share → Add to Home Screen to install.",
-        );
+        toast.info("On iPhone/iPad: tap Share -> Add to Home Screen to install.");
       } else {
         toast.info(
-          "Install prompt isn’t available yet. Use the browser menu (⋯) → Install app. If you’re on a non-HTTPS URL (or a network IP), install won’t show until you deploy to HTTPS.",
+          "Install prompt isn't available yet. Use the browser menu (...) -> Install app. If you're on a non-HTTPS URL (or a network IP), install won't show until you deploy to HTTPS.",
         );
       }
       return;

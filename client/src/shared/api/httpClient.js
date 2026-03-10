@@ -32,8 +32,7 @@ function defaultUnauthorizedHandler() {
 let unauthorizedHandler = defaultUnauthorizedHandler;
 
 export function setUnauthorizedHandler(handler) {
-  unauthorizedHandler =
-    typeof handler === "function" ? handler : defaultUnauthorizedHandler;
+  unauthorizedHandler = typeof handler === "function" ? handler : defaultUnauthorizedHandler;
 }
 
 export const apiClient = axios.create({
@@ -50,7 +49,7 @@ apiClient.interceptors.request.use(
     config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 apiClient.interceptors.response.use(
@@ -60,7 +59,7 @@ apiClient.interceptors.response.use(
       unauthorizedHandler();
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export { API_BASE_URL };

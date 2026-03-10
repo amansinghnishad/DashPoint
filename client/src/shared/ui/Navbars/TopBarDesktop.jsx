@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Moon, Sun } from "@/shared/ui/icons";
+
+import { Moon, Sun } from "@/shared/ui/icons/icons";
 
 export default function TopBarDesktop({
   navItemClass,
@@ -12,34 +13,20 @@ export default function TopBarDesktop({
 }) {
   return (
     <div className="hidden md:flex items-center gap-8">
-      <button
-        type="button"
-        onClick={() => scrollToSection("features")}
-        className={navItemClass}
-      >
+      <button type="button" onClick={() => scrollToSection("features")} className={navItemClass}>
         Features
       </button>
-      <button
-        type="button"
-        onClick={() => scrollToSection("showcase")}
-        className={navItemClass}
-      >
+      <button type="button" onClick={() => scrollToSection("showcase")} className={navItemClass}>
         Demo
       </button>
-      <button
-        type="button"
-        onClick={() => scrollToSection("pricing")}
-        className={navItemClass}
-      >
+      <button type="button" onClick={() => scrollToSection("pricing")} className={navItemClass}>
         Pricing
       </button>
 
       {authCta.secondary ? (
         <NavLink
           to={authCta.secondary.to}
-          className={({ isActive }) =>
-            `${navItemClass} ${isActive ? activeNavLinkClass : ""}`
-          }
+          className={({ isActive }) => `${navItemClass} ${isActive ? activeNavLinkClass : ""}`}
         >
           {authCta.secondary.label}
         </NavLink>
@@ -58,9 +45,7 @@ export default function TopBarDesktop({
         type="button"
         onClick={onToggleTheme}
         className={themeButtonClass}
-        aria-label={
-          theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
-        }
+        aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
       >
         {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
       </button>

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { Github, Mail, MapPin } from "@/shared/ui/icons";
+
+import { Github, Mail, MapPin } from "@/shared/ui/icons/icons";
+
 import { APP_ROUTES } from "../../../app/routes/paths";
 import useTheme from "../../../hooks/useTheme";
 
@@ -11,20 +13,12 @@ const links = [
 
 export default function Footer({ embedded = false }) {
   const { theme } = useTheme();
-  const logoSrc =
-    theme === "dark" ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
+  const logoSrc = theme === "dark" ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
 
   return (
-    <footer
-      className={`relative overflow-hidden ${
-        embedded ? "bg-transparent" : "bg-slate-950"
-      }`}
-    >
+    <footer className={`relative overflow-hidden ${embedded ? "bg-transparent" : "bg-slate-950"}`}>
       {!embedded ? (
-        <div
-          className="dp-glow pointer-events-none absolute inset-0"
-          aria-hidden="true"
-        >
+        <div className="dp-glow pointer-events-none absolute inset-0" aria-hidden="true">
           <div className="absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-indigo-600/30 blur-3xl" />
           <div className="absolute -bottom-24 right-[-10rem] h-72 w-[36rem] rounded-full bg-amber-400/15 blur-3xl" />
         </div>
@@ -36,8 +30,7 @@ export default function Footer({ embedded = false }) {
             <div>
               <img src={logoSrc} alt="DashPoint" className="h-14" />
               <p className="mt-4 max-w-sm text-sm leading-6 text-white/70">
-                A clean, modern dashboard for organizing tasks, notes, and saved
-                content.
+                A clean, modern dashboard for organizing tasks, notes, and saved content.
               </p>
             </div>
 
@@ -47,19 +40,13 @@ export default function Footer({ embedded = false }) {
                 <ul className="mt-4 space-y-2">
                   {links.map((l) => (
                     <li key={l.label}>
-                      <a
-                        href={l.href}
-                        className="text-sm text-white/70 hover:text-white"
-                      >
+                      <a href={l.href} className="text-sm text-white/70 hover:text-white">
                         {l.label}
                       </a>
                     </li>
                   ))}
                   <li>
-                    <Link
-                      to={APP_ROUTES.LOGIN}
-                      className="text-sm text-white/70 hover:text-white"
-                    >
+                    <Link to={APP_ROUTES.LOGIN} className="text-sm text-white/70 hover:text-white">
                       Sign in
                     </Link>
                   </li>
@@ -101,11 +88,9 @@ export default function Footer({ embedded = false }) {
 
           <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-white/60">
-              © {new Date().getFullYear()} DashPoint. All rights reserved.
+              (c) {new Date().getFullYear()} DashPoint. All rights reserved.
             </p>
-            <p className="text-xs text-white/60">
-              Built for a fast, focused workflow.
-            </p>
+            <p className="text-xs text-white/60">Built for a fast, focused workflow.</p>
           </div>
         </div>
       </div>

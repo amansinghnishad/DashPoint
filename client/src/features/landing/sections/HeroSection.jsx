@@ -1,11 +1,9 @@
+import { LazyMotion, domAnimation, motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  LazyMotion,
-  domAnimation,
-  m,
-  useScroll,
-  useTransform,
-} from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../../app/routes/paths";
+
+const MotionDiv = motion.div;
 
 const reducedMotionPreferred = () => {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -17,6 +15,7 @@ export default function HeroSection() {
   const videoRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const navigate = useNavigate();
 
   const canAutoplay = useMemo(() => !reducedMotionPreferred(), []);
 
@@ -78,10 +77,7 @@ export default function HeroSection() {
         return;
       }
 
-      const progress = Math.min(
-        Math.max((-rect.top / totalScrollable) * 1.05, 0),
-        1,
-      );
+      const progress = Math.min(Math.max((-rect.top / totalScrollable) * 1.05, 0), 1);
 
       setScrollProgress(progress);
     };
@@ -132,11 +128,7 @@ export default function HeroSection() {
           >
             <picture>
               <source media="(max-width: 768px)" srcSet="/bg/mobileBg.webp" />
-              <img
-                src="/bg/bg.webp"
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <img src="/bg/bg.webp" alt="" className="h-full w-full object-cover" />
             </picture>
           </div>
 
@@ -146,15 +138,8 @@ export default function HeroSection() {
             style={{ transform: `translateY(${parallaxDriftY}px)` }}
           >
             <picture>
-              <source
-                media="(max-width: 768px)"
-                srcSet="/bg/mobileParallex.webp"
-              />
-              <img
-                src="/bg/parallex.webp"
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <source media="(max-width: 768px)" srcSet="/bg/mobileParallex.webp" />
+              <img src="/bg/parallex.webp" alt="" className="h-full w-full object-cover" />
             </picture>
           </div>
 
@@ -162,7 +147,7 @@ export default function HeroSection() {
           <div className="absolute inset-0 z-30 flex items-center justify-center px-8 md:px-16">
             <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between gap-12">
               {/* Text */}
-              <m.div
+              <MotionDiv
                 className="flex-1"
                 style={{
                   y: textY,
@@ -174,26 +159,27 @@ export default function HeroSection() {
               >
                 <h1 className="dp-hero-text text-4xl font-bold leading-tight md:text-6xl">
                   One place for your
-                  <span className="dp-hero-accent block">
-                    tasks and content
-                  </span>
+                  <span className="dp-hero-accent block">tasks and content</span>
                 </h1>
 
                 <p className="dp-hero-muted mt-6 max-w-xl text-base leading-relaxed md:text-lg">
-                  DashPoint brings your daily tools into a fast, clean
-                  workspace. Plan your day, extract content, and stay organized
-                  — without juggling tabs.
+                  DashPoint brings your daily tools into a fast, clean workspace. Plan your day,
+                  extract content, and stay organized - without juggling tabs.
                 </p>
 
                 <div className="mt-8 flex gap-4 flex-wrap">
-                  <button className="dp-btn-hero px-7 py-3 rounded-full font-medium">
+                  <button
+                    type="button"
+                    className="dp-btn-hero px-7 py-3 rounded-full font-medium"
+                    onClick={() => navigate(APP_ROUTES.REGISTER)}
+                  >
                     Get started
                   </button>
                   <button className="dp-btn-secondary px-7 py-3 rounded-full font-medium">
                     Pause demo
                   </button>
                 </div>
-              </m.div>
+              </MotionDiv>
 
               {/* Screen */}
               <div className="flex-1 flex justify-center">

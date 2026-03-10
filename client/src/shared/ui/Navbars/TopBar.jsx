@@ -1,16 +1,10 @@
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { APP_ROUTES } from "../../../app/routes/paths";
-import useTheme from "../../../hooks/useTheme";
+
 import TopBarDesktop from "./TopBarDesktop";
 import TopBarMobile from "./TopBarMobile";
+import { APP_ROUTES } from "../../../app/routes/paths";
+import useTheme from "../../../hooks/useTheme";
 
 const isReducedMotionPreferred = () => {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -28,8 +22,7 @@ const TopBar = () => {
   const logoSrc = "/logo.png";
 
   const isAuthPage =
-    location.pathname === APP_ROUTES.LOGIN ||
-    location.pathname === APP_ROUTES.REGISTER;
+    location.pathname === APP_ROUTES.LOGIN || location.pathname === APP_ROUTES.REGISTER;
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 50);
@@ -113,15 +106,12 @@ const TopBar = () => {
       "fixed top-0 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl z-50 transition-all duration-300";
 
     const scrolled = isScrolled ? "shadow-md py-2" : "py-4";
-    const bg = isScrolled
-      ? "dp-nav-panel-bg backdrop-blur-sm rounded-3xl top-5"
-      : "bg-transparent";
+    const bg = isScrolled ? "dp-nav-panel-bg backdrop-blur-sm rounded-3xl top-5" : "bg-transparent";
 
     return `${base} ${bg} ${scrolled}`;
   }, [isMenuOpen, isScrolled]);
 
-  const useHeroTextInLightMode =
-    theme === "light" && isInHeroSection && !isMenuOpen;
+  const useHeroTextInLightMode = theme === "light" && isInHeroSection && !isMenuOpen;
   const useDarkText = theme === "light" && !useHeroTextInLightMode;
   const textClass = useHeroTextInLightMode
     ? "dp-nav-hero-text"
@@ -164,9 +154,7 @@ const TopBar = () => {
         <div className="flex items-center justify-between gap-3">
           <Link
             to={APP_ROUTES.HOME}
-            className={
-              isMenuOpen ? "hidden md:flex items-center" : "flex items-center"
-            }
+            className={isMenuOpen ? "hidden md:flex items-center" : "flex items-center"}
             aria-label="DashPoint"
           >
             <img src={logoSrc} alt="DashPoint Logo" className="h-12 sm:h-14" />

@@ -6,9 +6,7 @@ import { GOOGLE_CLIENT_ID } from "../../shared/config/appConfig";
 
 export default function AppProviders({ children }) {
   const appTree = GOOGLE_CLIENT_ID ? (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      {children}
-    </GoogleOAuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{children}</GoogleOAuthProvider>
   ) : (
     children
   );

@@ -1,25 +1,17 @@
+import { GoogleLogin } from "@react-oauth/google";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import { Eye, EyeOff, Gift, Lock, Mail, Star, User, Zap } from "@/shared/ui/icons/icons";
+
+import useRegisterFormState from "./useRegisterFormState";
 import { APP_ROUTES } from "../../../app/routes/paths";
-import {
-  Eye,
-  EyeOff,
-  Gift,
-  Lock,
-  Mail,
-  Star,
-  User,
-  Zap,
-} from "@/shared/ui/icons";
 import { useAuth } from "../../../context/AuthContext";
 import AuthLayout from "../layouts/AuthLayout";
-import { GoogleLogin } from "@react-oauth/google";
-import useRegisterFormState from "./useRegisterFormState";
 
 export default function Register() {
   const navigate = useNavigate();
-  const { registerUser, loginWithGoogle, loading, error, clearError } =
-    useAuth();
+  const { registerUser, loginWithGoogle, loading, error, clearError } = useAuth();
 
   const {
     name,
@@ -34,7 +26,6 @@ export default function Register() {
     setShowPassword,
     showConfirmPassword,
     setShowConfirmPassword,
-    touched,
     setTouched,
     formError,
     setFormError,
@@ -85,8 +76,7 @@ export default function Register() {
         {
           Icon: Star,
           title: "Premium Experience",
-          description:
-            "A clean dashboard with focused productivity tools included.",
+          description: "A clean dashboard with focused productivity tools included.",
         },
       ]}
       asideFooterTitle="What you get"
@@ -97,9 +87,7 @@ export default function Register() {
       ]}
       alert={
         formError || error ? (
-          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">
-            {formError || error}
-          </div>
+          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">{formError || error}</div>
         ) : null
       }
     >
@@ -134,10 +122,7 @@ export default function Register() {
         </div>
 
         <div>
-          <label
-            className={`text-sm font-medium ${labelClass}`}
-            htmlFor="email"
-          >
+          <label className={`text-sm font-medium ${labelClass}`} htmlFor="email">
             Email address
           </label>
           <div
@@ -166,10 +151,7 @@ export default function Register() {
         </div>
 
         <div>
-          <label
-            className={`text-sm font-medium ${labelClass}`}
-            htmlFor="password"
-          >
+          <label className={`text-sm font-medium ${labelClass}`} htmlFor="password">
             Password
           </label>
           <div
@@ -206,10 +188,7 @@ export default function Register() {
         </div>
 
         <div>
-          <label
-            className={`text-sm font-medium ${labelClass}`}
-            htmlFor="confirmPassword"
-          >
+          <label className={`text-sm font-medium ${labelClass}`} htmlFor="confirmPassword">
             Confirm password
           </label>
           <div
@@ -223,9 +202,7 @@ export default function Register() {
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              onBlur={() =>
-                setTouched((t) => ({ ...t, confirmPassword: true }))
-              }
+              onBlur={() => setTouched((t) => ({ ...t, confirmPassword: true }))}
               aria-invalid={Boolean(confirmError)}
               aria-describedby={confirmError ? "confirm-error" : undefined}
               className={`w-full bg-transparent text-sm outline-none ${inputClass}`}
@@ -236,9 +213,7 @@ export default function Register() {
               onClick={() => setShowConfirmPassword((v) => !v)}
               className="inline-flex items-center justify-center rounded-lg p-1 dp-text-subtle transition duration-200 hover:opacity-80"
               aria-label={
-                showConfirmPassword
-                  ? "Hide password confirmation"
-                  : "Show password confirmation"
+                showConfirmPassword ? "Hide password confirmation" : "Show password confirmation"
               }
             >
               {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -280,9 +255,7 @@ export default function Register() {
                   setFormError(result?.error || "Google sign-up failed.");
                 }
               }}
-              onError={() =>
-                setFormError("Google sign-up failed. Please try again.")
-              }
+              onError={() => setFormError("Google sign-up failed. Please try again.")}
             />
           </div>
         ) : null}

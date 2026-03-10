@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { IconAdd, IconDelete, IconEdit, IconTime } from "@/shared/ui/icons";
+
+import { IconAdd, IconDelete, IconEdit, IconTime } from "@/shared/ui/icons/icons";
+
 import { normalizeAppointmentsData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 
@@ -46,10 +48,7 @@ export default function PlannerAppointmentsCard({ widget }) {
     if (!title) return;
     if (!draftWhen) return;
 
-    setItems((prev) => [
-      ...prev,
-      { clientKey: crypto.randomUUID(), title, when: draftWhen },
-    ]);
+    setItems((prev) => [...prev, { clientKey: crypto.randomUUID(), title, when: draftWhen }]);
     setDraftTitle("");
     setDraftWhen("");
   };
@@ -85,9 +84,7 @@ export default function PlannerAppointmentsCard({ widget }) {
 
       <div className="dp-border rounded-2xl border p-3">
         {items.length === 0 ? (
-          <div className="dp-text-muted text-sm">
-            No appointments yet. Add one below.
-          </div>
+          <div className="dp-text-muted text-sm">No appointments yet. Add one below.</div>
         ) : (
           <div className="max-h-48 space-y-2 overflow-auto pr-1">
             {items.map((it, idx) => {
@@ -136,9 +133,7 @@ export default function PlannerAppointmentsCard({ widget }) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        setEditingIndex((prev) => (prev === idx ? null : idx))
-                      }
+                      onClick={() => setEditingIndex((prev) => (prev === idx ? null : idx))}
                       className="inline-flex h-9 w-9 items-center justify-center text-sm transition-colors"
                       aria-label={isEditing ? "Done editing" : "Edit"}
                       title={isEditing ? "Done" : "Edit"}
@@ -147,9 +142,7 @@ export default function PlannerAppointmentsCard({ widget }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        setItems((prev) => prev.filter((_, i) => i !== idx))
-                      }
+                      onClick={() => setItems((prev) => prev.filter((_, i) => i !== idx))}
                       className="dp-text-danger inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
                       aria-label="Delete"
                       title="Delete"

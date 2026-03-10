@@ -51,15 +51,11 @@ export const isZoomOrBrowserShortcut = (event) => {
 };
 
 // Scale clamp
-export const clampScaleValue = (value) =>
-  Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
+export const clampScaleValue = (value) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
 // Layout bounds
 export const getLayoutsBounds = (layoutsByItemKey) => {
-  const layouts =
-    layoutsByItemKey && typeof layoutsByItemKey === "object"
-      ? layoutsByItemKey
-      : {};
+  const layouts = layoutsByItemKey && typeof layoutsByItemKey === "object" ? layoutsByItemKey : {};
 
   const keys = Object.keys(layouts);
   if (!keys.length) return null;

@@ -1,3 +1,5 @@
+import { createElement, useCallback, useEffect, useReducer, useRef } from "react";
+
 import {
   CalendarDays,
   CheckSquare,
@@ -8,8 +10,7 @@ import {
   FileText,
   Image,
   Youtube,
-} from "@/shared/ui/icons";
-import { createElement, useEffect, useReducer, useRef } from "react";
+} from "@/shared/ui/icons/icons";
 
 const menuReducer = (state, action) => {
   switch (action.type) {
@@ -55,14 +56,15 @@ export default function BottomBar({
   const plannerMenuOpen = menuState.open;
   const plannerMenuMounted = menuState.mounted;
   const plannerMenuVisible = menuState.visible;
-  const setPlannerMenuOpen = (valueOrUpdater) => {
-    const next =
-      typeof valueOrUpdater === "function"
-        ? valueOrUpdater(menuState.open)
-        : valueOrUpdater;
-    if (next) dispatchMenu({ type: "OPEN" });
-    else dispatchMenu({ type: "CLOSE" });
-  };
+  const setPlannerMenuOpen = useCallback(
+    (valueOrUpdater) => {
+      const next =
+        typeof valueOrUpdater === "function" ? valueOrUpdater(plannerMenuOpen) : valueOrUpdater;
+      if (next) dispatchMenu({ type: "OPEN" });
+      else dispatchMenu({ type: "CLOSE" });
+    },
+    [plannerMenuOpen],
+  );
   const plannerMenuRef = useRef(null);
   const plannerMenuTimerRef = useRef(null);
 
@@ -86,7 +88,7 @@ export default function BottomBar({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [plannerMenuOpen]);
+  }, [plannerMenuOpen, setPlannerMenuOpen]);
 
   useEffect(() => {
     if (plannerMenuTimerRef.current) {
@@ -111,9 +113,7 @@ export default function BottomBar({
   if (!show) return null;
 
   return (
-    <div
-      className={`absolute left-1/2 bottom-4 -translate-x-1/2 z-20 ${className}`}
-    >
+    <div className={`absolute left-1/2 bottom-4 -translate-x-1/2 z-20 ${className}`}>
       <div className="dp-surface dp-border rounded-2xl border shadow-lg px-2 py-2">
         <div className="flex items-center gap-1">
           {TOOLS.map(({ id, label, Icon }) => {
@@ -153,8 +153,7 @@ export default function BottomBar({
                       >
                         <div className="grid grid-cols-3 gap-2">
                           {plannerOptions.map((opt) => {
-                            const TileIcon =
-                              PLANNER_ICON_BY_VALUE?.[opt.value] || LayoutGrid;
+                            const TileIcon = PLANNER_ICON_BY_VALUE?.[opt.value] || LayoutGrid;
 
                             return (
                               <button

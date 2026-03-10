@@ -1,11 +1,13 @@
+import { GoogleLogin } from "@react-oauth/google";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import { Eye, EyeOff, Lock, Mail, Zap, Gift, Star } from "@/shared/ui/icons/icons";
+
+import useLoginFormState from "./useLoginFormState";
 import { APP_ROUTES } from "../../../app/routes/paths";
-import { Eye, EyeOff, Lock, Mail, Zap, Gift, Star } from "@/shared/ui/icons";
 import { useAuth } from "../../../context/AuthContext";
 import AuthLayout from "../layouts/AuthLayout";
-import { GoogleLogin } from "@react-oauth/google";
-import useLoginFormState from "./useLoginFormState";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,7 +22,6 @@ export default function Login() {
     setRememberMe,
     showPassword,
     setShowPassword,
-    touched,
     setTouched,
     formError,
     setFormError,
@@ -69,8 +70,7 @@ export default function Login() {
         {
           Icon: Star,
           title: "Premium Experience",
-          description:
-            "A clean dashboard with focused productivity tools included.",
+          description: "A clean dashboard with focused productivity tools included.",
         },
       ]}
       asideFooterTitle="Launch benefits"
@@ -81,18 +81,13 @@ export default function Login() {
       ]}
       alert={
         formError || error ? (
-          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">
-            {formError || error}
-          </div>
+          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">{formError || error}</div>
         ) : null
       }
     >
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <div>
-          <label
-            className={`text-sm font-medium ${labelClass}`}
-            htmlFor="email"
-          >
+          <label className={`text-sm font-medium ${labelClass}`} htmlFor="email">
             Email address
           </label>
           <div
@@ -121,10 +116,7 @@ export default function Login() {
         </div>
 
         <div>
-          <label
-            className={`text-sm font-medium ${labelClass}`}
-            htmlFor="password"
-          >
+          <label className={`text-sm font-medium ${labelClass}`} htmlFor="password">
             Password
           </label>
           <div
@@ -171,10 +163,7 @@ export default function Login() {
             Remember me
           </label>
 
-          <Link
-            to={APP_ROUTES.REGISTER}
-            className={`transition-colors ${linkClass}`}
-          >
+          <Link to={APP_ROUTES.REGISTER} className={`transition-colors ${linkClass}`}>
             New here?
           </Link>
         </div>
@@ -208,9 +197,7 @@ export default function Login() {
                   setFormError(result?.error || "Google sign-in failed.");
                 }
               }}
-              onError={() =>
-                setFormError("Google sign-in failed. Please try again.")
-              }
+              onError={() => setFormError("Google sign-in failed. Please try again.")}
               useOneTap
             />
           </div>
@@ -218,10 +205,7 @@ export default function Login() {
 
         <p className={`text-center text-sm ${subtleClass}`}>
           Don't have an account?{" "}
-          <Link
-            to={APP_ROUTES.REGISTER}
-            className={`font-semibold ${linkClass}`}
-          >
+          <Link to={APP_ROUTES.REGISTER} className={`font-semibold ${linkClass}`}>
             Create one free
           </Link>
         </p>

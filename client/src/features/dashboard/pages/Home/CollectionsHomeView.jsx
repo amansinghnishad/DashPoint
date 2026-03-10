@@ -1,4 +1,7 @@
-import { IconAdd } from "@/shared/ui/icons";
+import { createElement } from "react";
+
+import { IconAdd } from "@/shared/ui/icons/icons";
+
 import Modal from "../../../../shared/ui/modals/Modal";
 
 export default function CollectionsHomeView({
@@ -96,9 +99,7 @@ export default function CollectionsHomeView({
           </label>
 
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">
-              Description (optional)
-            </span>
+            <span className="dp-text-soft text-sm font-medium">Description (optional)</span>
             <textarea
               value={createDescription}
               onChange={(e) => setCreateDescription(e.target.value)}
@@ -157,9 +158,7 @@ export default function CollectionsHomeView({
           </label>
 
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">
-              Description (optional)
-            </span>
+            <span className="dp-text-soft text-sm font-medium">Description (optional)</span>
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
@@ -215,7 +214,7 @@ export default function CollectionsHomeView({
 
       <div className="mt-6">
         {loading ? (
-          <LoadingGridComponent />
+          createElement(LoadingGridComponent)
         ) : error ? (
           <div className="dp-surface dp-border rounded-2xl border p-5">
             <p className="dp-text font-medium">Couldn't load collections</p>
@@ -230,15 +229,15 @@ export default function CollectionsHomeView({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {collections.map((c) => (
-              <CollectionCardComponent
-                key={getCollectionId(c) || c.name}
-                collection={c}
-                onOpen={openCollection}
-                onEdit={openEdit}
-                onDelete={openDelete}
-              />
-            ))}
+            {collections.map((c) =>
+              createElement(CollectionCardComponent, {
+                key: getCollectionId(c) || c.name,
+                collection: c,
+                onOpen: openCollection,
+                onEdit: openEdit,
+                onDelete: openDelete,
+              }),
+            )}
           </div>
         )}
       </div>

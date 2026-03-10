@@ -1,13 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  useCallback,
-} from "react";
+import { createContext, useContext, useReducer, useEffect, useCallback } from "react";
+
+import { useActivity } from "../hooks/useActivity";
 import { collectionsAPI } from "../services/modules/collectionsApi";
 import { youtubeAPI } from "../services/modules/youtubeApi";
-import { useActivity } from "../hooks/useActivity";
 
 const DashboardContext = createContext();
 
@@ -58,9 +53,7 @@ export const DashboardProvider = ({ children }) => {
       ]);
 
       const stats = {
-        collections: collectionsRes.success
-          ? collectionsRes.data?.pagination?.total || 0
-          : 0,
+        collections: collectionsRes.success ? collectionsRes.data?.pagination?.total || 0 : 0,
         videos: videosRes.success ? videosRes.pagination?.total || 0 : 0,
       };
 
@@ -103,11 +96,7 @@ export const DashboardProvider = ({ children }) => {
     getRecentActivities,
   };
 
-  return (
-    <DashboardContext.Provider value={value}>
-      {children}
-    </DashboardContext.Provider>
-  );
+  return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

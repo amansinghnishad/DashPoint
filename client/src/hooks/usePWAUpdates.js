@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { useState, useEffect } from "react";
+import { useRegisterSW } from "virtual:pwa-register/react";
 
 export const usePWAUpdates = () => {
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
@@ -10,10 +10,10 @@ export const usePWAUpdates = () => {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      console.log('SW Registered: ' + r);
+      console.log("SW Registered: " + r);
     },
     onRegisterError(error) {
-      console.log('SW registration error', error);
+      console.log("SW registration error", error);
     },
   });
 

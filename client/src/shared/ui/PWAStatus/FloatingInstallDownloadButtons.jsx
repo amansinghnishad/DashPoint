@@ -1,4 +1,5 @@
-import { IconDownload } from "@/shared/ui/icons";
+import { IconDownload } from "@/shared/ui/icons/icons";
+
 import { usePWA } from "../../../hooks/usePWA";
 import { useToast } from "../../../hooks/useToast";
 
@@ -23,12 +24,10 @@ export default function FloatingInstallDownloadButtons() {
 
     if (!isInstallable) {
       if (isIOS()) {
-        toast.info(
-          "On iPhone/iPad: tap Share → Add to Home Screen to install."
-        );
+        toast.info("On iPhone/iPad: tap Share -> Add to Home Screen to install.");
       } else {
         toast.info(
-          "Install prompt isn’t available yet. Use the browser menu (⋯) → Install app. If you’re on a non-HTTPS URL (or a network IP), install won’t show until you deploy to HTTPS."
+          "Install prompt isn't available yet. Use the browser menu (...) -> Install app. If you're on a non-HTTPS URL (or a network IP), install won't show until you deploy to HTTPS.",
         );
       }
       return;

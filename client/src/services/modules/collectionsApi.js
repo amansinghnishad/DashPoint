@@ -6,7 +6,7 @@ export const collectionsAPI = {
     return getResponseData(
       apiClient.get("/collections", {
         params: { page, limit, search },
-      })
+      }),
     );
   },
 
@@ -35,13 +35,13 @@ export const collectionsAPI = {
       apiClient.post(`/collections/${collectionId}/items`, {
         itemType,
         itemId,
-      })
+      }),
     );
   },
 
   removeItemFromCollection(collectionId, itemType, itemId) {
     return getResponseData(
-      apiClient.delete(`/collections/${collectionId}/items/${itemType}/${itemId}`)
+      apiClient.delete(`/collections/${collectionId}/items/${itemType}/${itemId}`),
     );
   },
 
@@ -61,7 +61,7 @@ export const collectionsAPI = {
     return getResponseData(
       apiClient.post(`/collections/${collectionId}/summarize-document`, formData, {
         timeout: 2 * 60 * 1000,
-      })
+      }),
     );
   },
 };

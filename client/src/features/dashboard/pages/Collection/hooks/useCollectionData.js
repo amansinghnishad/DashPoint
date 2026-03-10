@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { collectionsAPI } from "../../../../../services/modules/collectionsApi";
 
 const LOAD_ERROR_MESSAGE = "Failed to load collection";
