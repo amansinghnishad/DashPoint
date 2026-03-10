@@ -1,12 +1,16 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import DashboardPageLayout from "../layouts/DashboardPageLayout";
 import AddToCollectionModal from "../../../shared/ui/modals/AddToCollectionModal";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
-import { IconAdd, IconDelete } from "@/shared/ui/icons";
+import { IconAdd, IconDelete, Sparkles } from "@/shared/ui/icons";
+import fileService from "../../../services/modules/fileService";
+import { useToast } from "../../../hooks/useToast";
 import { FILE_MANAGER_ACCEPT } from "./fileManager/fileManager.helpers";
 import { useFileManager } from "./fileManager/useFileManager";
+import FileSummarizeToCollectionModal from "./fileManager/FileSummarizeToCollectionModal";
 
 export default function FileManagerPage() {
+  const toast = useToast();
   const {
     state: {
       search,
@@ -31,6 +35,63 @@ export default function FileManagerPage() {
   } = useFileManager();
 
   const fileInputRef = useRef(null);
+  const [summarizeItem, setSummarizeItem] = useState(null);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState("");
+
+  useEffect(() => {
+    const isPdfSelected =
+      selected?.type === "file" && String(selected?.mime || "").toLowerCase() === "application/pdf";
+
+    if (!isPdfSelected || !selected?.id) {
+      setPdfPreviewUrl((previous) => {
+        if (previous) {
+          window.URL.revokeObjectURL(previous);
+        }
+        return "";
+      });
+      return undefined;
+    }
+
+    let isDisposed = false;
+    let objectUrl = "";
+
+    const loadPdfPreview = async () => {
+      try {
+        const blob = await fileService.getFilePreviewBlob(selected.id);
+        objectUrl = window.URL.createObjectURL(blob);
+        if (isDisposed) {
+          window.URL.revokeObjectURL(objectUrl);
+          return;
+        }
+
+        setPdfPreviewUrl((previous) => {
+          if (previous) {
+            window.URL.revokeObjectURL(previous);
+          }
+          return objectUrl;
+        });
+      } catch {
+        if (!isDisposed) {
+          setPdfPreviewUrl((previous) => {
+            if (previous) {
+              window.URL.revokeObjectURL(previous);
+            }
+            return "";
+          });
+          toast.error("Failed to load PDF preview.");
+        }
+      }
+    };
+
+    loadPdfPreview();
+
+    return () => {
+      isDisposed = true;
+      if (objectUrl) {
+        window.URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [selected?.id, selected?.mime, selected?.type, toast]);
 
   const onPickFiles = async (event) => {
     const files = Array.from(event.target.files || []);
@@ -56,12 +117,18 @@ export default function FileManagerPage() {
               alt={selected.title}
               className="max-h-[520px] w-full object-contain dp-surface"
             />
-          ) : selected.mime === "application/pdf" && selected.remoteUrl ? (
-            <iframe
-              title={selected.title}
-              className="h-[520px] w-full"
-              src={selected.remoteUrl}
-            />
+          ) : selected.mime === "application/pdf" ? (
+            pdfPreviewUrl ? (
+              <iframe
+                title={selected.title}
+                className="h-[520px] w-full"
+                src={pdfPreviewUrl}
+              />
+            ) : (
+              <div className="dp-surface-muted dp-border rounded-2xl border p-4">
+                <p className="dp-text font-semibold">Loading PDF preview...</p>
+              </div>
+            )
           ) : textPreview != null ? (
             <pre className="dp-surface dp-border dp-text max-h-[520px] overflow-auto rounded-2xl border p-4 text-sm whitespace-pre-wrap">
               {textPreview}
@@ -125,8 +192,26 @@ export default function FileManagerPage() {
         renderItemSubtitle={(it) => it.subtitle}
         renderItemActions={(it) => {
           const disabled = isBusy;
+          const canSummarizePdf = String(it?.mime || "").toLowerCase().includes("pdf");
           return (
             <>
+              {canSummarizePdf ? (
+                <button
+                  type="button"
+                  className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:opacity-60"
+                  disabled={disabled}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSummarizeItem(it);
+                  }}
+                  aria-label="Summarize PDF"
+                  title="Summarize PDF"
+                >
+                  <Sparkles size={16} />
+                </button>
+              ) : null}
+
               <button
                 type="button"
                 className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors disabled:opacity-60"
@@ -191,6 +276,12 @@ export default function FileManagerPage() {
         }
         description="Delete this file?"
         busy={isDeleting}
+      />
+
+      <FileSummarizeToCollectionModal
+        open={Boolean(summarizeItem)}
+        onClose={() => setSummarizeItem(null)}
+        fileItem={summarizeItem}
       />
     </>
   );

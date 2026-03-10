@@ -108,9 +108,18 @@ const addPlannerWidgetValidation = [
     .withMessage('data must be an object')
 ];
 
+const summarizeDocumentValidation = [
+  body('noteTitle')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('noteTitle must be between 1 and 100 characters')
+];
+
 module.exports = {
   collectionCreateValidation,
   collectionUpdateValidation,
   addItemValidation,
-  addPlannerWidgetValidation
+  addPlannerWidgetValidation,
+  summarizeDocumentValidation
 };
