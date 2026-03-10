@@ -5,7 +5,6 @@ DashPoint is a MERN-stack productivity dashboard application. It combines conten
 
 ## Feature Videos
 
-GitHub README does not reliably render inline `<video>` playback. Use the links below to open videos.
 
 ### AI Chat Assistant
 [Watch video](client/public/feature/aiChatAssistant.mp4)
