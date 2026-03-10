@@ -5,12 +5,6 @@ import { useRef } from "react";
 
 const features = [
   {
-    title: "Smart Calendar",
-    videoSrc: "/feature/smartCalendar.mp4",
-    story: "Your day should feel clear focused and under control.",
-    backgroundWord: "CLARITY",
-  },
-  {
     title: "YouTube Integration",
     videoSrc: "/feature/youtube.mp4",
     story: "Learning should live inside your workflow.",
@@ -27,6 +21,12 @@ const features = [
     videoSrc: "/feature/aiChatAssistant.mp4",
     story: "Ideas move faster when intelligence supports you.",
     backgroundWord: "INTELLIGENCE",
+  },
+  {
+    title: "Smart Calendar",
+    videoSrc: "/feature/smartCalendar.mp4",
+    story: "Your day should feel clear focused and under control.",
+    backgroundWord: "CLARITY",
   },
 ];
 
