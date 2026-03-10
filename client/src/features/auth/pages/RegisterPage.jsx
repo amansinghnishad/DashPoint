@@ -53,13 +53,13 @@ export default function Register() {
     clearError?.();
   }, [clearError]);
 
-  const labelClass = "text-white";
-  const iconClass = "text-white/60";
+  const labelClass = "dp-text";
+  const iconClass = "dp-text-subtle";
   const fieldWrapClass =
-    "border-white/10 bg-white/5 focus-within:ring-2 focus-within:ring-amber-300/30";
-  const inputClass = "text-white placeholder-white/40";
-  const subtleClass = "text-white/70";
-  const linkClass = "text-white hover:text-amber-300";
+    "dp-border dp-surface-muted transition-all duration-200 focus-within:-translate-y-px focus-within:ring-2 focus-within:ring-white/20";
+  const inputClass = "dp-text placeholder-white/40";
+  const subtleClass = "dp-text-muted";
+  const linkClass = "dp-text hover:opacity-80";
 
   return (
     <AuthLayout
@@ -97,7 +97,7 @@ export default function Register() {
       ]}
       alert={
         formError || error ? (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">
             {formError || error}
           </div>
         ) : null
@@ -127,7 +127,7 @@ export default function Register() {
             />
           </div>
           {nameError && (
-            <p id="name-error" className="mt-2 text-xs text-red-200">
+            <p id="name-error" className="mt-2 text-xs dp-text-danger">
               {nameError}
             </p>
           )}
@@ -159,7 +159,7 @@ export default function Register() {
             />
           </div>
           {emailError && (
-            <p id="email-error" className="mt-2 text-xs text-red-200">
+            <p id="email-error" className="mt-2 text-xs dp-text-danger">
               {emailError}
             </p>
           )}
@@ -192,14 +192,14 @@ export default function Register() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="inline-flex items-center justify-center rounded-lg p-1 text-white/60 hover:text-white"
+              className="inline-flex items-center justify-center rounded-lg p-1 dp-text-subtle transition duration-200 hover:opacity-80"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
           {passwordError && (
-            <p id="password-error" className="mt-2 text-xs text-red-200">
+            <p id="password-error" className="mt-2 text-xs dp-text-danger">
               {passwordError}
             </p>
           )}
@@ -234,7 +234,7 @@ export default function Register() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((v) => !v)}
-              className="inline-flex items-center justify-center rounded-lg p-1 text-white/60 hover:text-white"
+              className="inline-flex items-center justify-center rounded-lg p-1 dp-text-subtle transition duration-200 hover:opacity-80"
               aria-label={
                 showConfirmPassword
                   ? "Hide password confirmation"
@@ -245,7 +245,7 @@ export default function Register() {
             </button>
           </div>
           {confirmError && (
-            <p id="confirm-error" className="mt-2 text-xs text-red-200">
+            <p id="confirm-error" className="mt-2 text-xs dp-text-danger">
               {confirmError}
             </p>
           )}
@@ -254,16 +254,16 @@ export default function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="dp-btn-primary mt-2 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+          className="dp-btn-primary mt-2 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? "Creating..." : "Create account"}
         </button>
         {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="text-xs text-white/50">OR</span>
-              <div className="h-px flex-1 bg-white/10" />
+              <div className="h-px flex-1 dp-border border-t" />
+              <span className="text-xs dp-text-subtle">OR</span>
+              <div className="h-px flex-1 dp-border border-t" />
             </div>
             <GoogleLogin
               onSuccess={async (credentialResponse) => {

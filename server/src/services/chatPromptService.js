@@ -4,6 +4,8 @@ const BASE_SYSTEM_INSTRUCTIONS = [
   'You can answer normal knowledge questions directly without using tools.',
   'When a user asks to create collections or save notes, use tools to perform the requested actions.',
   'When a user asks to add a YouTube video to a collection, use the addYouTubeVideoToCollection tool.',
+  'When a user asks about Google Calendar status, upcoming events, or scheduling, use the calendar tools.',
+  'If Google Calendar is not connected, call getGoogleCalendarAuthUrl and provide the URL to the user.',
   'If the user asks for multiple persistence actions in one message, complete all required DB actions in the same turn by either calling createCollectionWithNote or chaining tool calls.',
   'When retrieved workspace context is present, prioritize it for factual answers and cite the context id format [C1], [C2], etc.',
   'For workspace-specific requests about collection videos/transcripts (for example: summarize a video in a collection), use retrieved context when available.',

@@ -8,6 +8,25 @@ import {
   User,
 } from "@/shared/ui/icons";
 
+const getSidebarDisplayName = (user) => {
+  const username = String(user?.username || "").trim();
+  if (username) return username;
+
+  const explicitName = String(user?.name || "").trim();
+  if (explicitName) return explicitName;
+
+  const fullName = [user?.firstName, user?.lastName]
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  if (fullName) return fullName;
+
+  const email = String(user?.email || "").trim();
+  if (email) return email.split("@")[0];
+
+  return "User";
+};
+
 export default function SideBarView({
   isOpen,
   onClose,
@@ -27,6 +46,8 @@ export default function SideBarView({
   toggleTheme,
   logoutUser,
 }) {
+  const displayName = getSidebarDisplayName(user);
+
   return (
     <>
       {isOpen ? (
@@ -150,9 +171,7 @@ export default function SideBarView({
               className={`flex items-center mb-4 p-3 rounded-xl transition-all duration-200 dp-surface ${
                 isExpanded ? "space-x-3" : "mb-3 lg:justify-center"
               }`}
-              title={
-                !isExpanded ? user?.name || user?.email || "User" : undefined
-              }
+              title={!isExpanded ? displayName : undefined}
             >
               <div className="relative">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg dp-btn-hero">
@@ -168,7 +187,7 @@ export default function SideBarView({
                 }`}
               >
                 <p className="font-medium truncate dp-text">
-                  {user?.name || "User"}
+                  {displayName}
                 </p>
                 <p className={`text-sm truncate ${mutedTextClass}`}>
                   {user?.email || "user@example.com"}

@@ -137,6 +137,7 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall 
     }
   ];
   let toolsEnabled = true;
+  let malformedFunctionFallbackUsed = false;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
     let data = null;
@@ -163,9 +164,29 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall 
     }
 
     const candidate = data?.candidates?.[0];
+    const finishReason = String(candidate?.finishReason || '').trim().toUpperCase();
+
+    if (finishReason === 'MALFORMED_FUNCTION_CALL' && toolsEnabled) {
+      toolsEnabled = false;
+
+      if (!malformedFunctionFallbackUsed) {
+        malformedFunctionFallbackUsed = true;
+        conversation.push({
+          role: 'user',
+          parts: [
+            {
+              text:
+                'Previous function call was malformed. Continue without tools and respond directly.'
+            }
+          ]
+        });
+      }
+
+      continue;
+    }
+
     if (!candidate?.content?.parts) {
-      const finishReason = candidate?.finishReason || 'unknown';
-      throw new Error(`Gemini returned no content (finishReason: ${finishReason})`);
+      throw new Error(`Gemini returned no content (finishReason: ${finishReason || 'unknown'})`);
     }
 
     const parts = candidate.content.parts;

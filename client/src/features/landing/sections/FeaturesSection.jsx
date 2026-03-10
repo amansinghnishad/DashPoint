@@ -1,40 +1,38 @@
 "use client";
 
-import { Calendar, FileText, Youtube, Zap } from "@/shared/ui/icons";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 const features = [
   {
-    icon: Calendar,
-    title: "Smart Calendar",
-    description:
-      "Track events, deadlines, and daily plans in one organized view.",
-    story: "Your day should feel clear focused and under control.",
-    backgroundWord: "CLARITY",
-  },
-  {
-    icon: Youtube,
     title: "YouTube Integration",
-    description: "Embed and manage videos directly inside your workspace.",
+    videoSrc: "/feature/youtube.mp4",
     story: "Learning should live inside your workflow.",
     backgroundWord: "LEARN",
   },
   {
-    icon: FileText,
     title: "File Management",
-    description: "Upload organize and access important files anytime.",
+    videoSrc: "/feature/fileManagement.mp4",
     story: "Everything important in one structured place.",
     backgroundWord: "STRUCTURE",
   },
   {
-    icon: Zap,
     title: "AI Chat Assistant",
-    description: "Ask plan and generate ideas instantly with built-in AI chat.",
+    videoSrc: "/feature/aiChatAssistant.mp4",
     story: "Ideas move faster when intelligence supports you.",
     backgroundWord: "INTELLIGENCE",
   },
+  {
+    title: "Smart Calendar",
+    videoSrc: "/feature/smartCalendar.mp4",
+    story: "Your day should feel clear focused and under control.",
+    backgroundWord: "CLARITY",
+  },
 ];
+
+const WORD_REVEAL_STAGGER = 0.04;
+const WORD_REVEAL_BASE_START = 0;
+const WORD_REVEAL_BASE_END = 0.14;
 
 export default function FeaturesSection() {
   return (
@@ -70,7 +68,7 @@ export default function FeaturesSection() {
               className="sticky top-0 h-screen flex flex-col items-center justify-center text-center px-6"
             >
               {/* Background Word */}
-              <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none select-none">
+              <div className="absolute top-[30%] -translate-y-1/2 pointer-events-none select-none">
                 <h2
                   className="text-[80px] sm:text-[100px] md:text-[130px] lg:text-[150px]
 font-extrabold tracking-widest dp-text-subtle opacity-10"
@@ -82,9 +80,9 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
               {/* Story Text */}
               <div className="mb-16 flex flex-wrap justify-center gap-4 max-w-4xl z-10">
                 {words.map((word, i) => {
-                  const delay = i * 0.01;
-                  const wordStart = 0.08 + delay;
-                  const wordEnd = 0.26 + delay;
+                  const delay = i * WORD_REVEAL_STAGGER;
+                  const wordStart = WORD_REVEAL_BASE_START + delay;
+                  const wordEnd = WORD_REVEAL_BASE_END + delay;
 
                   const wordOpacity = useTransform(
                     smooth,
@@ -109,7 +107,7 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
               </div>
 
               {/* Monitor */}
-              <div className="relative mt-28 md:mt-32 [perspective:2000px]">
+              <div className="relative mt-28 md:mt-32 w-[92vw] max-w-[980px] [perspective:500px]">
                 <motion.div
                   style={{ scale, rotateX, rotateY }}
                   className="relative [transform-style:preserve-3d]"
@@ -131,7 +129,7 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
                   >
                     <div
                       className="rounded-[2rem] bg-black/90 dp-border border
-                      p-8 md:p-12 relative overflow-hidden"
+                      p-10 md:p-14 min-h-[360px] md:min-h-[460px] relative overflow-hidden"
                     >
                       {/* Glass reflection */}
                       <div
@@ -142,18 +140,17 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
                         }}
                       />
 
-                      <div className="relative z-10 text-center">
-                        <div className="mb-8 flex justify-center dp-text-soft">
-                          <feature.icon size={72} />
-                        </div>
-
-                        <h3 className="text-3xl font-semibold mb-4 tracking-tight dp-text">
-                          {feature.title}
-                        </h3>
-
-                        <p className="dp-text-muted text-lg max-w-md mx-auto leading-relaxed">
-                          {feature.description}
-                        </p>
+                      <div className="relative z-10 h-full w-full">
+                        <video
+                          key={feature.videoSrc}
+                          src={feature.videoSrc}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          controls
+                          className="h-full w-full rounded-2xl object-cover"
+                        />
                       </div>
                     </div>
 
