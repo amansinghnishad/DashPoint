@@ -45,10 +45,14 @@ export default function FloatingInstallDownloadButtons() {
         <button
           type="button"
           onClick={onClick}
-          className="dp-btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+          className="group dp-btn-primary inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl px-3 text-sm font-semibold transition-[width,background-color,color,box-shadow] duration-250 ease-out hover:w-40 focus-visible:w-40"
+          aria-label="Download app"
+          title="Download app"
         >
-          <IconDownload size={16} />
-          Download app
+          <IconDownload size={16} className="shrink-0" />
+          <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-250 ease-out group-hover:ml-2 group-hover:max-w-[8rem] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[8rem] group-focus-visible:opacity-100">
+            Download now
+          </span>
         </button>
       </div>
     </div>

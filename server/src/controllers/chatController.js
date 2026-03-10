@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const { runChat } = require('../services/chatService');
+const { sanitizeChatInput } = require('../utils/agentInputSanitizer');
 
 exports.chat = async (req, res, next) => {
   try {
@@ -14,23 +15,18 @@ exports.chat = async (req, res, next) => {
     }
 
     const userId = req.user._id;
-    const {
-      message,
-      provider = 'auto',
-      model = 'auto',
-      topK = 3,
-      collectionIds = []
-    } = req.body;
+    const sanitizedInput = sanitizeChatInput(req.body || {});
+
+    if (!sanitizedInput.message) {
+      return res.status(400).json({
+        success: false,
+        message: 'message must include readable text'
+      });
+    }
 
     const result = await runChat({
       userId,
-      message: String(message),
-      provider,
-      model,
-      topK,
-      collectionIds: Array.isArray(collectionIds)
-        ? collectionIds.map((id) => String(id))
-        : []
+      ...sanitizedInput
     });
 
     return res.status(200).json({

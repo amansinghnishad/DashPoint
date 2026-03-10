@@ -1,98 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 import { collectionsAPI } from "../../../services/modules/collectionsApi";
 import { chatApi } from "../../../services/modules/chatApi";
 import { DASHPOINT_COLLECTIONS_CHANGED_EVENT } from "../../../shared/lib/dashboardEvents";
+import ChatCollectionPicker from "./components/ChatCollectionPicker";
+import ChatMessageBubble from "./components/ChatMessageBubble";
+import {
+  DEFAULT_TOP_K,
+  MODEL_OPTIONS_BY_PROVIDER,
+  PROVIDER_OPTIONS,
+  isOpenAiModel,
+} from "./chatBar.constants";
+import {
+  getStreamStepSize,
+  normalizeCollectionsResponse,
+  sanitizeMessageForSubmit,
+} from "./chatBar.utils";
 
-const DEFAULT_TOP_K = 3;
-const STREAM_STEP_CHARS = 10;
-const STREAM_STEP_MS = 24;
-
-const PROVIDER_OPTIONS = [
-  { value: "auto", label: "Auto" },
-  { value: "openai", label: "OpenAI" },
-  { value: "gemini", label: "Gemini" },
-];
-
-const MODEL_OPTIONS_BY_PROVIDER = {
-  auto: [
-    { value: "auto", label: "Auto" },
-    { value: "gpt-4.1-mini", label: "gpt-4.1-mini" },
-    { value: "gemini-2.5-flash", label: "gemini-2.5-flash" },
-  ],
-  openai: [
-    { value: "auto", label: "Auto" },
-    { value: "gpt-4.1-mini", label: "gpt-4.1-mini" },
-    { value: "gpt-4.1", label: "gpt-4.1" },
-    { value: "gpt-4o-mini", label: "gpt-4o-mini" },
-  ],
-  gemini: [
-    { value: "auto", label: "Auto" },
-    { value: "gemini-2.5-flash", label: "gemini-2.5-flash" },
-    { value: "gemini-1.5-pro", label: "gemini-1.5-pro" },
-  ],
-};
-
-const OPENAI_MODEL_PREFIXES = ["gpt", "o1", "o3", "o4"];
-
-const isOpenAiModel = (modelName) => {
-  const normalized = String(modelName || "").trim().toLowerCase();
-  if (!normalized || normalized === "auto") return false;
-
-  return OPENAI_MODEL_PREFIXES.some((prefix) => normalized.startsWith(prefix));
-};
-
-const normalizeCollectionsResponse = (response) => {
-  const list =
-    response?.data?.collections ?? response?.data?.data?.collections ?? [];
-  if (!Array.isArray(list)) return [];
-
-  return list
-    .map((collection) => {
-      const id = String(collection?._id || collection?.id || "").trim();
-      if (!id) return null;
-
-      return {
-        id,
-        name: String(collection?.name || "Untitled").trim() || "Untitled",
-      };
-    })
-    .filter(Boolean);
-};
-
-const buildMetaLabel = (meta) => {
-  if (!meta) return "";
-
-  const provider = String(meta.provider || "").trim();
-  const model = String(meta.model || "").trim();
-  const hitCount = Number(meta?.retrieval?.hitCount || 0);
-
-  const parts = [];
-  if (provider && model) parts.push(`${provider}/${model}`);
-  if (provider && !model) parts.push(provider);
-  if (hitCount > 0) parts.push(`${hitCount} context`);
-
-  return parts.join(" | ");
-};
-
-function MarkdownBubble({ content }) {
-  return (
-    <div className="dp-markdown text-sm leading-6">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-    </div>
-  );
-}
-
-function PendingBubble() {
-  return (
-    <div className="flex items-center gap-2 text-sm dp-text-muted">
-      <span className="inline-flex h-2.5 w-2.5 animate-pulse rounded-full dp-status-online" />
-      <span>Thinking...</span>
-    </div>
-  );
-}
+const FALLBACK_DONE_RESPONSE = "Done.";
+const FALLBACK_ERROR_RESPONSE = "Unable to complete chat request.";
+const OPENAI_COMING_SOON_MESSAGE =
+  "This model is under development. Try using Gemini.";
 
 export default function DashboardChatBar({
   className = "",
@@ -102,15 +30,7 @@ export default function DashboardChatBar({
   const [provider, setProvider] = useState("auto");
   const [model, setModel] = useState("auto");
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      id: "assistant-welcome",
-      role: "assistant",
-      content:
-        "Chat is ready. You can scope RAG to selected collections, then ask questions or trigger actions like collections, notes, YouTube, and calendar scheduling.",
-      status: "done",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const [collections, setCollections] = useState([]);
   const [collectionsLoading, setCollectionsLoading] = useState(false);
@@ -118,16 +38,52 @@ export default function DashboardChatBar({
   const [selectedCollectionIds, setSelectedCollectionIds] = useState([]);
   const [collectionPickerOpen, setCollectionPickerOpen] = useState(false);
 
-  const streamTimerRef = useRef(null);
+  const streamFrameRef = useRef(null);
   const messageCounterRef = useRef(1);
   const inputRef = useRef(null);
   const scrollAnchorRef = useRef(null);
 
-  const modelOptions = useMemo(() => {
-    return (
-      MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto
-    );
-  }, [provider]);
+  const modelOptions = useMemo(
+    () => MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto,
+    [provider],
+  );
+
+  const openAiComingSoon = useMemo(
+    () => provider === "openai" || isOpenAiModel(model),
+    [model, provider],
+  );
+
+  const sanitizedDraftMessage = useMemo(
+    () => sanitizeMessageForSubmit(message),
+    [message],
+  );
+
+  const selectedCollectionsLabel = useMemo(() => {
+    if (!selectedCollectionIds.length) {
+      return "All collections";
+    }
+
+    const names = selectedCollectionIds
+      .map((id) => collections.find((collection) => collection.id === id)?.name)
+      .filter(Boolean);
+
+    if (!names.length) return "Selected collections";
+    if (names.length <= 2) return names.join(", ");
+    return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
+  }, [collections, selectedCollectionIds]);
+
+  const nextMessageId = useCallback(() => {
+    messageCounterRef.current += 1;
+    return `chat-${messageCounterRef.current}`;
+  }, []);
+
+  const scrollToBottom = useCallback((behavior = "auto") => {
+    if (!scrollAnchorRef.current) return;
+    scrollAnchorRef.current.scrollIntoView({
+      behavior,
+      block: "end",
+    });
+  }, []);
 
   const loadCollections = useCallback(async () => {
     setCollectionsLoading(true);
@@ -147,44 +103,194 @@ export default function DashboardChatBar({
     }
   }, []);
 
-  const selectedCollectionsLabel = useMemo(() => {
-    if (!selectedCollectionIds.length) {
-      return "All collections";
-    }
-
-    const names = selectedCollectionIds
-      .map((id) => collections.find((collection) => collection.id === id)?.name)
-      .filter(Boolean);
-
-    if (!names.length) return "Selected collections";
-    if (names.length <= 2) return names.join(", ");
-    return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
-  }, [collections, selectedCollectionIds]);
-
-  const openAiComingSoon = useMemo(() => {
-    if (provider === "openai") {
-      return true;
-    }
-
-    return isOpenAiModel(model);
-  }, [model, provider]);
-
-  const nextMessageId = useCallback(() => {
-    messageCounterRef.current += 1;
-    return `chat-${messageCounterRef.current}`;
+  const updateMessage = useCallback((id, updates) => {
+    setMessages((current) =>
+      current.map((entry) =>
+        entry.id === id ? { ...entry, ...updates } : entry,
+      ),
+    );
   }, []);
 
-  const scrollToBottom = useCallback(() => {
-    if (!scrollAnchorRef.current) return;
-    scrollAnchorRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
+  const stopStreamingAnimation = useCallback(() => {
+    if (!streamFrameRef.current) return;
+    cancelAnimationFrame(streamFrameRef.current);
+    streamFrameRef.current = null;
+  }, []);
+
+  const streamAssistantText = useCallback(
+    (messageId, fullText, meta) =>
+      new Promise((resolve) => {
+        const finalText = String(fullText || "").trim() || FALLBACK_DONE_RESPONSE;
+
+        stopStreamingAnimation();
+
+        if (finalText.length <= 140) {
+          updateMessage(messageId, {
+            role: "assistant",
+            content: finalText,
+            status: "done",
+            meta,
+          });
+          resolve();
+          return;
+        }
+
+        const stepSize = getStreamStepSize(finalText.length);
+        let cursor = 0;
+
+        const step = () => {
+          cursor = Math.min(finalText.length, cursor + stepSize);
+          const isComplete = cursor >= finalText.length;
+
+          updateMessage(messageId, {
+            role: "assistant",
+            content: finalText.slice(0, cursor),
+            status: isComplete ? "done" : "streaming",
+            meta,
+          });
+
+          if (isComplete) {
+            streamFrameRef.current = null;
+            resolve();
+            return;
+          }
+
+          streamFrameRef.current = requestAnimationFrame(step);
+        };
+
+        streamFrameRef.current = requestAnimationFrame(step);
+      }),
+    [stopStreamingAnimation, updateMessage],
+  );
+
+  const toggleCollection = useCallback((collectionId) => {
+    setSelectedCollectionIds((current) => {
+      if (current.includes(collectionId)) {
+        return current.filter((id) => id !== collectionId);
+      }
+
+      return [...current, collectionId];
     });
   }, []);
 
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+
+      const sanitizedMessage = sanitizeMessageForSubmit(message);
+      if (!sanitizedMessage || isSending) return;
+
+      const userMessageId = nextMessageId();
+      const assistantMessageId = nextMessageId();
+
+      if (openAiComingSoon) {
+        setMessages((current) => [
+          ...current,
+          {
+            id: userMessageId,
+            role: "user",
+            content: sanitizedMessage,
+            status: "done",
+          },
+          {
+            id: assistantMessageId,
+            role: "assistant",
+            content: OPENAI_COMING_SOON_MESSAGE,
+            status: "done",
+          },
+        ]);
+
+        setMessage("");
+        return;
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          id: userMessageId,
+          role: "user",
+          content: sanitizedMessage,
+          status: "done",
+        },
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "",
+          status: "loading",
+        },
+      ]);
+
+      setMessage("");
+      setIsSending(true);
+
+      try {
+        const response = await chatApi.sendMessage({
+          message: sanitizedMessage,
+          provider,
+          model,
+          topK: DEFAULT_TOP_K,
+          collectionIds: selectedCollectionIds,
+        });
+
+        const payload = response?.data || {};
+        const finalText =
+          String(payload?.response || "").trim() || FALLBACK_DONE_RESPONSE;
+        const collectionChanged = Boolean(payload?.mutations?.collectionChanged);
+
+        if (collectionChanged) {
+          window.dispatchEvent(
+            new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
+              detail: payload?.mutations || {},
+            }),
+          );
+          loadCollections();
+        }
+
+        await streamAssistantText(assistantMessageId, finalText, {
+          provider: payload?.provider,
+          model: payload?.model,
+          mutations: payload?.mutations,
+          retrieval: payload?.retrieval,
+        });
+      } catch (error) {
+        const errorText =
+          error?.response?.data?.message ||
+          error?.message ||
+          FALLBACK_ERROR_RESPONSE;
+
+        updateMessage(assistantMessageId, {
+          role: "error",
+          content: errorText,
+          status: "done",
+          meta: null,
+        });
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [
+      isSending,
+      loadCollections,
+      message,
+      model,
+      nextMessageId,
+      openAiComingSoon,
+      provider,
+      selectedCollectionIds,
+      streamAssistantText,
+      updateMessage,
+    ],
+  );
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isSending, scrollToBottom]);
+    const latest = messages[messages.length - 1];
+    const behavior =
+      latest?.status === "streaming" || latest?.status === "loading"
+        ? "auto"
+        : "smooth";
+
+    scrollToBottom(behavior);
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
     const keyHandler = (event) => {
@@ -218,179 +324,7 @@ export default function DashboardChatBar({
     );
   }, [collections]);
 
-  useEffect(() => {
-    return () => {
-      if (streamTimerRef.current) {
-        clearInterval(streamTimerRef.current);
-      }
-    };
-  }, []);
-
-  const updateMessage = useCallback((id, updates) => {
-    setMessages((current) =>
-      current.map((entry) =>
-        entry.id === id ? { ...entry, ...updates } : entry,
-      ),
-    );
-  }, []);
-
-  const streamAssistantText = useCallback(
-    (messageId, fullText, meta) =>
-      new Promise((resolve) => {
-        const finalText = String(fullText || "").trim() || "Done.";
-
-        if (streamTimerRef.current) {
-          clearInterval(streamTimerRef.current);
-          streamTimerRef.current = null;
-        }
-
-        let cursor = 0;
-
-        const step = () => {
-          cursor = Math.min(finalText.length, cursor + STREAM_STEP_CHARS);
-          const partial = finalText.slice(0, cursor);
-
-          updateMessage(messageId, {
-            role: "assistant",
-            content: partial,
-            status: cursor >= finalText.length ? "done" : "streaming",
-            meta,
-          });
-
-          if (cursor >= finalText.length) {
-            clearInterval(streamTimerRef.current);
-            streamTimerRef.current = null;
-            resolve();
-          }
-        };
-
-        step();
-        streamTimerRef.current = setInterval(step, STREAM_STEP_MS);
-      }),
-    [updateMessage],
-  );
-
-  const toggleCollection = useCallback((collectionId) => {
-    setSelectedCollectionIds((current) => {
-      if (current.includes(collectionId)) {
-        return current.filter((id) => id !== collectionId);
-      }
-
-      return [...current, collectionId];
-    });
-  }, []);
-
-  const handleSubmit = useCallback(
-    async (event) => {
-      event.preventDefault();
-
-      const trimmed = message.trim();
-      if (!trimmed || isSending) return;
-
-      if (openAiComingSoon) {
-        const userMessageId = nextMessageId();
-        const assistantMessageId = nextMessageId();
-
-        setMessages((current) => [
-          ...current,
-          {
-            id: userMessageId,
-            role: "user",
-            content: trimmed,
-            status: "done",
-          },
-          {
-            id: assistantMessageId,
-            role: "assistant",
-            content:
-              "This model is under development. Try using Gemini.",
-            status: "done",
-          },
-        ]);
-
-        setMessage("");
-        return;
-      }
-
-      const userMessageId = nextMessageId();
-      const assistantMessageId = nextMessageId();
-
-      setMessages((current) => [
-        ...current,
-        {
-          id: userMessageId,
-          role: "user",
-          content: trimmed,
-          status: "done",
-        },
-        {
-          id: assistantMessageId,
-          role: "assistant",
-          content: "",
-          status: "loading",
-        },
-      ]);
-
-      setMessage("");
-      setIsSending(true);
-
-      try {
-        const response = await chatApi.sendMessage({
-          message: trimmed,
-          provider,
-          model,
-          topK: DEFAULT_TOP_K,
-          collectionIds: selectedCollectionIds,
-        });
-
-        const payload = response?.data || {};
-        const finalText = String(payload?.response || "").trim() || "Done.";
-        const collectionChanged = Boolean(payload?.mutations?.collectionChanged);
-
-        if (collectionChanged) {
-          window.dispatchEvent(
-            new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
-              detail: payload?.mutations || {},
-            }),
-          );
-          loadCollections();
-        }
-
-        await streamAssistantText(assistantMessageId, finalText, {
-          provider: payload?.provider,
-          model: payload?.model,
-          mutations: payload?.mutations,
-          retrieval: payload?.retrieval,
-        });
-      } catch (error) {
-        const errorText =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Unable to complete chat request.";
-
-        updateMessage(assistantMessageId, {
-          role: "error",
-          content: errorText,
-          status: "done",
-          meta: null,
-        });
-      } finally {
-        setIsSending(false);
-      }
-    },
-    [
-      isSending,
-      message,
-      model,
-      nextMessageId,
-      provider,
-      selectedCollectionIds,
-      loadCollections,
-      openAiComingSoon,
-      streamAssistantText,
-      updateMessage,
-    ],
-  );
+  useEffect(() => stopStreamingAnimation, [stopStreamingAnimation]);
 
   if (!show) return null;
 
@@ -400,38 +334,9 @@ export default function DashboardChatBar({
     >
       <div className="dp-surface dp-border overflow-hidden rounded-2xl border shadow-xl">
         <div className="max-h-[48vh] space-y-3 overflow-y-auto p-3 dp-chat-scroll">
-          {messages.map((entry) => {
-            const isUser = entry.role === "user";
-            const isError = entry.role === "error";
-            const bubbleClass = isUser
-              ? "dp-chat-bubble-user"
-              : isError
-                ? "dp-chat-bubble-error"
-                : "dp-chat-bubble-assistant";
-
-            return (
-              <div
-                key={entry.id}
-                className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[90%] rounded-2xl px-4 py-3 sm:max-w-[82%] ${bubbleClass}`}
-                >
-                  {entry.status === "loading" ? (
-                    <PendingBubble />
-                  ) : (
-                    <MarkdownBubble content={entry.content} />
-                  )}
-
-                  {entry.role === "assistant" && entry.meta ? (
-                    <p className="mt-2 text-[11px] dp-text-subtle">
-                      {buildMetaLabel(entry.meta)}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            );
-          })}
+          {messages.map((entry) => (
+            <ChatMessageBubble key={entry.id} entry={entry} />
+          ))}
           <div ref={scrollAnchorRef} />
         </div>
 
@@ -487,43 +392,18 @@ export default function DashboardChatBar({
 
           {openAiComingSoon ? (
             <p className="mb-2 rounded-lg border border-amber-300/60 bg-amber-100/60 px-3 py-1.5 text-xs text-amber-900">
-              This model is under development. Try using Gemini.
+              {OPENAI_COMING_SOON_MESSAGE}
             </p>
           ) : null}
 
-          {collectionPickerOpen ? (
-            <div className="mb-2 rounded-xl border dp-border dp-surface-muted p-2">
-              {collectionsLoading ? (
-                <p className="text-xs dp-text-muted">Loading collections...</p>
-              ) : collectionsError ? (
-                <p className="text-xs dp-text-danger">{collectionsError}</p>
-              ) : !collections.length ? (
-                <p className="text-xs dp-text-muted">No collections found.</p>
-              ) : (
-                <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto pr-1">
-                  {collections.map((collection) => {
-                    const selected = selectedCollectionIds.includes(
-                      collection.id,
-                    );
-                    return (
-                      <button
-                        key={collection.id}
-                        type="button"
-                        onClick={() => toggleCollection(collection.id)}
-                        className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                          selected
-                            ? "dp-btn-primary border-transparent"
-                            : "dp-surface dp-border dp-text-muted"
-                        }`}
-                      >
-                        {collection.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ) : null}
+          <ChatCollectionPicker
+            open={collectionPickerOpen}
+            collectionsLoading={collectionsLoading}
+            collectionsError={collectionsError}
+            collections={collections}
+            selectedCollectionIds={selectedCollectionIds}
+            onToggleCollection={toggleCollection}
+          />
 
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <textarea
@@ -545,7 +425,7 @@ export default function DashboardChatBar({
 
             <button
               type="submit"
-              disabled={isSending || !message.trim() || openAiComingSoon}
+              disabled={isSending || !sanitizedDraftMessage || openAiComingSoon}
               className="dp-btn-primary inline-flex h-11 min-w-11 items-center justify-center rounded-xl px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               aria-label="Send"
               title="Send"

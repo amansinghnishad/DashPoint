@@ -30,6 +30,10 @@ const features = [
   },
 ];
 
+const WORD_REVEAL_STAGGER = 0.04;
+const WORD_REVEAL_BASE_START = 0;
+const WORD_REVEAL_BASE_END = 0.14;
+
 export default function FeaturesSection() {
   return (
     <section className="relative dp-bg dp-text overflow-hidden">
@@ -76,9 +80,9 @@ font-extrabold tracking-widest dp-text-subtle opacity-10"
               {/* Story Text */}
               <div className="mb-16 flex flex-wrap justify-center gap-4 max-w-4xl z-10">
                 {words.map((word, i) => {
-                  const delay = i * 0.01;
-                  const wordStart = 0.08 + delay;
-                  const wordEnd = 0.26 + delay;
+                  const delay = i * WORD_REVEAL_STAGGER;
+                  const wordStart = WORD_REVEAL_BASE_START + delay;
+                  const wordEnd = WORD_REVEAL_BASE_END + delay;
 
                   const wordOpacity = useTransform(
                     smooth,
