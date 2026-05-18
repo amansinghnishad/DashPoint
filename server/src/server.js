@@ -18,6 +18,7 @@ const fileRoutes = require('./routes/fileRoutes');
 const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 const app = express();
 
@@ -123,7 +124,8 @@ app.get('/', (req, res) => {
       youtube: '/api/youtube',
       collections: '/api/collections',
       files: '/api/files',
-      chat: '/api/chat'
+      chat: '/api/chat',
+      search: '/api/search'
     },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
@@ -138,6 +140,7 @@ app.use('/api/files', fileRoutes);
 app.use('/api/planner-widgets', plannerWidgetRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/search', searchRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -172,4 +175,3 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 module.exports = app;
-

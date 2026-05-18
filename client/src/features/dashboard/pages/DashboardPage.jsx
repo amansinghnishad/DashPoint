@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, useReducer } from "react";
+import { lazy, Suspense, useCallback, useMemo, useReducer, useRef } from "react";
 
 import { IconMenu } from "@/shared/ui/icons/icons";
 
@@ -6,6 +6,7 @@ import Clock from "../../../shared/ui/Clock/Clock";
 import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { SideBar } from "../../../shared/ui/Navbars/SideBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
+import UniversalSearch from "../../../shared/ui/Search/UniversalSearch";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 import useDashboardKeyboardShortcuts, {
   DASHBOARD_SHORTCUT_GROUPS,
@@ -56,6 +57,8 @@ function dashboardUiReducer(state, action) {
 
 export default function DashboardPage() {
   const [uiState, dispatchUi] = useReducer(dashboardUiReducer, DASHBOARD_UI_INITIAL_STATE);
+  const desktopSearchInputRef = useRef(null);
+  const mobileSearchInputRef = useRef(null);
 
   const setActiveTab = useCallback((value) => {
     dispatchUi({ type: "SET_ACTIVE_TAB", payload: value });
@@ -75,6 +78,36 @@ export default function DashboardPage() {
     dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: false });
   }, []);
 
+  const onUniversalSearchSelect = useCallback(
+    (result) => {
+      const type = result?.type;
+      const metadata = result?.metadata || {};
+      const collectionId = metadata.collectionId || (type === "collection" ? result.id : "");
+
+      if (collectionId) {
+        onOpenCollection(collectionId);
+        return;
+      }
+
+      const tabByType = {
+        file: "files",
+        youtube: "youtube",
+        youtube_transcript: "youtube",
+        calendar_event: "calendar",
+        planner_widget: "collections",
+        chat_message: "collections",
+      };
+
+      const nextTab = tabByType[type];
+      if (!nextTab) return;
+
+      dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null });
+      dispatchUi({ type: "SET_ACTIVE_TAB", payload: nextTab });
+      dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: false });
+    },
+    [onOpenCollection],
+  );
+
   useDashboardKeyboardShortcuts({
     disabled:
       Boolean(uiState.openCollectionId) ||
@@ -83,6 +116,12 @@ export default function DashboardPage() {
       uiState.shortcutsOpen,
     onNavigate: onShortcutNavigate,
     onOpenShortcuts: () => dispatchUi({ type: "SET_SHORTCUTS_OPEN", payload: true }),
+    onFocusSearch: () => {
+      const isSmallScreen =
+        typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
+      const target = isSmallScreen ? mobileSearchInputRef.current : desktopSearchInputRef.current;
+      target?.focus();
+    },
     onToggleSidebar: () => dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: !uiState.sidebarOpen }),
   });
 
@@ -153,7 +192,21 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <Clock />
+              <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+                <div className="hidden min-w-0 flex-1 justify-end sm:flex">
+                  <UniversalSearch
+                    ref={desktopSearchInputRef}
+                    onResultSelect={onUniversalSearchSelect}
+                  />
+                </div>
+                <Clock />
+              </div>
+            </div>
+            <div className="mt-3 sm:hidden">
+              <UniversalSearch
+                ref={mobileSearchInputRef}
+                onResultSelect={onUniversalSearchSelect}
+              />
             </div>
           </header>
 

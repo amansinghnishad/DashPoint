@@ -28,6 +28,7 @@ export const DASHBOARD_SHORTCUT_GROUPS = [
     title: "Dashboard",
     items: [
       { keys: ["?"], description: "Open keyboard shortcuts" },
+      { keys: ["Ctrl/Cmd", "K"], description: "Focus universal search" },
       { keys: ["Ctrl/Cmd", "B"], description: "Toggle the sidebar" },
       { keys: ["Ctrl/Cmd", "/"], description: "Focus the AI chat" },
     ],
@@ -56,6 +57,7 @@ export default function useDashboardKeyboardShortcuts({
   disabled = false,
   onNavigate,
   onOpenShortcuts,
+  onFocusSearch,
   onToggleSidebar,
 }) {
   const sequenceRef = useRef(null);
@@ -92,6 +94,13 @@ export default function useDashboardKeyboardShortcuts({
         event.preventDefault();
         resetSequence();
         onToggleSidebar?.();
+        return;
+      }
+
+      if (hasShortcutModifier(event) && key === "k" && !event.altKey && !event.shiftKey) {
+        event.preventDefault();
+        resetSequence();
+        onFocusSearch?.();
         return;
       }
 
@@ -133,5 +142,5 @@ export default function useDashboardKeyboardShortcuts({
       window.removeEventListener("keydown", onKeyDown);
       resetSequence();
     };
-  }, [disabled, onNavigate, onOpenShortcuts, onToggleSidebar]);
+  }, [disabled, onFocusSearch, onNavigate, onOpenShortcuts, onToggleSidebar]);
 }

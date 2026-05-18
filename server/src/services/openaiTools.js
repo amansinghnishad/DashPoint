@@ -1,5 +1,99 @@
 const functionDefinitions = [
   {
+    name: 'getAssistantMemory',
+    description:
+      'Read the authenticated user assistant memory, including working hours, preferred meeting length, favorite topics, recurring goals, writing style, task priorities, and additional preferences.',
+    parameters: {
+      type: 'object',
+      properties: {},
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'updateAssistantMemory',
+    description:
+      'Store explicit user preferences in assistant memory. Use only when the user clearly asks to remember something or directly states a stable preference such as working hours, preferred meeting length, favorite topics, recurring goals, writing style, or task priorities. Do not store sensitive secrets, passwords, payment data, medical identifiers, or temporary one-off instructions.',
+    parameters: {
+      type: 'object',
+      properties: {
+        workingHours: {
+          type: 'object',
+          properties: {
+            timezone: { type: 'string', maxLength: 100 },
+            days: {
+              type: 'array',
+              items: { type: 'string', maxLength: 20 },
+              maxItems: 7
+            },
+            startTime: { type: 'string', maxLength: 20 },
+            endTime: { type: 'string', maxLength: 20 },
+            notes: { type: 'string', maxLength: 500 }
+          },
+          additionalProperties: false
+        },
+        preferredMeetingLengthMinutes: {
+          type: 'integer',
+          minimum: 5,
+          maximum: 480
+        },
+        favoriteTopics: {
+          type: 'array',
+          items: { type: 'string', maxLength: 80 },
+          maxItems: 20
+        },
+        recurringGoals: {
+          type: 'array',
+          items: { type: 'string', maxLength: 160 },
+          maxItems: 20
+        },
+        writingStyle: {
+          type: 'object',
+          properties: {
+            tone: { type: 'string', maxLength: 80 },
+            detailLevel: {
+              type: 'string',
+              enum: ['brief', 'balanced', 'detailed']
+            },
+            format: { type: 'string', maxLength: 120 },
+            notes: { type: 'string', maxLength: 500 }
+          },
+          additionalProperties: false
+        },
+        taskPriorities: {
+          type: 'array',
+          items: { type: 'string', maxLength: 120 },
+          maxItems: 20
+        },
+        additionalPreferences: {
+          type: 'array',
+          items: { type: 'string', maxLength: 160 },
+          maxItems: 20
+        },
+        clearFields: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: [
+              'workingHours',
+              'preferredMeetingLengthMinutes',
+              'favoriteTopics',
+              'recurringGoals',
+              'writingStyle',
+              'taskPriorities',
+              'additionalPreferences'
+            ]
+          },
+          maxItems: 7
+        },
+        mergeMode: {
+          type: 'string',
+          enum: ['merge', 'replace']
+        }
+      },
+      additionalProperties: false
+    }
+  },
+  {
     name: 'createCollection',
     description: 'Create a new collection for the authenticated user',
     parameters: {
@@ -71,6 +165,56 @@ const functionDefinitions = [
         searchQuery: { type: 'string', minLength: 2, maxLength: 200 },
         category: { type: 'string', maxLength: 50 },
         isFavorite: { type: 'boolean' }
+      },
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'runYouTubeLearningWorkflow',
+    description:
+      'Run an agentic learning workflow for a YouTube video: create/reuse a collection, save and index the video, retrieve transcript context, extract action items into a planner todo widget, and optionally schedule a Google Calendar focus block. Use this when the user asks for multiple actions such as summarizing a video, creating tasks, and scheduling work time.',
+    parameters: {
+      type: 'object',
+      properties: {
+        collectionId: { type: 'string', minLength: 1 },
+        collectionName: { type: 'string', minLength: 1, maxLength: 100 },
+        youtubeUrl: { type: 'string', minLength: 5, maxLength: 400 },
+        videoId: { type: 'string', minLength: 6, maxLength: 30 },
+        searchQuery: { type: 'string', minLength: 2, maxLength: 200 },
+        goal: {
+          type: 'string',
+          maxLength: 500,
+          description: 'User goal for the workflow, used to retrieve the most relevant transcript context.'
+        },
+        summaryPrompt: {
+          type: 'string',
+          maxLength: 500,
+          description: 'Specific summarization focus requested by the user.'
+        },
+        maxActionItems: { type: 'integer', minimum: 1, maximum: 20 },
+        todoTitle: { type: 'string', maxLength: 100 },
+        createScheduleBlock: {
+          type: 'boolean',
+          description: 'Set true only when the user asks to schedule time on Google Calendar.'
+        },
+        scheduleTitle: { type: 'string', maxLength: 200 },
+        scheduleDescription: { type: 'string', maxLength: 5000 },
+        durationMinutes: { type: 'integer', minimum: 5, maximum: 480 },
+        timeMin: { type: 'string', maxLength: 64 },
+        timeMax: { type: 'string', maxLength: 64 },
+        timezone: { type: 'string', maxLength: 100 },
+        conflictStrategy: {
+          type: 'string',
+          enum: ['auto', 'split', 'shorten', 'next-window']
+        },
+        minSessionMinutes: { type: 'integer', minimum: 5, maximum: 240 },
+        maxSplitParts: { type: 'integer', minimum: 1, maximum: 24 },
+        allowLightPractice: { type: 'boolean' },
+        colorId: { type: 'integer', minimum: 1, maximum: 11 },
+        dashpointColor: {
+          type: 'string',
+          enum: ['info', 'success', 'warning', 'danger']
+        }
       },
       additionalProperties: false
     }

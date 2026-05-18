@@ -4,7 +4,17 @@ const mongoose = require('mongoose');
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
 const YouTube = require('../models/YouTube');
+const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
+const {
+  extractActionItemsFromText,
+  mapSuggestionsToTodoItems
+} = require('./actionItemExtractionService');
+const {
+  getAssistantMemoryForUser,
+  updateAssistantMemoryForUser
+} = require('./assistantMemoryService');
 const { attachEmbeddingToPlannerWidget } = require('./embeddingsService');
+const { retrieveChatContext } = require('./chatContextService');
 const { indexTranscriptForVideo } = require('./youtubeTranscriptService');
 const {
   getGoogleCalendarStatusTool,
@@ -42,6 +52,12 @@ const normalizeCollectionName = (value) =>
     .trim()
     .replace(/\s+collection$/i, '')
     .trim();
+
+const normalizeText = (value, maxLength = 8000) =>
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
 
 const extractVideoId = (input) => {
   const raw = String(input || '').trim();
@@ -358,6 +374,46 @@ const createCollectionWithNote = async (userId, args) => {
   };
 };
 
+const ensureWorkflowCollection = async (userId, args = {}) => {
+  const collectionId = String(args?.collectionId || '').trim();
+  if (collectionId) {
+    if (!mongoose.isValidObjectId(collectionId)) {
+      throw new Error('collectionId must be a valid MongoDB id');
+    }
+
+    const collection = await Collection.findOne({ _id: collectionId, userId });
+    if (!collection) {
+      throw new Error('Collection not found');
+    }
+
+    return collection;
+  }
+
+  const normalizedName =
+    normalizeCollectionName(args?.collectionName) || 'AI Learning Workflows';
+  const existing = await Collection.findOne({
+    userId,
+    name: { $regex: `^${escapeRegex(normalizedName)}$`, $options: 'i' }
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  const collection = new Collection({
+    userId,
+    name: normalizedName,
+    description: 'AI-generated learning workflows, summaries, and action items',
+    color: '#3B82F6',
+    icon: 'Sparkles',
+    tags: ['ai', 'workflow'],
+    isPrivate: true
+  });
+
+  await collection.save();
+  return collection;
+};
+
 const addYouTubeVideoToCollection = async (userId, args) => {
   const collection = await resolveCollectionForUser(userId, args);
   const explicitVideoId =
@@ -432,8 +488,218 @@ const addYouTubeVideoToCollection = async (userId, args) => {
   };
 };
 
+const getTranscriptSourceForVideo = async ({ userId, video, collectionId, prompt }) => {
+  const query = normalizeText(
+    prompt || `Summarize ${video?.title || 'this video'} and extract action items`,
+    500
+  );
+
+  const retrieval = await retrieveChatContext({
+    userId,
+    query,
+    topK: 8,
+    collectionIds: collectionId ? [collectionId] : [],
+    embeddingProviders: []
+  });
+
+  const retrievalText = normalizeText(retrieval?.contextText, 12000);
+  if (retrievalText) {
+    return {
+      sourceText: retrievalText,
+      source: 'rag',
+      retrieval: {
+        hitCount: retrieval.items.length,
+        sources: retrieval.items.map((item) => ({
+          contextId: item.contextId,
+          sourceType: item.sourceType,
+          sourceLabel: item.sourceLabel,
+          score: item.score
+        }))
+      }
+    };
+  }
+
+  const chunks = await VideoIntelligenceChunk.find({
+    userId,
+    youtubeId: video._id
+  })
+    .sort({ chunkIndex: 1 })
+    .limit(16)
+    .select('text chunkIndex startSec durationSec')
+    .lean();
+
+  const chunkText = normalizeText(
+    chunks.map((chunk) => chunk.text).filter(Boolean).join('\n\n'),
+    12000
+  );
+
+  if (chunkText) {
+    return {
+      sourceText: chunkText,
+      source: 'transcript_chunks',
+      retrieval: {
+        hitCount: chunks.length,
+        sources: chunks.map((chunk, index) => ({
+          contextId: `T${index + 1}`,
+          sourceType: 'youtube_transcript',
+          sourceLabel: video.title,
+          startSec: Number(chunk.startSec) || 0,
+          durationSec: Number(chunk.durationSec) || 0
+        }))
+      }
+    };
+  }
+
+  const fallbackText = normalizeText(
+    [video.title, video.channelTitle, video.description].filter(Boolean).join('\n\n'),
+    5000
+  );
+
+  return {
+    sourceText: fallbackText,
+    source: fallbackText ? 'video_metadata' : 'none',
+    retrieval: {
+      hitCount: fallbackText ? 1 : 0,
+      sources: fallbackText
+        ? [
+            {
+              contextId: 'M1',
+              sourceType: 'youtube_metadata',
+              sourceLabel: video.title
+            }
+          ]
+        : []
+    }
+  };
+};
+
+const createTodoWidgetFromSuggestions = async ({
+  userId,
+  collection,
+  title,
+  suggestions
+}) => {
+  const todoItems = mapSuggestionsToTodoItems(suggestions);
+  if (!todoItems.length) {
+    return null;
+  }
+
+  const widget = new PlannerWidget({
+    userId,
+    widgetType: 'todo-list',
+    title: normalizeText(title || 'Video action items', 100),
+    data: {
+      items: todoItems,
+      source: 'youtube_learning_workflow'
+    }
+  });
+
+  await attachEmbeddingToPlannerWidget(widget);
+  await widget.save();
+  await collection.addItem('planner', String(widget._id));
+
+  return {
+    _id: String(widget._id),
+    widgetType: widget.widgetType,
+    title: widget.title,
+    data: widget.data
+  };
+};
+
+const runYouTubeLearningWorkflow = async (userId, args = {}) => {
+  const collection = await ensureWorkflowCollection(userId, args);
+  const savedVideo = await addYouTubeVideoToCollection(userId, {
+    ...args,
+    collectionId: String(collection._id)
+  });
+
+  const video = await YouTube.findOne({
+    _id: savedVideo?.video?._id,
+    userId
+  });
+
+  if (!video) {
+    throw new Error('Saved YouTube video could not be loaded');
+  }
+
+  const transcriptSource = await getTranscriptSourceForVideo({
+    userId,
+    video,
+    collectionId: String(collection._id),
+    prompt: args?.goal || args?.summaryPrompt || args?.searchQuery
+  });
+
+  const extraction = await extractActionItemsFromText({
+    rawText: transcriptSource.sourceText,
+    maxItems: args?.maxActionItems
+  });
+
+  const widget = await createTodoWidgetFromSuggestions({
+    userId,
+    collection,
+    title: args?.todoTitle || `Action items: ${video.title}`,
+    suggestions: extraction.suggestions
+  });
+
+  let schedule = null;
+  if (args?.createScheduleBlock) {
+    try {
+      schedule = await scheduleGoogleCalendarBlockTool(userId, {
+        summary: args?.scheduleTitle || `Work on: ${video.title}`,
+        description:
+          args?.scheduleDescription ||
+          `DashPoint workflow generated from ${video.url}\n\nAction items:\n${extraction.suggestions
+            .map((item) => `- ${item.text}`)
+            .join('\n')}`,
+        durationMinutes: args?.durationMinutes,
+        timeMin: args?.timeMin,
+        timeMax: args?.timeMax,
+        timezone: args?.timezone,
+        conflictStrategy: args?.conflictStrategy,
+        minSessionMinutes: args?.minSessionMinutes,
+        maxSplitParts: args?.maxSplitParts,
+        allowLightPractice: args?.allowLightPractice,
+        createEvents: true,
+        colorId: args?.colorId,
+        dashpointType: 'youtube-learning-workflow',
+        dashpointColor: args?.dashpointColor || 'info'
+      });
+    } catch (error) {
+      schedule = {
+        ok: false,
+        error: error.message
+      };
+    }
+  }
+
+  return {
+    message: 'YouTube learning workflow completed',
+    collection: {
+      _id: String(collection._id),
+      name: collection.name
+    },
+    video: savedVideo.video,
+    transcript: {
+      status: video.transcriptStatus,
+      source: transcriptSource.source,
+      contextExcerpt: normalizeText(transcriptSource.sourceText, 8000),
+      retrieval: transcriptSource.retrieval
+    },
+    actionItems: {
+      suggestions: extraction.suggestions,
+      meta: extraction.meta,
+      widget
+    },
+    schedule
+  };
+};
+
 const executeToolCall = async ({ name, args, userId }) => {
   switch (name) {
+    case 'getAssistantMemory':
+      return getAssistantMemoryForUser(userId);
+    case 'updateAssistantMemory':
+      return updateAssistantMemoryForUser(userId, args);
     case 'createCollection':
       return createCollectionForUser(userId, args);
     case 'addNote':
@@ -442,6 +708,8 @@ const executeToolCall = async ({ name, args, userId }) => {
       return createCollectionWithNote(userId, args);
     case 'addYouTubeVideoToCollection':
       return addYouTubeVideoToCollection(userId, args);
+    case 'runYouTubeLearningWorkflow':
+      return runYouTubeLearningWorkflow(userId, args);
     case 'getGoogleCalendarStatus':
       return getGoogleCalendarStatusTool(userId, args);
     case 'getGoogleCalendarAuthUrl':

@@ -43,6 +43,7 @@ export {
   Play,
   Plus,
   RotateCcw,
+  Search,
   Settings,
   Shield,
   Sparkles,
