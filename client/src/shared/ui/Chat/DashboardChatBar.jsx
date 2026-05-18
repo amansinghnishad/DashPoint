@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import { PROVIDER_OPTIONS } from "./chatBar.constants";
 import ChatCollectionPicker from "./components/ChatCollectionPicker";
 import ChatMessageBubble from "./components/ChatMessageBubble";
@@ -34,12 +36,23 @@ export default function DashboardChatBar({
     toggleCollection,
     openAiComingSoonMessage,
   } = useDashboardChatController();
+  const chatRootRef = useRef(null);
 
   if (!show) return null;
 
   return (
     <div
+      ref={chatRootRef}
       className={`fixed left-1/2 bottom-4 z-[80] w-[calc(100%-2rem)] max-w-4xl -translate-x-1/2 ${className}`}
+      onKeyDownCapture={(event) => {
+        if (event.key !== "Escape") return;
+        if (!chatRootRef.current?.contains(document.activeElement)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        setCollectionPickerOpen(false);
+        document.activeElement?.blur?.();
+      }}
     >
       <div className="dp-surface dp-border overflow-hidden rounded-2xl border shadow-xl">
         <div className="max-h-[48vh] space-y-3 overflow-y-auto p-3 dp-chat-scroll">

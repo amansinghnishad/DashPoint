@@ -93,6 +93,8 @@ export default function Modal({
       if (!open) return;
 
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
         if (closeOnEscape && canClose) onClose?.();
         return;
       }

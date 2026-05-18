@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "client: dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "client",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "server: dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "server",
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "client: lint",
+      "type": "npm",
+      "script": "lint",
+      "path": "client",
+      "problemMatcher": "$eslint-stylish",
+      "group": "test"
+    },
+    {
+      "label": "client: format check",
+      "type": "npm",
+      "script": "format:check",
+      "path": "client",
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "client: build",
+      "type": "npm",
+      "script": "build",
+      "path": "client",
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "server: start",
+      "type": "npm",
+      "script": "start",
+      "path": "server",
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ]
+}

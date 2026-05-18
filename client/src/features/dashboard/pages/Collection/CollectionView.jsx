@@ -7,6 +7,7 @@ import DocumentSummaryModal from "./components/DocumentSummaryModal";
 import { isPdfFile } from "./components/documentSummaryUtils";
 import ResizableItemCard from "./components/ResizableItemCard";
 import useCollectionData from "./hooks/useCollectionData";
+import useCollectionKeyboardShortcuts from "./hooks/useCollectionKeyboardShortcuts";
 import useCollectionLayouts from "./hooks/useCollectionLayouts";
 import useCollectionViewActions from "./hooks/useCollectionViewActions";
 import useCollectionViewport from "./hooks/useCollectionViewport";
@@ -95,6 +96,36 @@ export default function CollectionView({ collectionId, onBack }) {
     return new Set(items.map(getItemKey).filter((k) => typeof k === "string" && k.length));
   }, [items]);
 
+  const closePicker = useCallback(() => {
+    setPickerState((prev) => ({ ...prev, open: false }));
+  }, [setPickerState]);
+
+  const closeDocumentSummary = useCallback(() => {
+    if (isSummarizingDocument) return;
+    setDocumentSummaryOpen(false);
+  }, [isSummarizingDocument, setDocumentSummaryOpen]);
+
+  const closeDeleteConfirm = useCallback(() => {
+    if (deleteState.isRemoving) return;
+    setDeleteState((prev) => ({ ...prev, item: null }));
+  }, [deleteState.isRemoving, setDeleteState]);
+
+  useCollectionKeyboardShortcuts({
+    creatingPlanner,
+    deleteBusy: deleteState.isRemoving,
+    deleteOpen: Boolean(deleteState.item),
+    documentSummaryBusy: isSummarizingDocument,
+    documentSummaryOpen,
+    pickerOpen: pickerState.open,
+    onBack,
+    onCloseDelete: closeDeleteConfirm,
+    onCloseDocumentSummary: closeDocumentSummary,
+    onClosePicker: closePicker,
+    onCreatePlanner: createPlannerAndAdd,
+    onRecenterViewport: recenterViewport,
+    onSelectTool: handleSelectTool,
+  });
+
   if (!collectionId) return null;
 
   return (
@@ -144,7 +175,7 @@ export default function CollectionView({ collectionId, onBack }) {
             <CollectionPickerModal
               open={pickerState.open}
               tool={pickerState.tool}
-              onClose={() => setPickerState((prev) => ({ ...prev, open: false }))}
+              onClose={closePicker}
               collectionId={collectionId}
               existingKeys={existingKeys}
               onAdded={reload}
@@ -153,10 +184,7 @@ export default function CollectionView({ collectionId, onBack }) {
             <DocumentSummaryModal
               open={documentSummaryOpen}
               busy={isSummarizingDocument}
-              onClose={() => {
-                if (isSummarizingDocument) return;
-                setDocumentSummaryOpen(false);
-              }}
+              onClose={closeDocumentSummary}
               onSubmit={summarizeUploadedPdf}
             />
 
@@ -210,10 +238,7 @@ export default function CollectionView({ collectionId, onBack }) {
 
             <DeleteConfirmModal
               open={Boolean(deleteState.item)}
-              onClose={() => {
-                if (deleteState.isRemoving) return;
-                setDeleteState((prev) => ({ ...prev, item: null }));
-              }}
+              onClose={closeDeleteConfirm}
               onConfirm={confirmRemove}
               title="Remove item"
               description="Remove this item from the collection?"
