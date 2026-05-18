@@ -22,10 +22,7 @@ function applyBodyClasses(theme) {
  * @returns {'dark'|'light'}
  */
 export function getPreferredTheme() {
-  const stored =
-    typeof window !== "undefined"
-      ? window.localStorage?.getItem(STORAGE_KEY)
-      : null;
+  const stored = typeof window !== "undefined" ? window.localStorage?.getItem(STORAGE_KEY) : null;
 
   if (stored === "dark" || stored === "light") return stored;
 
@@ -43,9 +40,7 @@ function applyTheme(theme) {
   applyBodyClasses(theme);
 
   try {
-    window.dispatchEvent(
-      new CustomEvent("dashpoint-theme-change", { detail: { theme } })
-    );
+    window.dispatchEvent(new CustomEvent("dashpoint-theme-change", { detail: { theme } }));
   } catch {
     // no-op
   }
@@ -68,4 +63,3 @@ export function setTheme(theme) {
   }
   applyTheme(theme);
 }
-

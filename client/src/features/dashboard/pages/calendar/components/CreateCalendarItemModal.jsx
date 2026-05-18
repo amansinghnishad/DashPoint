@@ -42,10 +42,7 @@ export default function CreateCalendarItemModal({
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="calendar-item-type"
-              className="dp-text text-sm font-semibold"
-            >
+            <label htmlFor="calendar-item-type" className="dp-text text-sm font-semibold">
               Type
             </label>
             <select
@@ -63,10 +60,7 @@ export default function CreateCalendarItemModal({
           </div>
 
           <div>
-            <label
-              htmlFor="calendar-item-color"
-              className="dp-text text-sm font-semibold"
-            >
+            <label htmlFor="calendar-item-color" className="dp-text text-sm font-semibold">
               Color
             </label>
             <select
@@ -85,10 +79,7 @@ export default function CreateCalendarItemModal({
         </div>
 
         <div>
-          <label
-            htmlFor="calendar-item-title"
-            className="dp-text text-sm font-semibold"
-          >
+          <label htmlFor="calendar-item-title" className="dp-text text-sm font-semibold">
             Title
           </label>
           <input
@@ -101,10 +92,7 @@ export default function CreateCalendarItemModal({
         </div>
 
         <div>
-          <label
-            htmlFor="calendar-item-date"
-            className="dp-text text-sm font-semibold"
-          >
+          <label htmlFor="calendar-item-date" className="dp-text text-sm font-semibold">
             Date
           </label>
           <input
@@ -119,45 +107,33 @@ export default function CreateCalendarItemModal({
         {isTimedEvent ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="calendar-item-start"
-                className="dp-text text-sm font-semibold"
-              >
+              <label htmlFor="calendar-item-start" className="dp-text text-sm font-semibold">
                 Start
               </label>
               <input
                 id="calendar-item-start"
                 type="time"
                 value={form.startTime}
-                onChange={(event) =>
-                  onChangeField("startTime", event.target.value)
-                }
+                onChange={(event) => onChangeField("startTime", event.target.value)}
                 className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
               />
             </div>
 
             <div>
-              <label
-                htmlFor="calendar-item-end"
-                className="dp-text text-sm font-semibold"
-              >
+              <label htmlFor="calendar-item-end" className="dp-text text-sm font-semibold">
                 End
               </label>
               <input
                 id="calendar-item-end"
                 type="time"
                 value={form.endTime}
-                onChange={(event) =>
-                  onChangeField("endTime", event.target.value)
-                }
+                onChange={(event) => onChangeField("endTime", event.target.value)}
                 className="mt-2 dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
               />
             </div>
           </div>
         ) : (
-          <p className="dp-text-muted text-sm">
-            Tasks and to-dos are created as all-day items.
-          </p>
+          <p className="dp-text-muted text-sm">Tasks and to-dos are created as all-day items.</p>
         )}
       </div>
     </Modal>

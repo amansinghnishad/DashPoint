@@ -1,11 +1,6 @@
 import { useCallback } from "react";
 
-import fileService from "../../../../../services/modules/fileService";
-import { collectionsAPI } from "../../../../../services/modules/collectionsApi";
-import { plannerWidgetsAPI } from "../../../../../services/modules/plannerWidgetsApi";
-import { youtubeAPI } from "../../../../../services/modules/youtubeApi";
 import { getPickerCollectionItemType } from "./collectionPickerUtils";
-import { getDefaultPlannerWidgetData } from "../utils/plannerWidgetDefaults";
 import {
   ACTION_ERRORS,
   createPlannerWidgetRecord,
@@ -13,6 +8,11 @@ import {
   getErrorMessage,
   getValidationMessage,
 } from "./useCollectionPickerActions.helpers";
+import { collectionsAPI } from "../../../../../services/modules/collectionsApi";
+import fileService from "../../../../../services/modules/fileService";
+import { plannerWidgetsAPI } from "../../../../../services/modules/plannerWidgetsApi";
+import { youtubeAPI } from "../../../../../services/modules/youtubeApi";
+import { getDefaultPlannerWidgetData } from "../utils/plannerWidgetDefaults";
 
 // Picker actions
 export function useCollectionPickerActions({
@@ -32,7 +32,7 @@ export function useCollectionPickerActions({
 }) {
   const getDefaultPlannerData = useCallback(
     (widgetType) => getDefaultPlannerWidgetData(widgetType),
-    []
+    [],
   );
 
   const completeAdd = useCallback(
@@ -41,35 +41,27 @@ export function useCollectionPickerActions({
       onClose?.();
       await onAdded?.();
     },
-    [onAdded, onClose, toast]
+    [onAdded, onClose, toast],
   );
 
   const addCollectionItem = useCallback(
     async (itemType, itemId) => {
-      const res = await collectionsAPI.addItemToCollection(
-        collectionId,
-        itemType,
-        itemId
-      );
+      const res = await collectionsAPI.addItemToCollection(collectionId, itemType, itemId);
       if (!res?.success) {
         throw new Error(res?.message || ACTION_ERRORS.addItem);
       }
     },
-    [collectionId]
+    [collectionId],
   );
 
   const addUploadedFiles = useCallback(
     async (files) => {
       const uploadResponse = await fileService.uploadFiles(files);
       if (!uploadResponse?.success) {
-        throw new Error(
-          uploadResponse?.error || uploadResponse?.message || "Upload failed"
-        );
+        throw new Error(uploadResponse?.error || uploadResponse?.message || "Upload failed");
       }
 
-      const uploadedFiles = Array.isArray(uploadResponse.data)
-        ? uploadResponse.data
-        : [];
+      const uploadedFiles = Array.isArray(uploadResponse.data) ? uploadResponse.data : [];
       if (!uploadedFiles.length) throw new Error("No files were uploaded");
 
       for (const uploadedFile of uploadedFiles) {
@@ -78,7 +70,7 @@ export function useCollectionPickerActions({
         }
       }
     },
-    [addCollectionItem]
+    [addCollectionItem],
   );
 
   const createPlannerAndAdd = useCallback(async () => {
@@ -146,15 +138,7 @@ export function useCollectionPickerActions({
     } finally {
       setBusy(false);
     }
-  }, [
-    addCollectionItem,
-    completeAdd,
-    existingKeys,
-    selectedId,
-    setBusy,
-    toast,
-    tool,
-  ]);
+  }, [addCollectionItem, completeAdd, existingKeys, onClose, selectedId, setBusy, toast, tool]);
 
   const uploadAndAddFiles = useCallback(
     async (fileList, acceptType) => {
@@ -164,9 +148,7 @@ export function useCollectionPickerActions({
       try {
         setBusy(true);
         await addUploadedFiles(files);
-        await completeAdd(
-          acceptType === "photo" ? "Photo(s) added." : "File(s) added."
-        );
+        await completeAdd(acceptType === "photo" ? "Photo(s) added." : "File(s) added.");
       } catch (err) {
         const message = getErrorMessage(err, ACTION_ERRORS.upload);
         toast.error(message);
@@ -174,7 +156,7 @@ export function useCollectionPickerActions({
         setBusy(false);
       }
     },
-    [addUploadedFiles, completeAdd, setBusy, toast]
+    [addUploadedFiles, completeAdd, setBusy, toast],
   );
 
   const createAndAdd = useCallback(async () => {
@@ -205,15 +187,7 @@ export function useCollectionPickerActions({
     } finally {
       setBusy(false);
     }
-  }, [
-    createPlannerAndAdd,
-    createYouTubeAndAdd,
-    fileInputRef,
-    photoInputRef,
-    setBusy,
-    toast,
-    tool,
-  ]);
+  }, [createPlannerAndAdd, createYouTubeAndAdd, fileInputRef, photoInputRef, setBusy, toast, tool]);
 
   return { submitExisting, uploadAndAddFiles, createAndAdd };
 }

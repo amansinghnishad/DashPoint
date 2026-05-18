@@ -1,10 +1,4 @@
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  RotateCcw,
-} from "@/shared/ui/icons";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus, RotateCcw } from "@/shared/ui/icons/icons";
 
 const formatSelectedDate = (value) =>
   value.toLocaleDateString(undefined, {
@@ -46,9 +40,7 @@ export default function CalendarHeader({
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="dp-text-muted text-sm">{monthLabel}</p>
             <span className="dp-text-subtle text-xs">|</span>
-            <p className="dp-text-subtle text-xs">
-              Selected: {formatSelectedDate(selectedDate)}
-            </p>
+            <p className="dp-text-subtle text-xs">Selected: {formatSelectedDate(selectedDate)}</p>
             <span
               className={
                 "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold " +

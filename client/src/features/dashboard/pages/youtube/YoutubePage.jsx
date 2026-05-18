@@ -1,5 +1,5 @@
-import useYoutubePageController from "./hooks/useYoutubePageController";
 import YoutubePageContent from "./components/YoutubePageContent";
+import useYoutubePageController from "./hooks/useYoutubePageController";
 
 export default function YoutubePage() {
   const controller = useYoutubePageController();

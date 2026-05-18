@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { IconDelete, IconEdit } from "@/shared/ui/icons/icons";
+
 import { normalizeTodoListData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
 
@@ -31,10 +33,7 @@ export default function PlannerTodoListCard({ widget }) {
   const addDraftItem = () => {
     const text = draftText.trim();
     if (!text) return;
-    setItems((prev) => [
-      ...prev,
-      { clientKey: crypto.randomUUID(), done: false, text },
-    ]);
+    setItems((prev) => [...prev, { clientKey: crypto.randomUUID(), done: false, text }]);
     setDraftText("");
   };
 
@@ -51,9 +50,7 @@ export default function PlannerTodoListCard({ widget }) {
 
       <div className="dp-border rounded-2xl border p-3">
         {items.length === 0 ? (
-          <div className="dp-text-muted text-sm">
-            No items yet. Add one below.
-          </div>
+          <div className="dp-text-muted text-sm">No items yet. Add one below.</div>
         ) : (
           <div className="max-h-48 space-y-2 overflow-auto pr-1">
             {items.map((it, idx) => {
@@ -85,7 +82,7 @@ export default function PlannerTodoListCard({ widget }) {
                             next[idx] = { ...next[idx], text: e.target.value };
                             setItems(next);
                           }}
-                          placeholder="To do…"
+                          placeholder="To do..."
                           className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
                         />
                       ) : (
@@ -104,25 +101,21 @@ export default function PlannerTodoListCard({ widget }) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() =>
-                        setEditingIndex((prev) => (prev === idx ? null : idx))
-                      }
+                      onClick={() => setEditingIndex((prev) => (prev === idx ? null : idx))}
                       className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label={isEditing ? "Done editing" : "Edit"}
                       title={isEditing ? "Done" : "Edit"}
                     >
-                      ✎
+                      <IconEdit size={16} />
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        setItems((prev) => prev.filter((_, i) => i !== idx))
-                      }
+                      onClick={() => setItems((prev) => prev.filter((_, i) => i !== idx))}
                       className="dp-text-danger inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
                       aria-label="Delete"
                       title="Delete"
                     >
-                      🗑
+                      <IconDelete size={16} />
                     </button>
                   </div>
                 </div>

@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import Modal from "../../../../shared/ui/modals/Modal";
+import useApiRequest from "@/shared/hooks/useApiRequest";
+import { getCollectionsFromResponse } from "@/shared/lib/collections/collectionsResponse";
+
+import { useToast } from "../../../../hooks/useToast";
 import { collectionsAPI } from "../../../../services/modules/collectionsApi";
 import fileService from "../../../../services/modules/fileService";
-import { useToast } from "../../../../hooks/useToast";
+import Modal from "../../../../shared/ui/modals/Modal";
 import { styleTheme } from "../../../../shared/ui/theme/styleTheme";
-
-const normalizeCollectionsResponse = (response) => {
-  const list =
-    response?.data?.collections ?? response?.data?.data?.collections ?? [];
-  return Array.isArray(list) ? list : [];
-};
 
 const buildDefaultTitle = (fileItem) => {
   const source = String(fileItem?.title || "Document").trim();
@@ -18,17 +15,13 @@ const buildDefaultTitle = (fileItem) => {
   return `Summary: ${source}`.slice(0, 100);
 };
 
-export default function FileSummarizeToCollectionModal({
-  open,
-  onClose,
-  fileItem,
-}) {
+export default function FileSummarizeToCollectionModal({ open, onClose, fileItem }) {
   const toast = useToast();
   const [collections, setCollections] = useState([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState("");
   const [noteTitle, setNoteTitle] = useState("");
-  const [loadingCollections, setLoadingCollections] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const { loading: loadingCollections, run: runLoadCollections } = useApiRequest();
+  const { loading: submitting, run: runSubmitSummary } = useApiRequest();
 
   const fileId = String(fileItem?.id || "").trim();
   const fileTitle = String(fileItem?.title || "").trim();
@@ -44,28 +37,32 @@ export default function FileSummarizeToCollectionModal({
   }, [fileTitle]);
 
   const loadCollections = useCallback(async () => {
-    try {
-      setLoadingCollections(true);
-      const response = await collectionsAPI.getCollections(1, 100, "");
-      if (!response?.success) {
-        throw new Error(response?.message || "Failed to load collections");
-      }
+    const response = await runLoadCollections(
+      async () => {
+        const result = await collectionsAPI.getCollections(1, 100, "");
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to load collections");
+        }
+        return result;
+      },
+      {
+        fallbackMessage: "Failed to load collections",
+        onError: (message) => {
+          toast.error(message);
+          setCollections([]);
+          setSelectedCollectionId("");
+        },
+      },
+    );
 
-      const list = normalizeCollectionsResponse(response);
-      setCollections(list);
-      setSelectedCollectionId((prev) => prev || String(list?.[0]?._id || list?.[0]?.id || ""));
-    } catch (error) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to load collections";
-      toast.error(message);
-      setCollections([]);
-      setSelectedCollectionId("");
-    } finally {
-      setLoadingCollections(false);
+    if (!response) {
+      return;
     }
-  }, [toast]);
+
+    const list = getCollectionsFromResponse(response);
+    setCollections(list);
+    setSelectedCollectionId((prev) => prev || String(list?.[0]?._id || list?.[0]?.id || ""));
+  }, [runLoadCollections, toast]);
 
   useEffect(() => {
     if (!open) return;
@@ -84,31 +81,33 @@ export default function FileSummarizeToCollectionModal({
       return;
     }
 
-    try {
-      setSubmitting(true);
-      const response = await fileService.summarizeFileToCollection(fileId, {
-        collectionId: selectedCollectionId,
-        noteTitle: String(noteTitle || "").trim(),
-      });
+    const response = await runSubmitSummary(
+      async () => {
+        const result = await fileService.summarizeFileToCollection(fileId, {
+          collectionId: selectedCollectionId,
+          noteTitle: String(noteTitle || "").trim(),
+        });
 
-      if (!response?.success) {
-        throw new Error(response?.message || "Failed to summarize PDF");
-      }
+        if (!result?.success) {
+          throw new Error(result?.message || "Failed to summarize PDF");
+        }
 
-      const collectionName =
-        response?.data?.collection?.name || "selected collection";
-      toast.success(`Summary saved to ${collectionName}.`);
-      onClose?.();
-    } catch (error) {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to summarize PDF";
-      toast.error(message);
-    } finally {
-      setSubmitting(false);
+        return result;
+      },
+      {
+        fallbackMessage: "Failed to summarize PDF",
+        onError: (message) => toast.error(message),
+      },
+    );
+
+    if (!response) {
+      return;
     }
-  }, [fileId, noteTitle, onClose, selectedCollectionId, toast]);
+
+    const collectionName = response?.data?.collection?.name || "selected collection";
+    toast.success(`Summary saved to ${collectionName}.`);
+    onClose?.();
+  }, [fileId, noteTitle, onClose, runSubmitSummary, selectedCollectionId, toast]);
 
   return (
     <Modal
@@ -171,9 +170,7 @@ export default function FileSummarizeToCollectionModal({
                     type="button"
                     onClick={() => setSelectedCollectionId(id)}
                     className={`w-full rounded-xl border px-3 py-2 text-left transition-colors ${
-                      active
-                        ? "dp-border dp-surface-muted border-2"
-                        : "dp-border dp-surface"
+                      active ? "dp-border dp-surface-muted border-2" : "dp-border dp-surface"
                     }`}
                     disabled={submitting}
                   >
@@ -190,13 +187,10 @@ export default function FileSummarizeToCollectionModal({
               })}
             </div>
           ) : (
-            <p className="dp-text-muted mt-1 text-sm">
-              No collections found. Create one first.
-            </p>
+            <p className="dp-text-muted mt-1 text-sm">No collections found. Create one first.</p>
           )}
         </div>
       </div>
     </Modal>
   );
 }
-

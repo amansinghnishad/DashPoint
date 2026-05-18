@@ -1,5 +1,7 @@
-import { m } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+
+const MotionVideo = motion.video;
 
 export default function VideoPreview({ src, isActive }) {
   const videoRef = useRef(null);
@@ -18,7 +20,7 @@ export default function VideoPreview({ src, isActive }) {
   }, [isActive]);
 
   return (
-    <m.video
+    <MotionVideo
       ref={videoRef}
       src={src}
       loop

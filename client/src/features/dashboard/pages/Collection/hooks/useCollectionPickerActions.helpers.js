@@ -32,12 +32,7 @@ export const getYouTubeThumbnail = (details) =>
   null;
 
 // Planner create
-export const createPlannerWidgetRecord = async ({
-  plannerWidgetsAPI,
-  widgetType,
-  title,
-  data,
-}) => {
+export const createPlannerWidgetRecord = async ({ plannerWidgetsAPI, widgetType, title, data }) => {
   const createResponse = await plannerWidgetsAPI.create({
     widgetType,
     title: title || undefined,
@@ -55,12 +50,7 @@ export const createPlannerWidgetRecord = async ({
 };
 
 // YouTube create
-export const createYouTubeRecord = async ({
-  youtubeAPI,
-  createYouTubeUrl,
-  onWarning,
-  onError,
-}) => {
+export const createYouTubeRecord = async ({ youtubeAPI, createYouTubeUrl, onWarning, onError }) => {
   const rawUrl = String(createYouTubeUrl || "").trim();
   if (!rawUrl) {
     onWarning?.("Paste a YouTube link first.");
@@ -88,17 +78,13 @@ export const createYouTubeRecord = async ({
     thumbnail,
     embedUrl: details.embedUrl || `https://www.youtube.com/embed/${videoId}`,
     url: details.url || rawUrl || `https://www.youtube.com/watch?v=${videoId}`,
-    channelTitle: details.channelTitle
-      ? String(details.channelTitle).slice(0, 100)
-      : undefined,
-    description: details.description
-      ? String(details.description).slice(0, 1000)
-      : undefined,
+    channelTitle: details.channelTitle ? String(details.channelTitle).slice(0, 100) : undefined,
+    description: details.description ? String(details.description).slice(0, 1000) : undefined,
     tags: Array.isArray(details.tags)
       ? details.tags
-        .map((tag) => String(tag).trim())
-        .filter(Boolean)
-        .slice(0, 50)
+          .map((tag) => String(tag).trim())
+          .filter(Boolean)
+          .slice(0, 50)
       : undefined,
   });
 

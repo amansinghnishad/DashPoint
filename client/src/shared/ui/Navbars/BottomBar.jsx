@@ -1,3 +1,5 @@
+import { createElement, useCallback, useEffect, useReducer, useRef } from "react";
+
 import {
   CalendarDays,
   CheckSquare,
@@ -8,8 +10,7 @@ import {
   FileText,
   Image,
   Youtube,
-} from "@/shared/ui/icons";
-import { createElement, useEffect, useReducer, useRef } from "react";
+} from "@/shared/ui/icons/icons";
 
 const menuReducer = (state, action) => {
   switch (action.type) {
@@ -37,9 +38,9 @@ const PLANNER_ICON_BY_VALUE = {
 
 const TOOLS = [
   { id: "planner", label: "Planner", Icon: LayoutGrid },
-  { id: "photo", label: "Photo", Icon: Image },
-  { id: "youtube", label: "YouTube", Icon: Youtube },
-  { id: "file", label: "File", Icon: FileText },
+  { id: "photo", label: "Photo", Icon: Image, shortcut: "5" },
+  { id: "youtube", label: "YouTube", Icon: Youtube, shortcut: "6" },
+  { id: "file", label: "File", Icon: FileText, shortcut: "7" },
 ];
 
 export default function BottomBar({
@@ -55,14 +56,15 @@ export default function BottomBar({
   const plannerMenuOpen = menuState.open;
   const plannerMenuMounted = menuState.mounted;
   const plannerMenuVisible = menuState.visible;
-  const setPlannerMenuOpen = (valueOrUpdater) => {
-    const next =
-      typeof valueOrUpdater === "function"
-        ? valueOrUpdater(menuState.open)
-        : valueOrUpdater;
-    if (next) dispatchMenu({ type: "OPEN" });
-    else dispatchMenu({ type: "CLOSE" });
-  };
+  const setPlannerMenuOpen = useCallback(
+    (valueOrUpdater) => {
+      const next =
+        typeof valueOrUpdater === "function" ? valueOrUpdater(plannerMenuOpen) : valueOrUpdater;
+      if (next) dispatchMenu({ type: "OPEN" });
+      else dispatchMenu({ type: "CLOSE" });
+    },
+    [plannerMenuOpen],
+  );
   const plannerMenuRef = useRef(null);
   const plannerMenuTimerRef = useRef(null);
 
@@ -77,7 +79,10 @@ export default function BottomBar({
     };
 
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") setPlannerMenuOpen(false);
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPlannerMenuOpen(false);
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -86,7 +91,7 @@ export default function BottomBar({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [plannerMenuOpen]);
+  }, [plannerMenuOpen, setPlannerMenuOpen]);
 
   useEffect(() => {
     if (plannerMenuTimerRef.current) {
@@ -111,13 +116,12 @@ export default function BottomBar({
   if (!show) return null;
 
   return (
-    <div
-      className={`absolute left-1/2 bottom-4 -translate-x-1/2 z-20 ${className}`}
-    >
+    <div className={`absolute left-1/2 bottom-4 -translate-x-1/2 z-20 ${className}`}>
       <div className="dp-surface dp-border rounded-2xl border shadow-lg px-2 py-2">
         <div className="flex items-center gap-1">
-          {TOOLS.map(({ id, label, Icon }) => {
+          {TOOLS.map(({ id, label, Icon, shortcut }) => {
             const isActive = activeTool === id;
+            const title = shortcut ? `${label} (${shortcut})` : `${label} (1-4)`;
 
             return (
               <div key={id} className="flex items-center">
@@ -126,7 +130,7 @@ export default function BottomBar({
                     <button
                       type="button"
                       onClick={() => setPlannerMenuOpen((v) => !v)}
-                      title={label}
+                      title={title}
                       aria-label={label}
                       aria-haspopup="menu"
                       aria-expanded={plannerMenuOpen}
@@ -152,15 +156,15 @@ export default function BottomBar({
                         }
                       >
                         <div className="grid grid-cols-3 gap-2">
-                          {plannerOptions.map((opt) => {
-                            const TileIcon =
-                              PLANNER_ICON_BY_VALUE?.[opt.value] || LayoutGrid;
+                          {plannerOptions.map((opt, index) => {
+                            const TileIcon = PLANNER_ICON_BY_VALUE?.[opt.value] || LayoutGrid;
 
                             return (
                               <button
                                 key={opt.value}
                                 type="button"
                                 role="menuitem"
+                                title={`${opt.label} (${index + 1})`}
                                 onClick={() => {
                                   setPlannerMenuOpen(false);
                                   onPlannerSelect?.(opt.value);
@@ -186,7 +190,7 @@ export default function BottomBar({
                   <button
                     type="button"
                     onClick={() => onSelectTool?.(id)}
-                    title={label}
+                    title={title}
                     aria-label={label}
                     className={
                       isActive
@@ -207,7 +211,7 @@ export default function BottomBar({
               <button
                 type="button"
                 onClick={() => onRecenterViewport()}
-                title="Re-center view"
+                title="Re-center view (0)"
                 aria-label="Re-center view"
                 className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
               >

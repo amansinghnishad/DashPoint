@@ -6,7 +6,7 @@ export const extractYouTubeId = (url) => {
     /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/,
     /youtu\.be\/([a-zA-Z0-9_-]{11})/,
     /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/
+    /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
   ];
 
   for (const pattern of patterns) {
@@ -21,14 +21,14 @@ export const extractYouTubeId = (url) => {
 
 // validateYouTubeUrl function - Enhanced validation
 export const validateYouTubeUrl = (url) => {
-  if (!url || typeof url !== 'string') return false;
+  if (!url || typeof url !== "string") return false;
 
   // Clean the URL
   url = url.trim();
 
   // Add protocol if missing
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://' + url;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
   }
 
   // Check if it's a valid URL format
@@ -51,7 +51,7 @@ export const validateYouTubeUrl = (url) => {
 };
 
 // getYouTubeThumbnail function
-export const getYouTubeThumbnail = (videoId, quality = 'mqdefault') => {
+export const getYouTubeThumbnail = (videoId, quality = "mqdefault") => {
   return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`;
 };
 
@@ -67,7 +67,7 @@ export const validateUrl = (url) => {
 
 // cleanUrl function
 export const cleanUrl = (url) => {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
     return `https://${url}`;
   }
   return url;
@@ -79,7 +79,7 @@ export const getDomainFromUrl = (url) => {
     const urlObj = new URL(url);
     return urlObj.hostname;
   } catch {
-    return '';
+    return "";
   }
 };
 
@@ -87,30 +87,30 @@ export const getDomainFromUrl = (url) => {
 export const getYouTubeErrorMessage = (error) => {
   const errorMessage = error.message || error;
 
-  if (errorMessage.includes('Transcripts are disabled')) {
-    return 'This video has disabled captions/transcripts. Please try a different video.';
+  if (errorMessage.includes("Transcripts are disabled")) {
+    return "This video has disabled captions/transcripts. Please try a different video.";
   }
 
-  if (errorMessage.includes('No transcript content found')) {
-    return 'No captions or transcript available for this video. Please try a video with captions enabled.';
+  if (errorMessage.includes("No transcript content found")) {
+    return "No captions or transcript available for this video. Please try a video with captions enabled.";
   }
 
-  if (errorMessage.includes('Invalid YouTube URL')) {
-    return 'Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)';
+  if (errorMessage.includes("Invalid YouTube URL")) {
+    return "Please enter a valid YouTube URL (e.g., https://youtube.com/watch?v=...)";
   }
 
-  if (errorMessage.includes('Video not accessible')) {
-    return 'This video may be private, deleted, or restricted. Please try a different video.';
+  if (errorMessage.includes("Video not accessible")) {
+    return "This video may be private, deleted, or restricted. Please try a different video.";
   }
 
-  if (errorMessage.includes('quota')) {
-    return 'Service temporarily unavailable due to usage limits. Please try again later.';
+  if (errorMessage.includes("quota")) {
+    return "Service temporarily unavailable due to usage limits. Please try again later.";
   }
 
-  if (errorMessage.includes('network') || errorMessage.includes('timeout')) {
-    return 'Network error occurred. Please check your connection and try again.';
+  if (errorMessage.includes("network") || errorMessage.includes("timeout")) {
+    return "Network error occurred. Please check your connection and try again.";
   }
 
   // Default error message
-  return 'Unable to process this video. Please try a different YouTube video with captions enabled.';
+  return "Unable to process this video. Please try a different YouTube video with captions enabled.";
 };

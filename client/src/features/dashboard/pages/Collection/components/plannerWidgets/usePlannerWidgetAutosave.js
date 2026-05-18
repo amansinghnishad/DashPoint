@@ -2,12 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { plannerWidgetsAPI } from "../../../../../../services/modules/plannerWidgetsApi";
 
-export function usePlannerWidgetAutosave({
-  widgetId,
-  data,
-  baselineSerialized,
-  delayMs = 600,
-}) {
+export function usePlannerWidgetAutosave({ widgetId, data, baselineSerialized, delayMs = 600 }) {
   const lastSavedRef = useRef(null);
   const saveTimerRef = useRef(null);
 

@@ -1,4 +1,5 @@
 import { m } from "framer-motion";
+
 import VideoPreview from "./VideoPreview";
 
 const MotionDiv = m.div;
@@ -6,11 +7,7 @@ const MotionDiv = m.div;
 const PANEL_CLASS_NAME =
   "dp-surface dp-border relative h-[320px] md:h-[480px] w-full overflow-hidden rounded-3xl border shadow-2xl";
 
-const LIGHT_POSITIONS = [
-  "circle at 15% 8%",
-  "circle at 50% 8%",
-  "circle at 85% 8%",
-];
+const LIGHT_POSITIONS = ["circle at 15% 8%", "circle at 50% 8%", "circle at 85% 8%"];
 
 function getCardAnimation(isWide, isActive) {
   if (!isWide) {
@@ -81,16 +78,13 @@ export default function ShowcaseCard({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              "radial-gradient(circle at center, transparent 55%, rgba(0,0,0,0.7) 100%)",
+            background: "radial-gradient(circle at center, transparent 55%, rgba(0,0,0,0.7) 100%)",
           }}
         />
       </div>
 
       <div className="mt-6 flex justify-center">
-        <h3 className="dp-text text-base font-semibold tracking-wide">
-          {card.title}
-        </h3>
+        <h3 className="dp-text text-base font-semibold tracking-wide">{card.title}</h3>
       </div>
     </MotionDiv>
   );

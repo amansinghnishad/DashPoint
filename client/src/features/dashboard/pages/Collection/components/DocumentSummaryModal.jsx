@@ -1,27 +1,15 @@
 import { useMemo, useRef, useState } from "react";
 
+import { FileText, Loader2, Upload } from "@/shared/ui/icons/icons";
+
 import Modal from "../../../../../shared/ui/modals/Modal";
-import { FileText, Loader2, Upload } from "@/shared/ui/icons";
 
-const isPdfFile = (file) => {
-  if (!file) return false;
-  const mimeType = String(file.type || "").toLowerCase();
-  const fileName = String(file.name || "").toLowerCase();
-  return mimeType === "application/pdf" || fileName.endsWith(".pdf");
-};
-
-export default function DocumentSummaryModal({
-  open,
-  busy,
-  onClose,
-  onSubmit,
-}) {
+export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef(null);
 
   const dropZoneClassName = useMemo(() => {
-    const base =
-      "dp-border rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer";
+    const base = "dp-border rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer";
     if (busy) return `${base} opacity-70 cursor-not-allowed`;
     if (dragActive) return `${base} border-blue-500 bg-blue-50/40`;
     return `${base} hover:border-blue-400`;
@@ -99,11 +87,7 @@ export default function DocumentSummaryModal({
         aria-label="Upload PDF for summarization"
       >
         <div className="flex items-center gap-2">
-          {busy ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Upload size={16} />
-          )}
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
           <span className="dp-text text-sm font-medium">
             {busy ? "Summarizing..." : "Drop PDF here or click to upload"}
           </span>
@@ -127,6 +111,3 @@ export default function DocumentSummaryModal({
     </Modal>
   );
 }
-
-export { isPdfFile };
-

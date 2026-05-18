@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   buildPayload,
   getBreakpoint,
@@ -118,9 +119,7 @@ export default function useCollectionLayouts({
       const next = { ...getSafeLayoutMap(prev) };
 
       const existingIds = new Set(
-        (items || [])
-          .map(getItemKey)
-          .filter((k) => typeof k === "string" && k.length)
+        (items || []).map(getItemKey).filter((k) => typeof k === "string" && k.length),
       );
 
       Object.keys(next).forEach((key) => {
@@ -132,10 +131,7 @@ export default function useCollectionLayouts({
       const canvasW = rect?.width ?? LAYOUT_DEFAULTS.defaultCanvasWidth;
       const canvasH = rect?.height ?? LAYOUT_DEFAULTS.defaultCanvasHeight;
 
-      const cardW = Math.min(
-        320,
-        Math.max(LAYOUT_DEFAULTS.minCardWidth, canvasW - gap * 2)
-      );
+      const cardW = Math.min(320, Math.max(LAYOUT_DEFAULTS.minCardWidth, canvasW - gap * 2));
       const cardH = canvasW < 480 ? 220 : 240;
       const cols = Math.max(1, Math.floor((canvasW - gap) / (cardW + gap)));
 
@@ -179,13 +175,7 @@ export default function useCollectionLayouts({
     }, LAYOUT_DEFAULTS.persistDelayMs);
 
     return () => window.clearTimeout(t);
-  }, [
-    collectionId,
-    flushPersist,
-    getCanvasRect,
-    layoutStorageKeyV2,
-    layoutsByItemKey,
-  ]);
+  }, [collectionId, flushPersist, getCanvasRect, layoutStorageKeyV2, layoutsByItemKey]);
 
   useEffect(() => {
     if (!collectionId) return;

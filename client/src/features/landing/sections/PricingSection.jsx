@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { Check } from "@/shared/ui/icons";
+
+import { Check } from "@/shared/ui/icons/icons";
+
 import SectionHeader from "../components/SectionHeader";
 
 const included = [
@@ -50,15 +52,12 @@ export default function PricingSection() {
 
           {/* PRO TEASER (Different visual treatment) */}
           <div className="text-center dp-text-muted">
-            <p className="text-sm uppercase tracking-widest opacity-70">
-              Coming soon
-            </p>
+            <p className="text-sm uppercase tracking-widest opacity-70">Coming soon</p>
 
             <h4 className="mt-4 text-xl font-semibold dp-text">Pro plan</h4>
 
             <p className="mt-3 max-w-xl mx-auto text-sm">
-              Advanced collaboration, analytics, integrations and priority
-              support.
+              Advanced collaboration, analytics, integrations and priority support.
             </p>
 
             <button

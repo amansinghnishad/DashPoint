@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useReducer, useRef } from "react";
 
-import Modal from "../../../../../shared/ui/modals/Modal";
-import { useToast } from "../../../../../hooks/useToast";
-
 import CollectionPickerCreate from "./CollectionPickerCreate";
 import CollectionPickerExisting from "./CollectionPickerExisting";
-import { useCollectionPickerItems } from "../hooks/useCollectionPickerItems";
+import { useToast } from "../../../../../hooks/useToast";
+import Modal from "../../../../../shared/ui/modals/Modal";
 import { useCollectionPickerActions } from "../hooks/useCollectionPickerActions";
+import { useCollectionPickerItems } from "../hooks/useCollectionPickerItems";
 
 const COLLECTION_PICKER_INITIAL_STATE = {
   mode: "existing",
@@ -63,22 +62,21 @@ export default function CollectionPickerModal({
   const fileInputRef = useRef(null);
   const photoInputRef = useRef(null);
 
-  const { submitExisting, uploadAndAddFiles, createAndAdd } =
-    useCollectionPickerActions({
-      tool,
-      collectionId,
-      existingKeys,
-      onClose,
-      onAdded,
-      toast,
-      selectedId,
-      setBusy: (value) => dispatchPicker({ type: "SET_BUSY", payload: value }),
-      fileInputRef,
-      photoInputRef,
-      createYouTubeUrl: pickerState.createYouTubeUrl,
-      createPlannerWidgetType: pickerState.createPlannerWidgetType,
-      createPlannerWidgetTitle: pickerState.createPlannerWidgetTitle,
-    });
+  const { submitExisting, uploadAndAddFiles, createAndAdd } = useCollectionPickerActions({
+    tool,
+    collectionId,
+    existingKeys,
+    onClose,
+    onAdded,
+    toast,
+    selectedId,
+    setBusy: (value) => dispatchPicker({ type: "SET_BUSY", payload: value }),
+    fileInputRef,
+    photoInputRef,
+    createYouTubeUrl: pickerState.createYouTubeUrl,
+    createPlannerWidgetType: pickerState.createPlannerWidgetType,
+    createPlannerWidgetTitle: pickerState.createPlannerWidgetTitle,
+  });
 
   const title = useMemo(() => {
     switch (tool) {
@@ -133,9 +131,7 @@ export default function CollectionPickerModal({
           {isCreateMode ? (
             <button
               type="button"
-              onClick={() =>
-                dispatchPicker({ type: "SET_MODE", payload: "existing" })
-              }
+              onClick={() => dispatchPicker({ type: "SET_MODE", payload: "existing" })}
               className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
               disabled={pickerState.busy}
             >

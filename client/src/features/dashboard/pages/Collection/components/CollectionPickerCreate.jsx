@@ -33,9 +33,7 @@ export default function CollectionPickerCreate({
 
           <div className="mt-3 grid gap-3">
             <label className="grid gap-1">
-              <span className="dp-text-muted text-xs font-semibold">
-                Widget type
-              </span>
+              <span className="dp-text-muted text-xs font-semibold">Widget type</span>
               <select
                 value={createPlannerWidgetType}
                 onChange={(e) => setCreatePlannerWidgetType(e.target.value)}

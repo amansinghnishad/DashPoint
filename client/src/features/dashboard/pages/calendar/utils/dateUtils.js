@@ -1,22 +1,12 @@
-export const startOfMonth = (value) =>
-  new Date(value.getFullYear(), value.getMonth(), 1);
+export const startOfMonth = (value) => new Date(value.getFullYear(), value.getMonth(), 1);
 
-export const endOfMonth = (value) =>
-  new Date(value.getFullYear(), value.getMonth() + 1, 0);
+export const endOfMonth = (value) => new Date(value.getFullYear(), value.getMonth() + 1, 0);
 
 export const startOfDay = (value) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate(), 0, 0, 0, 0);
 
 export const endOfDay = (value) =>
-  new Date(
-    value.getFullYear(),
-    value.getMonth(),
-    value.getDate(),
-    23,
-    59,
-    59,
-    999
-  );
+  new Date(value.getFullYear(), value.getMonth(), value.getDate(), 23, 59, 59, 999);
 
 export const isSameDay = (left, right) =>
   left && right
@@ -31,9 +21,7 @@ export const formatMonthLabel = (value) =>
 const pad2 = (value) => String(value).padStart(2, "0");
 
 export const dayKey = (value) =>
-  `${value.getFullYear()}-${pad2(value.getMonth() + 1)}-${pad2(
-    value.getDate()
-  )}`;
+  `${value.getFullYear()}-${pad2(value.getMonth() + 1)}-${pad2(value.getDate())}`;
 
 const getEventStartValue = (value) => {
   if (!value) return null;

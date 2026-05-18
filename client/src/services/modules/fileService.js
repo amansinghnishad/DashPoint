@@ -6,7 +6,7 @@ const fileService = {
     return getResponseData(
       apiClient.get("/files", {
         params: compactParams(params),
-      })
+      }),
     );
   },
 
@@ -23,7 +23,7 @@ const fileService = {
     return getResponseData(
       apiClient.post("/files/upload", formData, {
         timeout: 10 * 60 * 1000,
-      })
+      }),
     );
   },
 
@@ -76,7 +76,7 @@ const fileService = {
     return getResponseData(
       apiClient.post(`/files/${fileId}/summarize-to-collection`, payload, {
         timeout: 2 * 60 * 1000,
-      })
+      }),
     );
   },
 

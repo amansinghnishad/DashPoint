@@ -6,7 +6,7 @@ import {
   Settings,
   Sun,
   User,
-} from "@/shared/ui/icons";
+} from "@/shared/ui/icons/icons";
 
 const getSidebarDisplayName = (user) => {
   const username = String(user?.username || "").trim();
@@ -70,13 +70,9 @@ export default function SideBarView({
         aria-label="Sidebar"
       >
         <div className="flex flex-col h-full">
-          <div
-            className={`p-4 border-b ${subBorderClass} transition-colors duration-200`}
-          >
+          <div className={`p-4 border-b ${subBorderClass} transition-colors duration-200`}>
             <div
-              className={`flex items-center ${
-                isExpanded ? "justify-between" : "justify-center"
-              }`}
+              className={`flex items-center ${isExpanded ? "justify-between" : "justify-center"}`}
             >
               <img
                 src={isExpanded ? fullLogoSrc : "/logo.png"}
@@ -96,11 +92,7 @@ export default function SideBarView({
             </div>
           </div>
 
-          <nav
-            className={`flex-1 overflow-y-auto scrollable-area ${
-              isExpanded ? "p-4" : "p-2"
-            }`}
-          >
+          <nav className={`flex-1 overflow-y-auto scrollable-area ${isExpanded ? "p-4" : "p-2"}`}>
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -125,9 +117,7 @@ export default function SideBarView({
                       <Icon size={20} />
                       <span
                         className={`font-medium transition-all duration-200 ${
-                          isExpanded
-                            ? "opacity-100"
-                            : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                          isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
                         }`}
                       >
                         {item.label}
@@ -181,14 +171,10 @@ export default function SideBarView({
               </div>
               <div
                 className={`flex-1 min-w-0 transition-all duration-200 ${
-                  isExpanded
-                    ? "opacity-100"
-                    : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                  isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
                 }`}
               >
-                <p className="font-medium truncate dp-text">
-                  {displayName}
-                </p>
+                <p className="font-medium truncate dp-text">{displayName}</p>
                 <p className={`text-sm truncate ${mutedTextClass}`}>
                   {user?.email || "user@example.com"}
                 </p>
@@ -198,9 +184,7 @@ export default function SideBarView({
             <div className="space-y-2">
               <div
                 className={`flex ${
-                  isExpanded
-                    ? "space-x-2"
-                    : "lg:flex-col lg:space-x-0 lg:space-y-2"
+                  isExpanded ? "space-x-2" : "lg:flex-col lg:space-x-0 lg:space-y-2"
                 }`}
               >
                 {isExpanded ? (
@@ -208,9 +192,7 @@ export default function SideBarView({
                     type="button"
                     onClick={toggleTheme}
                     className="flex items-center justify-center p-2 rounded-lg transition-all duration-200 dp-surface dp-hover-bg dp-text-muted dp-hover-text"
-                    title={
-                      isDark ? "Switch to Light Mode" : "Switch to Dark Mode"
-                    }
+                    title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
                   >
                     {isDark ? <Sun size={16} /> : <Moon size={16} />}
                   </button>
@@ -223,18 +205,14 @@ export default function SideBarView({
                     onClose?.();
                   }}
                   className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 dp-surface dp-hover-bg dp-text-muted dp-hover-text ${
-                    isExpanded
-                      ? "space-x-2"
-                      : "lg:flex-initial lg:w-10 lg:h-10 lg:px-0 lg:py-0"
+                    isExpanded ? "space-x-2" : "lg:flex-initial lg:w-10 lg:h-10 lg:px-0 lg:py-0"
                   }`}
                   title={!isExpanded ? "Settings" : undefined}
                 >
                   <Settings size={16} />
                   <span
                     className={`text-sm font-medium transition-all duration-200 ${
-                      isExpanded
-                        ? "opacity-100"
-                        : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                      isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
                     }`}
                   >
                     Settings
@@ -246,18 +224,14 @@ export default function SideBarView({
                 type="button"
                 onClick={logoutUser}
                 className={`dp-danger border flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  isExpanded
-                    ? "w-full"
-                    : "lg:w-10 lg:h-10 lg:mx-auto lg:px-0 lg:py-0"
+                  isExpanded ? "w-full" : "lg:w-10 lg:h-10 lg:mx-auto lg:px-0 lg:py-0"
                 }`}
                 title={!isExpanded ? "Logout" : undefined}
               >
                 <LogOut size={16} />
                 <span
                   className={`text-sm font-medium transition-all duration-200 ${
-                    isExpanded
-                      ? "opacity-100"
-                      : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
+                    isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
                   }`}
                 >
                   Logout

@@ -8,8 +8,7 @@ export const FILE_MANAGER_ERRORS = {
   summarize: "Failed to summarize file",
 };
 
-export const FILE_MANAGER_ACCEPT =
-  "image/*,application/pdf,text/*,.md,.json,.csv";
+export const FILE_MANAGER_ACCEPT = "image/*,application/pdf,text/*,.md,.json,.csv";
 
 export const FILE_MANAGER_MAX_UPLOAD_FILES = 10;
 
@@ -71,8 +70,6 @@ export const getUploadValidationMessage = (files) => {
 
 export const mergeUploadedItems = (currentItems, uploadedItems) => {
   const existingIds = new Set((currentItems || []).map((item) => item.id));
-  const nextUploads = (uploadedItems || []).filter(
-    (item) => !existingIds.has(item.id)
-  );
+  const nextUploads = (uploadedItems || []).filter((item) => !existingIds.has(item.id));
   return [...nextUploads, ...(currentItems || [])];
 };

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+
 import { calendarAPI } from "../../../../../services/modules/calendarApi";
 import {
   DASHPOINT_COLOR_TO_GOOGLE_COLOR_ID,
@@ -41,12 +42,7 @@ const buildCreatePayload = (form) => {
   return payload;
 };
 
-export function useCalendarCreateItem({
-  connected,
-  selectedDate,
-  onCreated,
-  onError,
-}) {
+export function useCalendarCreateItem({ connected, selectedDate, onCreated, onError }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(() => createInitialForm(selectedDate));

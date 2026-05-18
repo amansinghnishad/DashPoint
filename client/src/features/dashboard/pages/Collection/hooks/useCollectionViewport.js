@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   clampScaleValue,
   getLayoutsBounds,
@@ -8,11 +9,7 @@ import {
 } from "./useCollectionViewport.helpers";
 
 // View controls
-export default function useCollectionViewport({
-  canvasRef,
-  worldRef,
-  layoutsByItemKey,
-}) {
+export default function useCollectionViewport({ canvasRef, worldRef, layoutsByItemKey }) {
   const spacePressedRef = useRef(false);
   const panRef = useRef(null);
   const activePointersRef = useRef(new Map());
@@ -117,10 +114,8 @@ export default function useCollectionViewport({
           const midX = midClientX - rect.left;
           const midY = midClientY - rect.top;
 
-          const { scale: curScale, offset: curOffset } =
-            viewportStateRef.current;
-          const safeScale =
-            typeof curScale === "number" && curScale > 0 ? curScale : 1;
+          const { scale: curScale, offset: curOffset } = viewportStateRef.current;
+          const safeScale = typeof curScale === "number" && curScale > 0 ? curScale : 1;
 
           const worldX = (midX - (curOffset?.x ?? 0)) / safeScale;
           const worldY = (midY - (curOffset?.y ?? 0)) / safeScale;
@@ -278,8 +273,7 @@ export default function useCollectionViewport({
     if (!surface) return;
 
     const rect = surface.getBoundingClientRect();
-    const scale =
-      typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
+    const scale = typeof viewportScale === "number" && viewportScale > 0 ? viewportScale : 1;
 
     const bounds = getLayoutsBounds(layoutsByItemKey);
     if (!bounds) {

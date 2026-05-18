@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 const ToastContext = createContext(null);
 
@@ -32,27 +26,23 @@ export const ToastProvider = ({ children }) => {
   }, []);
 
   const showToast = useCallback(
-    (message, type = "info", duration = 4000) =>
-      addToast(message, type, duration),
-    [addToast]
+    (message, type = "info", duration = 4000) => addToast(message, type, duration),
+    [addToast],
   );
 
   const success = useCallback(
     (message, duration) => addToast(message, "success", duration),
-    [addToast]
+    [addToast],
   );
   const error = useCallback(
     (message, duration) => addToast(message, "error", duration),
-    [addToast]
+    [addToast],
   );
   const warning = useCallback(
     (message, duration) => addToast(message, "warning", duration),
-    [addToast]
+    [addToast],
   );
-  const info = useCallback(
-    (message, duration) => addToast(message, "info", duration),
-    [addToast]
-  );
+  const info = useCallback((message, duration) => addToast(message, "info", duration), [addToast]);
 
   const value = useMemo(
     () => ({
@@ -66,22 +56,10 @@ export const ToastProvider = ({ children }) => {
       warning,
       info,
     }),
-    [
-      toasts,
-      addToast,
-      removeToast,
-      clearAllToasts,
-      showToast,
-      success,
-      error,
-      warning,
-      info,
-    ]
+    [toasts, addToast, removeToast, clearAllToasts, showToast, success, error, warning, info],
   );
 
-  return (
-    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
-  );
+  return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

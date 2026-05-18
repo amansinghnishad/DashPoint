@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { APP_ROUTES } from "../app/routes/paths";
 import { calendarAPI } from "../services/modules/calendarApi";
 
-const startOfDay = (d) =>
-  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-const endOfDay = (d) =>
-  new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
 export function useCalendar(options = {}) {
   const { loadEvents = true } = options;
@@ -113,4 +112,3 @@ export function useCalendar(options = {}) {
     reloadEvents: loadEventsForSelectedDay,
   };
 }
-

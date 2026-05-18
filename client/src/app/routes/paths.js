@@ -5,8 +5,4 @@ export const APP_ROUTES = Object.freeze({
   DASHBOARD: "/dashboard",
 });
 
-export const PUBLIC_ONLY_ROUTES = new Set([
-  APP_ROUTES.HOME,
-  APP_ROUTES.LOGIN,
-  APP_ROUTES.REGISTER,
-]);
+export const PUBLIC_ONLY_ROUTES = new Set([APP_ROUTES.HOME, APP_ROUTES.LOGIN, APP_ROUTES.REGISTER]);

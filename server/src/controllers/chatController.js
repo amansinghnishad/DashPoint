@@ -1,45 +1,14 @@
 const { validationResult } = require('express-validator');
 
+const { runChat } = require('../services/chatService');
+const { sanitizeChatInput } = require('../utils/agentInputSanitizer');
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
-const { runChat } = require('../services/chatService');
 const {
   extractActionItemsFromText,
   mapSuggestionsToTodoItems
 } = require('../services/actionItemExtractionService');
 const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
-
-const DEFAULT_ACTION_ITEM_TITLE = 'Action Items';
-
-const normalizeTitle = (value) => {
-  const normalized = String(value || '').trim().slice(0, 100);
-  return normalized || DEFAULT_ACTION_ITEM_TITLE;
-};
-
-const normalizeApprovedTodoItems = (items = []) => {
-  const seen = new Set();
-
-  return (Array.isArray(items) ? items : [])
-    .map((item) =>
-      String(item?.text || '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 280)
-    )
-    .filter(Boolean)
-    .filter((text) => {
-      const key = text.toLowerCase();
-      if (seen.has(key)) {
-        return false;
-      }
-      seen.add(key);
-      return true;
-    })
-    .map((text) => ({
-      text,
-      done: false
-    }));
-};
 
 exports.chat = async (req, res, next) => {
   try {
@@ -74,8 +43,7 @@ exports.chat = async (req, res, next) => {
         provider: result.provider,
         model: result.model,
         mutations: result.mutations,
-        retrieval: result.retrieval,
-        cache: result.cache || { hit: false }
+        retrieval: result.retrieval
       }
     });
   } catch (error) {
@@ -94,27 +62,14 @@ exports.extractActionItems = async (req, res, next) => {
       });
     }
 
-    const rawText = String(req.body?.rawText || '');
-    const maxItems = req.body?.maxItems;
-    const title = normalizeTitle(req.body?.title);
-
-    const extraction = await extractActionItemsFromText({
-      rawText,
-      maxItems
-    });
-    const todoItems = mapSuggestionsToTodoItems(extraction.suggestions);
+    const { rawText, maxItems, title } = req.body;
+    const extraction = await extractActionItemsFromText({ rawText, maxItems });
 
     return res.status(200).json({
       success: true,
       data: {
+        title: String(title || '').trim(),
         suggestions: extraction.suggestions,
-        todoPreview: {
-          widgetType: 'todo-list',
-          title,
-          data: {
-            items: todoItems
-          }
-        },
         meta: extraction.meta
       }
     });
@@ -135,29 +90,9 @@ exports.approveActionItems = async (req, res, next) => {
     }
 
     const userId = req.user._id;
-    const collectionId = String(req.body?.collectionId || '').trim();
-    const title = normalizeTitle(req.body?.title);
-    const todoItems = normalizeApprovedTodoItems(req.body?.approvedItems);
+    const { approvedItems, collectionId, title } = req.body;
 
-    if (!collectionId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Choose a collection to save approved items'
-      });
-    }
-
-    if (!todoItems.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'No valid approved items provided'
-      });
-    }
-
-    const collection = await Collection.findOne({
-      _id: collectionId,
-      userId
-    });
-
+    const collection = await Collection.findOne({ _id: collectionId, userId });
     if (!collection) {
       return res.status(404).json({
         success: false,
@@ -165,10 +100,18 @@ exports.approveActionItems = async (req, res, next) => {
       });
     }
 
+    const todoItems = mapSuggestionsToTodoItems(approvedItems);
+    if (!todoItems.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid approved items were provided'
+      });
+    }
+
     const widget = new PlannerWidget({
       userId,
       widgetType: 'todo-list',
-      title,
+      title: String(title || 'Action items').trim().slice(0, 100),
       data: {
         items: todoItems
       }
@@ -180,14 +123,14 @@ exports.approveActionItems = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Todo list created from approved action items',
+      message: 'Action items saved to collection',
       data: {
         widget,
-        itemCount: todoItems.length,
         collection: {
           _id: String(collection._id),
           name: collection.name
-        }
+        },
+        addedCount: todoItems.length
       }
     });
   } catch (error) {

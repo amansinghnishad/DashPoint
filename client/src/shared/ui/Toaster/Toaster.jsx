@@ -1,11 +1,7 @@
 import { useEffect, useMemo } from "react";
-import {
-  AlertTriangle,
-  CheckCircle,
-  IconClose,
-  Info,
-  XCircle,
-} from "@/shared/ui/icons";
+
+import { AlertTriangle, CheckCircle, IconClose, Info, XCircle } from "@/shared/ui/icons/icons";
+
 import { useToast } from "../../../hooks/useToast";
 
 const ICONS_BY_TYPE = {
@@ -29,7 +25,7 @@ export default function Toaster() {
     if (!toasts.length) return;
 
     const timers = toasts.map((t) =>
-      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000)
+      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000),
     );
 
     return () => timers.forEach((id) => window.clearTimeout(id));

@@ -70,11 +70,7 @@ export default function DashboardPageLayout({
 
                 const leading = renderItemLeading?.(it, { id, isActive });
 
-                const itemTitle = (
-                  renderItemTitle?.(it) ??
-                  it?.title ??
-                  "Untitled"
-                ).toString();
+                const itemTitle = (renderItemTitle?.(it) ?? it?.title ?? "Untitled").toString();
                 const itemSubtitle = renderItemSubtitle?.(it);
                 const actions = renderItemActions?.(it, {
                   id,
@@ -85,9 +81,7 @@ export default function DashboardPageLayout({
                   <li key={id || itemTitle}>
                     <div
                       className={`flex w-full items-stretch gap-1 rounded-xl transition-colors ${
-                        isActive
-                          ? "dp-sidebar-bg"
-                          : "dp-hover-bg dp-text-muted dp-hover-text"
+                        isActive ? "dp-sidebar-bg" : "dp-hover-bg dp-text-muted dp-hover-text"
                       }`}
                     >
                       <button
@@ -96,13 +90,9 @@ export default function DashboardPageLayout({
                         className="min-w-0 flex-1 px-3 py-2 text-left"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          {leading ? (
-                            <div className="shrink-0">{leading}</div>
-                          ) : null}
+                          {leading ? <div className="shrink-0">{leading}</div> : null}
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold">
-                              {itemTitle}
-                            </p>
+                            <p className="truncate text-sm font-semibold">{itemTitle}</p>
                             {itemSubtitle ? (
                               <p className="mt-0.5 truncate text-xs dp-text-subtle">
                                 {itemSubtitle}
@@ -113,9 +103,7 @@ export default function DashboardPageLayout({
                       </button>
 
                       {actions ? (
-                        <div className="flex items-center gap-1 pr-2">
-                          {actions}
-                        </div>
+                        <div className="flex items-center gap-1 pr-2">{actions}</div>
                       ) : null}
                     </div>
                   </li>
@@ -126,9 +114,7 @@ export default function DashboardPageLayout({
             (renderEmptySidebar ?? (
               <div className="p-4 text-center">
                 <p className="dp-text font-semibold">No items</p>
-                <p className="dp-text-muted mt-1 text-sm">
-                  Use "{addLabel}" to get started.
-                </p>
+                <p className="dp-text-muted mt-1 text-sm">Use "{addLabel}" to get started.</p>
               </div>
             ))
           )}

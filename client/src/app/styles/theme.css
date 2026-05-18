@@ -76,16 +76,8 @@
   --dp-chat-avatar-bg: rgb(15 23 42 / 0.08);
 
   --dp-showcase-gradient:
-    radial-gradient(
-      1000px 500px at 50% -250px,
-      rgba(59, 130, 246, 0.12),
-      transparent 60%
-    ),
-    radial-gradient(
-      800px 400px at 80% 20%,
-      rgba(168, 85, 247, 0.08),
-      transparent 60%
-    );
+    radial-gradient(1000px 500px at 50% -250px, rgba(59, 130, 246, 0.12), transparent 60%),
+    radial-gradient(800px 400px at 80% 20%, rgba(168, 85, 247, 0.08), transparent 60%);
 }
 
 /* Defaults for dark mode (match current Hero/Auth look) */
@@ -93,7 +85,7 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* 🔥 Neutral Dark Grey Theme */
+  /* Neutral dark grey theme */
   --dp-bg: rgb(10 10 10); /* almost black */
   --dp-fg: rgb(255 255 255); /* pure white */
   --dp-fg-soft: rgb(230 230 230); /* soft white */
@@ -152,11 +144,7 @@
 
 /* Chat UI helpers */
 .dp-chat-topfade {
-  background: linear-gradient(
-    to bottom,
-    var(--dp-chat-fade-bg) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(to bottom, var(--dp-chat-fade-bg) 0%, transparent 100%);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -529,13 +517,13 @@ body {
 /* HERO VISUAL FILTER CONTROL */
 /* -------------------------------- */
 
-/* Default (dark mode) – black & white cinematic */
+/* Default (dark mode) - black & white cinematic */
 :root:not([data-theme="light"]) .dp-hero-visual img,
 :root:not([data-theme="light"]) .dp-hero-visual video {
   filter: grayscale(1) contrast(1.05) brightness(0.85);
 }
 
-/* Light mode – normal colorful */
+/* Light mode - normal colorful */
 :root[data-theme="light"] .dp-hero-visual img,
 :root[data-theme="light"] .dp-hero-visual video {
   filter: none;

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { IconClose, IconMenu, Moon, Sun } from "@/shared/ui/icons";
+
+import { IconClose, IconMenu, Moon, Sun } from "@/shared/ui/icons/icons";
 
 export default function TopBarMobile({
   themeButtonClass,
@@ -13,10 +14,8 @@ export default function TopBarMobile({
   logoSrc,
   authCta,
 }) {
-  const drawerItemClass =
-    "text-white hover:text-amber-300 transition-colors duration-300";
-  const drawerSecondaryClass =
-    "text-white/80 hover:text-white transition-colors duration-300";
+  const drawerItemClass = "text-white hover:text-amber-300 transition-colors duration-300";
+  const drawerSecondaryClass = "text-white/80 hover:text-white transition-colors duration-300";
 
   return (
     <>
@@ -26,11 +25,7 @@ export default function TopBarMobile({
             type="button"
             onClick={onToggleTheme}
             className={themeButtonClass}
-            aria-label={
-              theme === "dark"
-                ? "Switch to light theme"
-                : "Switch to dark theme"
-            }
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -50,12 +45,7 @@ export default function TopBarMobile({
 
       <div id={menuId} className="md:hidden">
         {isMenuOpen ? (
-          <div
-            className="fixed inset-0 z-50"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-          >
+          <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Menu">
             <button
               type="button"
               className="absolute inset-0 dp-overlay-bg"

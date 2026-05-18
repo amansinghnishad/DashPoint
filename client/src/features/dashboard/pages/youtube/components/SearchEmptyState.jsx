@@ -1,15 +1,9 @@
-export default function SearchEmptyState({
-  isSearchMode,
-  search,
-  searchState,
-}) {
+export default function SearchEmptyState({ isSearchMode, search, searchState }) {
   if (!isSearchMode) {
     return (
       <div className="p-4 text-center">
         <p className="dp-text font-semibold">No videos yet</p>
-        <p className="dp-text-muted mt-1 text-sm">
-          Click "Add" to paste a YouTube URL.
-        </p>
+        <p className="dp-text-muted mt-1 text-sm">Click "Add" to paste a YouTube URL.</p>
       </div>
     );
   }
@@ -26,9 +20,7 @@ export default function SearchEmptyState({
               : "No results"}
       </p>
       <p className="dp-text-muted mt-1 text-sm">
-        {searchState.error
-          ? String(searchState.error)
-          : "Search pulls live results from YouTube."}
+        {searchState.error ? String(searchState.error) : "Search pulls live results from YouTube."}
       </p>
     </div>
   );

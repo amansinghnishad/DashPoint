@@ -5,8 +5,7 @@ const DEFAULT_CANVAS_HEIGHT = 700;
 const DEFAULT_GAP = 16;
 const PERSIST_DELAY_MS = 600;
 
-const getSafeObject = (value) =>
-  value && typeof value === "object" ? value : {};
+const getSafeObject = (value) => (value && typeof value === "object" ? value : {});
 
 const getSafeNumber = (value, fallback) =>
   Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -24,14 +23,8 @@ export const getItemKeyDefault = (item) => {
 export const sanitizeLayout = (layout, gap) => {
   const nextX = getSafeNumber(layout?.x, gap);
   const nextY = getSafeNumber(layout?.y, gap);
-  const nextWidth = Math.max(
-    getSafeNumber(layout?.width, MIN_CARD_WIDTH),
-    MIN_CARD_WIDTH
-  );
-  const nextHeight = Math.max(
-    getSafeNumber(layout?.height, MIN_CARD_HEIGHT),
-    MIN_CARD_HEIGHT
-  );
+  const nextWidth = Math.max(getSafeNumber(layout?.width, MIN_CARD_WIDTH), MIN_CARD_WIDTH);
+  const nextHeight = Math.max(getSafeNumber(layout?.height, MIN_CARD_HEIGHT), MIN_CARD_HEIGHT);
 
   return {
     x: nextX,
@@ -55,9 +48,7 @@ export const buildPayload = (layoutMap, rect) => ({
 // Width tier
 export const getBreakpoint = (width) => {
   const safeWidth =
-    typeof width === "number" && Number.isFinite(width)
-      ? width
-      : DEFAULT_CANVAS_WIDTH;
+    typeof width === "number" && Number.isFinite(width) ? width : DEFAULT_CANVAS_WIDTH;
 
   if (safeWidth < 480) return "xs";
   if (safeWidth < 768) return "sm";
@@ -73,11 +64,7 @@ export const parseToMap = (value, preferredBp) => {
     return value.items;
   }
 
-  if (
-    value.version === 2 &&
-    value.breakpoints &&
-    typeof value.breakpoints === "object"
-  ) {
+  if (value.version === 2 && value.breakpoints && typeof value.breakpoints === "object") {
     if (preferredBp && value.breakpoints[preferredBp]?.items) {
       return value.breakpoints[preferredBp].items;
     }
@@ -98,9 +85,7 @@ export const parseToMap = (value, preferredBp) => {
     keys.every((key) => {
       const candidate = value[key];
       return (
-        candidate &&
-        typeof candidate === "object" &&
-        ("x" in candidate || "width" in candidate)
+        candidate && typeof candidate === "object" && ("x" in candidate || "width" in candidate)
       );
     });
 

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
-import { styleTheme } from "../theme/styleTheme";
 import Modal from "./Modal";
+import { styleTheme } from "../theme/styleTheme";
 
 export default function DeleteConfirmModal({
   open,
@@ -15,7 +15,7 @@ export default function DeleteConfirmModal({
   const modalTitle = useMemo(() => title || "Confirm delete", [title]);
   const modalDescription = useMemo(
     () => description || "Are you sure you want to delete this item?",
-    [description]
+    [description],
   );
 
   const confirm = useCallback(async () => {

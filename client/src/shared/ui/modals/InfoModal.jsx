@@ -7,6 +7,7 @@ export default function InfoModal({
   title,
   description,
   closeLabel = "Close",
+  size = "md",
   children,
 }) {
   return (
@@ -15,13 +16,10 @@ export default function InfoModal({
       onClose={onClose}
       title={title}
       description={description}
+      size={size}
       footer={
         <div className={styleTheme.modal.footerActionsEnd}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={styleTheme.button.primary}
-          >
+          <button type="button" onClick={onClose} className={styleTheme.button.primary}>
             {closeLabel}
           </button>
         </div>

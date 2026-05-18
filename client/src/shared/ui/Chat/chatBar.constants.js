@@ -31,7 +31,9 @@ export const MODEL_OPTIONS_BY_PROVIDER = {
 const OPENAI_MODEL_PREFIXES = ["gpt", "o1", "o3", "o4"];
 
 export const isOpenAiModel = (modelName) => {
-  const normalized = String(modelName || "").trim().toLowerCase();
+  const normalized = String(modelName || "")
+    .trim()
+    .toLowerCase();
   if (!normalized || normalized === "auto") return false;
 
   return OPENAI_MODEL_PREFIXES.some((prefix) => normalized.startsWith(prefix));
