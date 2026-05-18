@@ -98,6 +98,94 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
       }
+    },
+    assistantMemory: {
+      workingHours: {
+        timezone: {
+          type: String,
+          trim: true,
+          maxlength: [100, 'Timezone cannot exceed 100 characters'],
+          default: ''
+        },
+        days: [{
+          type: String,
+          trim: true,
+          maxlength: [20, 'Working day cannot exceed 20 characters']
+        }],
+        startTime: {
+          type: String,
+          trim: true,
+          maxlength: [20, 'Start time cannot exceed 20 characters'],
+          default: ''
+        },
+        endTime: {
+          type: String,
+          trim: true,
+          maxlength: [20, 'End time cannot exceed 20 characters'],
+          default: ''
+        },
+        notes: {
+          type: String,
+          trim: true,
+          maxlength: [500, 'Working hours notes cannot exceed 500 characters'],
+          default: ''
+        }
+      },
+      preferredMeetingLengthMinutes: {
+        type: Number,
+        min: 5,
+        max: 480,
+        default: null
+      },
+      favoriteTopics: [{
+        type: String,
+        trim: true,
+        maxlength: [80, 'Favorite topic cannot exceed 80 characters']
+      }],
+      recurringGoals: [{
+        type: String,
+        trim: true,
+        maxlength: [160, 'Recurring goal cannot exceed 160 characters']
+      }],
+      writingStyle: {
+        tone: {
+          type: String,
+          trim: true,
+          maxlength: [80, 'Writing tone cannot exceed 80 characters'],
+          default: ''
+        },
+        detailLevel: {
+          type: String,
+          enum: ['', 'brief', 'balanced', 'detailed'],
+          default: ''
+        },
+        format: {
+          type: String,
+          trim: true,
+          maxlength: [120, 'Writing format cannot exceed 120 characters'],
+          default: ''
+        },
+        notes: {
+          type: String,
+          trim: true,
+          maxlength: [500, 'Writing style notes cannot exceed 500 characters'],
+          default: ''
+        }
+      },
+      taskPriorities: [{
+        type: String,
+        trim: true,
+        maxlength: [120, 'Task priority cannot exceed 120 characters']
+      }],
+      additionalPreferences: [{
+        type: String,
+        trim: true,
+        maxlength: [160, 'Preference cannot exceed 160 characters']
+      }],
+      updatedAt: {
+        type: Date,
+        default: null
+      }
     }
   },
 

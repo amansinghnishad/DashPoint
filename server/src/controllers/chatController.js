@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 
 const { runChat } = require('../services/chatService');
+const { saveChatTurn } = require('../services/chatHistoryService');
 const { sanitizeChatInput } = require('../utils/agentInputSanitizer');
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
@@ -34,6 +35,16 @@ exports.chat = async (req, res, next) => {
     const result = await runChat({
       userId,
       ...sanitizedInput
+    });
+
+    saveChatTurn({
+      userId,
+      userMessage: sanitizedInput.message,
+      assistantMessage: result.response,
+      provider: result.provider,
+      model: result.model,
+      mutations: result.mutations,
+      retrieval: result.retrieval
     });
 
     return res.status(200).json({

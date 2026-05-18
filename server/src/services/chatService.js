@@ -2,6 +2,7 @@ const { executeToolCall } = require('./chatToolExecutor');
 const { retrieveChatContext, DEFAULT_TOP_K } = require('./chatContextService');
 const { buildAugmentedChatPrompt } = require('./chatPromptService');
 const { buildChatProviderAttempts } = require('./chatModelRouter');
+const { formatAssistantMemoryForPrompt } = require('./assistantMemoryService');
 const {
   buildChatContextId,
   getCachedChatResponse,
@@ -22,7 +23,8 @@ const COLLECTION_MUTATION_TOOL_NAMES = new Set([
   'createCollection',
   'createCollectionWithNote',
   'addNote',
-  'addYouTubeVideoToCollection'
+  'addYouTubeVideoToCollection',
+  'runYouTubeLearningWorkflow'
 ]);
 
 const buildMutationSummary = (executions = []) => {
@@ -140,10 +142,12 @@ const runChat = async ({
     collectionIds,
     embeddingProviders
   });
+  const assistantMemoryText = await formatAssistantMemoryForPrompt(userId);
 
   const { systemPrompt, userPrompt } = buildAugmentedChatPrompt({
     message,
-    retrieval
+    retrieval,
+    assistantMemoryText
   });
 
   const attemptErrors = [];
