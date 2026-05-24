@@ -44,7 +44,8 @@ exports.chat = async (req, res, next) => {
       provider: result.provider,
       model: result.model,
       mutations: result.mutations,
-      retrieval: result.retrieval
+      retrieval: result.retrieval,
+      routing: result.routing
     });
 
     return res.status(200).json({
@@ -53,6 +54,7 @@ exports.chat = async (req, res, next) => {
         response: result.response,
         provider: result.provider,
         model: result.model,
+        routing: result.routing,
         mutations: result.mutations,
         retrieval: result.retrieval
       }

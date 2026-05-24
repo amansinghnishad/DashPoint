@@ -223,6 +223,7 @@ export default function useDashboardChatController() {
         await streamAssistantText(assistantMessageId, finalText, {
           provider: payload?.provider,
           model: payload?.model,
+          routing: payload?.routing,
           mutations: payload?.mutations,
           retrieval: payload?.retrieval,
         });

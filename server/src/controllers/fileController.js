@@ -11,6 +11,10 @@ const {
   summarizePdfBuffer,
   buildSummaryNoteTitle
 } = require('../services/documentSummarizationService');
+const {
+  createInsightForUploadedFile,
+  serializeInsight
+} = require('../services/contentInsightService');
 
 // Get all files for a user
 const getFiles = async (req, res) => {
@@ -102,6 +106,7 @@ const uploadFiles = async (req, res) => {
     const { tags, description } = req.body;
 
     const uploadedFiles = [];
+    const insights = [];
 
     for (const file of req.files) {
       if (!file.buffer) {
@@ -137,6 +142,18 @@ const uploadFiles = async (req, res) => {
       });
 
       await newFile.save();
+      try {
+        const insight = await createInsightForUploadedFile({
+          userId: req.user.id,
+          file: newFile,
+          buffer: file.buffer
+        });
+        if (insight) {
+          insights.push(serializeInsight(insight));
+        }
+      } catch (insightError) {
+        console.warn('Automatic file insight extraction failed:', insightError.message);
+      }
       uploadedFiles.push({
         ...newFile.toObject(),
         formattedSize: newFile.getFormattedSize(),
@@ -145,7 +162,8 @@ const uploadFiles = async (req, res) => {
     } res.status(201).json({
       success: true,
       message: `${uploadedFiles.length} file(s) uploaded successfully`,
-      data: uploadedFiles
+      data: uploadedFiles,
+      insights
     });
   } catch (error) {
     console.error('Error uploading files:', error);

@@ -12,6 +12,7 @@ export default function useYoutubePageController() {
   const [searchState, dispatchSearch] = useReducer(searchReducer, SEARCH_INITIAL_STATE);
   const [savedItems, setSavedItems] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [insightQueue, setInsightQueue] = useState([]);
   const inputRef = useRef(null);
   const searchReqIdRef = useRef(0);
   const [uiState, dispatchUi] = useReducer(uiReducer, UI_INITIAL_STATE);
@@ -128,6 +129,9 @@ export default function useYoutubePageController() {
 
         setSavedItems((prev) => [savedItem, ...prev]);
         setSelectedId(savedItem.id);
+        if (createRes.insight) {
+          setInsightQueue((current) => [...current, createRes.insight]);
+        }
         if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
         toast.success("Video saved.");
       } catch (err) {
@@ -285,5 +289,7 @@ export default function useYoutubePageController() {
     viewer,
     inputRef,
     confirmDelete,
+    insightQueue,
+    setInsightQueue,
   };
 }

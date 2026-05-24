@@ -7,6 +7,10 @@ const {
   indexTranscriptForVideo,
   findRelevantTranscriptChunks
 } = require('../services/youtubeTranscriptService');
+const {
+  createInsightForYouTube,
+  serializeInsight
+} = require('../services/contentInsightService');
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3';
@@ -64,10 +68,20 @@ exports.createVideo = async (req, res, next) => {
     const video = new YouTube(videoData);
     await video.save();
     await indexTranscriptForVideo(video);
+    let insight = null;
+    try {
+      insight = await createInsightForYouTube({
+        userId: req.user._id,
+        video
+      });
+    } catch (insightError) {
+      console.warn('Automatic YouTube insight extraction failed:', insightError.message);
+    }
 
     res.status(201).json({
       success: true,
       data: video,
+      insight: serializeInsight(insight),
       message: 'Video saved successfully'
     });
   } catch (error) {

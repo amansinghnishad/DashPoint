@@ -19,6 +19,8 @@ const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const focusRoutes = require('./routes/focusRoutes');
+const contentInsightRoutes = require('./routes/contentInsightRoutes');
 
 const app = express();
 
@@ -125,7 +127,9 @@ app.get('/', (req, res) => {
       collections: '/api/collections',
       files: '/api/files',
       chat: '/api/chat',
-      search: '/api/search'
+      search: '/api/search',
+      focus: '/api/focus',
+      insights: '/api/insights'
     },
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV
@@ -141,6 +145,8 @@ app.use('/api/planner-widgets', plannerWidgetRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/focus', focusRoutes);
+app.use('/api/insights', contentInsightRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -22,6 +22,7 @@ export function useFileManager() {
   const [addToCollectionItem, setAddToCollectionItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [insightQueue, setInsightQueue] = useState([]);
 
   const selected = useMemo(
     () => items.find((item) => item.id === selectedId) || null,
@@ -69,6 +70,9 @@ export function useFileManager() {
         const uploadedItems = toFileItems(response.data);
         setItems((previousItems) => mergeUploadedItems(previousItems, uploadedItems));
         setSelectedId((previousId) => uploadedItems[0]?.id || previousId);
+        if (Array.isArray(response.insights) && response.insights.length) {
+          setInsightQueue((current) => [...current, ...response.insights]);
+        }
         toast.success("File(s) uploaded.");
       } catch (error) {
         toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.upload));
@@ -151,6 +155,7 @@ export function useFileManager() {
       addToCollectionItem,
       deleteItem,
       isDeleting,
+      insightQueue,
     },
     actions: {
       setSearch,
@@ -160,6 +165,7 @@ export function useFileManager() {
       uploadSelectedFiles,
       removeFile,
       downloadSelectedFile,
+      setInsightQueue,
     },
   };
 }

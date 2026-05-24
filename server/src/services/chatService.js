@@ -82,6 +82,10 @@ const normalizeCachedPayload = (cachedValue = {}) => ({
     cachedValue?.retrieval && typeof cachedValue.retrieval === 'object'
       ? cachedValue.retrieval
       : { topK: DEFAULT_TOP_K, hitCount: 0, scope: { mode: 'all' }, sources: [] },
+  routing:
+    cachedValue?.routing && typeof cachedValue.routing === 'object'
+      ? cachedValue.routing
+      : { tier: '', reason: '', mode: '' },
   cachedAt: cachedValue?.cachedAt || null
 });
 
@@ -95,7 +99,10 @@ const runChat = async ({
 }) => {
   const attempts = buildChatProviderAttempts({
     provider,
-    model
+    model,
+    message,
+    topK,
+    collectionIds
   });
   const cacheContextId = buildChatContextId({
     userId,
@@ -119,6 +126,7 @@ const runChat = async ({
       model: normalized.model,
       mutations: normalized.mutations,
       retrieval: normalized.retrieval,
+      routing: normalized.routing,
       cache: {
         hit: true,
         contextId: cacheContextId,
@@ -203,6 +211,11 @@ const runChat = async ({
         response: finalResponseText,
         provider: attempt.provider,
         model: attempt.model,
+        routing: {
+          tier: attempt.route?.tier || '',
+          reason: attempt.route?.reason || '',
+          mode: attempt.route?.mode || ''
+        },
         mutations: buildMutationSummary(toolExecutions),
         retrieval: {
           topK: retrieval.topK,

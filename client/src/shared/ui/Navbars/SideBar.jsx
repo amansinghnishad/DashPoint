@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { CalendarDays, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
+import { CalendarDays, Crosshair, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
 
 import SideBarView from "./SideBarView";
 import { useAuth } from "../../../context/AuthContext";
@@ -28,6 +28,7 @@ export const SideBar = ({
   const fullLogoSrc = isDark ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
 
   const menuItems = [
+    { id: "focus", label: "Focus", icon: Crosshair },
     { id: "collections", label: "Home", icon: Home },
     { id: "calendar", label: "Calendar", icon: CalendarDays },
     { id: "youtube", label: "YouTube", icon: Youtube },

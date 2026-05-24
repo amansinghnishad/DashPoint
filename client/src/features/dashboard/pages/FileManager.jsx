@@ -8,6 +8,7 @@ import { useFileManager } from "./fileManager/useFileManager";
 import { useToast } from "../../../hooks/useToast";
 import fileService from "../../../services/modules/fileService";
 import AddToCollectionModal from "../../../shared/ui/modals/AddToCollectionModal";
+import ContentInsightReviewModal from "../../../shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 import DashboardPageLayout from "../layouts/DashboardPageLayout";
 
@@ -24,6 +25,7 @@ export default function FileManagerPage() {
       addToCollectionItem,
       deleteItem,
       isDeleting,
+      insightQueue,
     },
     actions: {
       setSearch,
@@ -33,12 +35,18 @@ export default function FileManagerPage() {
       uploadSelectedFiles,
       removeFile,
       downloadSelectedFile,
+      setInsightQueue,
     },
   } = useFileManager();
 
   const fileInputRef = useRef(null);
   const [summarizeItem, setSummarizeItem] = useState(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState("");
+  const activeInsight = insightQueue[0] || null;
+
+  const closeActiveInsight = () => {
+    setInsightQueue((current) => current.slice(1));
+  };
 
   useEffect(() => {
     const isPdfSelected =
@@ -274,6 +282,18 @@ export default function FileManagerPage() {
         open={Boolean(summarizeItem)}
         onClose={() => setSummarizeItem(null)}
         fileItem={summarizeItem}
+      />
+
+      <ContentInsightReviewModal
+        open={Boolean(activeInsight)}
+        insight={activeInsight}
+        onClose={closeActiveInsight}
+        onAccepted={() => {
+          toast.success("Action items saved.");
+        }}
+        onRejected={() => {
+          toast.info("AI suggestions dismissed.");
+        }}
       />
     </>
   );

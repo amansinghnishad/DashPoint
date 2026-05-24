@@ -1,5 +1,7 @@
 import { BookmarkPlus, IconAdd, IconDelete } from "@/shared/ui/icons/icons";
+import { useToast } from "@/hooks/useToast";
 import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
+import ContentInsightReviewModal from "@/shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
 
 import SearchEmptyState from "./SearchEmptyState";
@@ -22,7 +24,15 @@ export default function YoutubePageContent({
   viewer,
   inputRef,
   confirmDelete,
+  insightQueue,
+  setInsightQueue,
 }) {
+  const toast = useToast();
+  const activeInsight = insightQueue?.[0] || null;
+  const closeActiveInsight = () => {
+    setInsightQueue?.((current) => current.slice(1));
+  };
+
   return (
     <>
       <DashboardPageLayout
@@ -149,6 +159,18 @@ export default function YoutubePageContent({
         title={uiState.deleteItem?.title ? `Delete: ${uiState.deleteItem.title}` : "Delete video"}
         description="Delete this saved video?"
         busy={uiState.isDeleting}
+      />
+
+      <ContentInsightReviewModal
+        open={Boolean(activeInsight)}
+        insight={activeInsight}
+        onClose={closeActiveInsight}
+        onAccepted={() => {
+          toast.success("Action items saved.");
+        }}
+        onRejected={() => {
+          toast.info("AI suggestions dismissed.");
+        }}
       />
     </>
   );

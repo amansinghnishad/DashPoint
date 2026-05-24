@@ -17,6 +17,7 @@ const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./youtube/YoutubePage"));
 const FileManagerPage = lazy(() => import("./FileManager"));
 const CalendarPage = lazy(() => import("./CalendarPage"));
+const FocusPage = lazy(() => import("./FocusPage"));
 const DashboardChatBar = lazy(() => import("../../../shared/ui/Chat/DashboardChatBar"));
 
 function ContentFallback() {
@@ -28,7 +29,7 @@ function ContentFallback() {
 }
 
 const DASHBOARD_UI_INITIAL_STATE = {
-  activeTab: "collections",
+  activeTab: "focus",
   sidebarOpen: false,
   openCollectionId: null,
   notificationsOpen: false,
@@ -95,7 +96,7 @@ export default function DashboardPage() {
         youtube_transcript: "youtube",
         calendar_event: "calendar",
         planner_widget: "collections",
-        chat_message: "collections",
+        chat_message: "focus",
       };
 
       const nextTab = tabByType[type];
@@ -127,6 +128,8 @@ export default function DashboardPage() {
 
   const content = useMemo(() => {
     switch (uiState.activeTab) {
+      case "focus":
+        return <FocusPage onNavigate={onShortcutNavigate} onOpenCollection={onOpenCollection} />;
       case "calendar":
         return <CalendarPage />;
       case "youtube":
@@ -137,10 +140,12 @@ export default function DashboardPage() {
       default:
         return <CollectionsHome onOpenCollection={onOpenCollection} />;
     }
-  }, [onOpenCollection, uiState.activeTab]);
+  }, [onOpenCollection, onShortcutNavigate, uiState.activeTab]);
 
   const currentSectionLabel =
-    uiState.activeTab === "collections"
+    uiState.activeTab === "focus"
+      ? "Focus"
+      : uiState.activeTab === "collections"
       ? "Collections"
       : uiState.activeTab === "calendar"
         ? "Calendar"

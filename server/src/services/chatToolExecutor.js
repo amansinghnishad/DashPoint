@@ -13,6 +13,10 @@ const {
   getAssistantMemoryForUser,
   updateAssistantMemoryForUser
 } = require('./assistantMemoryService');
+const {
+  createInsightForYouTube,
+  serializeInsight
+} = require('./contentInsightService');
 const { attachEmbeddingToPlannerWidget } = require('./embeddingsService');
 const { retrieveChatContext } = require('./chatContextService');
 const { indexTranscriptForVideo } = require('./youtubeTranscriptService');
@@ -466,6 +470,15 @@ const addYouTubeVideoToCollection = async (userId, args) => {
   }
 
   const transcriptIndexing = await indexTranscriptForVideo(video);
+  let insight = null;
+  try {
+    insight = await createInsightForYouTube({
+      userId,
+      video
+    });
+  } catch (error) {
+    console.warn('[ChatTool] Automatic YouTube insight extraction failed:', error.message);
+  }
 
   return {
     success: true,
@@ -484,7 +497,8 @@ const addYouTubeVideoToCollection = async (userId, args) => {
       transcriptError: video.transcriptError
     },
     addedToCollection: !alreadyInCollection,
-    transcriptIndexing
+    transcriptIndexing,
+    insight: serializeInsight(insight)
   };
 };
 

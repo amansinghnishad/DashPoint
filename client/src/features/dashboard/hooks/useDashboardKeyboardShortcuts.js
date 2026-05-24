@@ -37,6 +37,7 @@ export const DASHBOARD_SHORTCUT_GROUPS = [
     title: "Navigation",
     items: [
       { keys: ["G", "H"], description: "Go to Home" },
+      { keys: ["G", "D"], description: "Go to Focus" },
       { keys: ["G", "C"], description: "Go to Calendar" },
       { keys: ["G", "Y"], description: "Go to YouTube" },
       { keys: ["G", "F"], description: "Go to File Manager" },
@@ -112,6 +113,7 @@ export default function useDashboardKeyboardShortcuts({
       if (sequenceRef.current === "g") {
         const nextTabByKey = {
           h: "collections",
+          d: "focus",
           c: "calendar",
           y: "youtube",
           f: "files",

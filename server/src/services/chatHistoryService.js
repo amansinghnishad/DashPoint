@@ -15,7 +15,8 @@ const saveChatTurn = async ({
   provider,
   model,
   mutations,
-  retrieval
+  retrieval,
+  routing
 }) => {
   const normalizedUserMessage = normalizeContent(userMessage);
   const normalizedAssistantMessage = normalizeContent(assistantMessage);
@@ -39,7 +40,8 @@ const saveChatTurn = async ({
       model: String(model || ''),
       metadata: {
         mutations: mutations || null,
-        retrieval: retrieval || null
+        retrieval: retrieval || null,
+        routing: routing || null
       }
     });
   }

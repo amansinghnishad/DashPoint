@@ -53,11 +53,13 @@ export const buildMetaLabel = (meta) => {
 
   const provider = String(meta.provider || "").trim();
   const model = String(meta.model || "").trim();
+  const tier = String(meta?.routing?.tier || "").trim();
   const hitCount = Number(meta?.retrieval?.hitCount || 0);
 
   const parts = [];
   if (provider && model) parts.push(`${provider}/${model}`);
   if (provider && !model) parts.push(provider);
+  if (tier) parts.push(tier);
   if (hitCount > 0) parts.push(`${hitCount} context`);
 
   return parts.join(" | ");
