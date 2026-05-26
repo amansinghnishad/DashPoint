@@ -15,6 +15,7 @@ export {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Mic,
   CloudSun,
   Crosshair,
   Download,

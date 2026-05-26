@@ -129,7 +129,7 @@ export default function DashboardPage() {
   const content = useMemo(() => {
     switch (uiState.activeTab) {
       case "focus":
-        return <FocusPage onNavigate={onShortcutNavigate} onOpenCollection={onOpenCollection} />;
+        return <FocusPage />;
       case "calendar":
         return <CalendarPage />;
       case "youtube":
@@ -146,14 +146,14 @@ export default function DashboardPage() {
     uiState.activeTab === "focus"
       ? "Focus"
       : uiState.activeTab === "collections"
-      ? "Collections"
-      : uiState.activeTab === "calendar"
-        ? "Calendar"
-        : uiState.activeTab === "youtube"
-          ? "YouTube"
-          : uiState.activeTab === "files"
-            ? "File Manager"
-            : "";
+        ? "Collections"
+        : uiState.activeTab === "calendar"
+          ? "Calendar"
+          : uiState.activeTab === "youtube"
+            ? "YouTube"
+            : uiState.activeTab === "files"
+              ? "File Manager"
+              : "";
 
   if (uiState.openCollectionId) {
     return (
@@ -221,9 +221,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Suspense fallback={null}>
-        <DashboardChatBar />
-      </Suspense>
+      {uiState.activeTab !== "focus" ? (
+        <Suspense fallback={null}>
+          <DashboardChatBar />
+        </Suspense>
+      ) : null}
 
       <InfoModal
         open={uiState.notificationsOpen}
