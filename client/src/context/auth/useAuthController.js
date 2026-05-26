@@ -7,7 +7,7 @@ import {
   clearAuthSession,
   clearFirstTimeUserFlag,
   clearNewlyRegisteredUser,
-  getAuthToken,
+  getUserData,
   getFirstTimeUserFlag,
   getNewlyRegisteredUser,
   setAuthSession,
@@ -34,8 +34,8 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
   );
 
   const checkAuthStatus = useCallback(async () => {
-    const token = getAuthToken();
-    if (!token) {
+    const hasUserData = getUserData();
+    if (!hasUserData) {
       dispatch({ type: AuthActionType.SET_LOADING, payload: false });
       return;
     }
@@ -81,7 +81,7 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
           return { success: false, error: message };
         }
 
-        setAuthSession(response.data.token, response.data.user);
+        setAuthSession(response.data.user);
 
         const newlyRegisteredUser = getNewlyRegisteredUser();
         const isFirstTimeUser = newlyRegisteredUser === credentials.email;
@@ -175,7 +175,7 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
         }
 
         const isFirstTimeUser = Boolean(response.data.isNewUser);
-        setAuthSession(response.data.token, response.data.user);
+        setAuthSession(response.data.user);
         setFirstTimeUserFlag(isFirstTimeUser);
 
         dispatch({
@@ -254,7 +254,7 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
 
     const tokenCheckInterval = setInterval(
       async () => {
-        if (!getAuthToken()) return;
+        if (!getUserData()) return;
 
         try {
           await authAPI.verifyToken();

@@ -1,10 +1,10 @@
 const User = require('../models/User');
-const { verifyToken, extractTokenFromHeader } = require('../utils/jwt');
+const { verifyToken } = require('../utils/jwt');
 
 // authenticateToken middleware
 const auth = async (req, res, next) => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token = req.cookies?.token;
 
     if (!token) {
       return res.status(401).json({

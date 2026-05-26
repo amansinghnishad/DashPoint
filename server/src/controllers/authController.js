@@ -108,12 +108,18 @@ exports.register = async (req, res, next) => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       data: {
-        user: userResponse,
-        token
+        user: userResponse
       }
     });
   } catch (error) {
@@ -198,12 +204,18 @@ exports.googleAuth = async (req, res, next) => {
       email: user.email
     });
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     res.status(200).json({
       success: true,
       message: 'Google login successful',
       data: {
         user,
-        token,
         isNewUser
       }
     });
@@ -257,12 +269,18 @@ exports.login = async (req, res, next) => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
-        user: userResponse,
-        token
+        user: userResponse
       }
     });
   } catch (error) {
@@ -408,8 +426,7 @@ exports.changePassword = async (req, res, next) => {
 // Logout user
 exports.logout = async (req, res, next) => {
   try {
-    // Note: For JWT, logout is typically handled client-side by removing the token
-    // Here we can add token to a blacklist if needed in the future
+    res.clearCookie('token');
 
     res.status(200).json({
       success: true,

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { clearAuthSession, getAuthToken } from "../auth/authSession";
+import { clearAuthSession } from "../auth/authSession";
 import { API_BASE_URL } from "../config/appConfig";
 
 const PUBLIC_AUTH_PATHS = new Set(["/login", "/register"]);
@@ -38,19 +38,8 @@ export function setUnauthorizedHandler(handler) {
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
 });
-
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = getAuthToken();
-    if (!token) return config;
-
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
 
 apiClient.interceptors.response.use(
   (response) => response,

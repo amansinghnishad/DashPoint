@@ -36,6 +36,7 @@ export {
   MapPin,
   Menu,
   MessageSquare,
+  Mic,
   Moon,
   Move,
   PanelsTopLeft,
