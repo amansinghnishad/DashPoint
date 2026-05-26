@@ -1,33 +1,35 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
+const path = require("path");
+require("dotenv").config();
 
-const connectDB = require('./config/database');
-const { connectRedis, disconnectRedis } = require('./config/redis');
-const errorHandler = require('./middleware/errorHandler');
+const connectDB = require("./config/database");
+const { connectRedis, disconnectRedis } = require("./config/redis");
+const errorHandler = require("./middleware/errorHandler");
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
-const youtubeRoutes = require('./routes/youtubeRoutes');
-const collectionRoutes = require('./routes/collectionRoutes');
-const fileRoutes = require('./routes/fileRoutes');
-const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
-const calendarRoutes = require('./routes/calendarRoutes');
-const chatRoutes = require('./routes/chatRoutes');
-const searchRoutes = require('./routes/searchRoutes');
-const focusRoutes = require('./routes/focusRoutes');
-const contentInsightRoutes = require('./routes/contentInsightRoutes');
+const authRoutes = require("./routes/authRoutes");
+const youtubeRoutes = require("./routes/youtubeRoutes");
+const collectionRoutes = require("./routes/collectionRoutes");
+const fileRoutes = require("./routes/fileRoutes");
+const plannerWidgetRoutes = require("./routes/plannerWidgetRoutes");
+const calendarRoutes = require("./routes/calendarRoutes");
+const chatRoutes = require("./routes/chatRoutes");
+const searchRoutes = require("./routes/searchRoutes");
+const focusRoutes = require("./routes/focusRoutes");
+const contentInsightRoutes = require("./routes/contentInsightRoutes");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // Set NODE_ENV to production if not set (for deployment platforms)
 if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = 'production';
+  process.env.NODE_ENV = "production";
 }
 
 // Connect to MongoDB
@@ -39,16 +41,18 @@ const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 30 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   message: {
-    error: 'Too many requests from this IP, please try again later.'
+    error: "Too many requests from this IP, please try again later.",
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(limiter);
 
 // CORS configuration
@@ -58,19 +62,19 @@ const corsOptions = {
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:3000",
       process.env.CLIENT_URL,
       // Allow all Vercel deployments for this project
       /^https:\/\/dash-point-.*\.vercel\.app$/,
-      /^https:\/\/dashpoint-.*\.vercel\.app$/
+      /^https:\/\/dashpoint-.*\.vercel\.app$/,
     ].filter(Boolean);
 
     // Check if origin matches any allowed origin (string or regex)
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
+    const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      if (typeof allowedOrigin === "string") {
         return allowedOrigin === origin;
       } else if (allowedOrigin instanceof RegExp) {
         return allowedOrigin.test(origin);
@@ -81,80 +85,87 @@ const corsOptions = {
     if (isAllowed) {
       callback(null, true);
     } else {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('CORS blocked origin:', origin);
+      if (process.env.NODE_ENV === "development") {
+        console.log("CORS blocked origin:", origin);
       }
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
-  }, credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Authorization'],
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+  ],
+  exposedHeaders: ["Authorization"],
   preflightContinue: false,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.options('*', cors(corsOptions));
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.options("*", cors(corsOptions));
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
 // Serve static files for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
-    status: 'OK',
-    message: 'Dashboard API is running',
+    status: "OK",
+    message: "Dashboard API is running",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   });
 });
 
 // Root route - API information
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
-    name: 'DashPoint API',
-    version: '1.0.0',
-    message: 'Welcome to the DashPoint Dashboard API',
+    name: "DashPoint API",
+    version: "1.0.0",
+    message: "Welcome to the DashPoint Dashboard API",
     endpoints: {
-      health: '/health',
-      auth: '/api/auth',
-      youtube: '/api/youtube',
-      collections: '/api/collections',
-      files: '/api/files',
-      chat: '/api/chat',
-      search: '/api/search',
-      focus: '/api/focus',
-      insights: '/api/insights'
+      health: "/health",
+      auth: "/api/auth",
+      youtube: "/api/youtube",
+      collections: "/api/collections",
+      files: "/api/files",
+      chat: "/api/chat",
+      search: "/api/search",
+      focus: "/api/focus",
+      insights: "/api/insights",
     },
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   });
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/youtube', youtubeRoutes);
-app.use('/api/collections', collectionRoutes);
-app.use('/api/files', fileRoutes);
-app.use('/api/planner-widgets', plannerWidgetRoutes);
-app.use('/api/calendar', calendarRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/focus', focusRoutes);
-app.use('/api/insights', contentInsightRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/youtube", youtubeRoutes);
+app.use("/api/collections", collectionRoutes);
+app.use("/api/files", fileRoutes);
+app.use("/api/planner-widgets", plannerWidgetRoutes);
+app.use("/api/calendar", calendarRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/focus", focusRoutes);
+app.use("/api/insights", contentInsightRoutes);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
@@ -174,12 +185,12 @@ const shutdown = (signal) => {
 
   server.close(async () => {
     await disconnectRedis();
-    console.log('Process terminated');
+    console.log("Process terminated");
   });
 };
 
 // Graceful shutdown
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 module.exports = app;
