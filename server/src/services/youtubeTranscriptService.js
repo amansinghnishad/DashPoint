@@ -319,8 +319,8 @@ const indexTranscriptForVideo = async (videoDoc) => {
 
     if (!selectedTrack) {
       await VideoIntelligenceChunk.deleteMany({
-        userId: videoDoc.userId,
-        youtubeId: videoDoc._id
+        userId: { $eq: videoDoc.userId },
+        youtubeId: { $eq: videoDoc._id }
       });
 
       videoDoc.transcriptStatus = 'unavailable';
@@ -337,8 +337,8 @@ const indexTranscriptForVideo = async (videoDoc) => {
     const segments = await fetchTranscriptSegments(videoDoc.videoId, selectedTrack);
     if (!segments.length) {
       await VideoIntelligenceChunk.deleteMany({
-        userId: videoDoc.userId,
-        youtubeId: videoDoc._id
+        userId: { $eq: videoDoc.userId },
+        youtubeId: { $eq: videoDoc._id }
       });
 
       videoDoc.transcriptStatus = 'unavailable';
@@ -363,8 +363,8 @@ const indexTranscriptForVideo = async (videoDoc) => {
       .slice(0, 200000);
 
     await VideoIntelligenceChunk.deleteMany({
-      userId: videoDoc.userId,
-      youtubeId: videoDoc._id
+      userId: { $eq: videoDoc.userId },
+      youtubeId: { $eq: videoDoc._id }
     });
 
     const embeddingConfig = resolveEmbeddingConfig();
