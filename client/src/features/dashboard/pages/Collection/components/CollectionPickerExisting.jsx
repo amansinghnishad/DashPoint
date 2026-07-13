@@ -20,14 +20,14 @@ export default function CollectionPickerExisting({
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search..."
-        className="dp-surface dp-border dp-text w-full rounded-xl border px-4 py-2 text-sm outline-none"
+        className="bg-canvas border border-hairline text-ink w-full rounded-xl px-4 py-2 text-sm outline-none"
         disabled={loading}
       />
 
       {loading ? (
-        <div className="dp-text-muted text-sm">Loading...</div>
+        <div className="text-muted text-sm font-medium">Loading...</div>
       ) : filtered.length ? (
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {filtered.slice(0, 60).map((it) => {
             const id = getPickerItemId(it);
             if (!id) return null;
@@ -43,19 +43,22 @@ export default function CollectionPickerExisting({
                 key={String(id)}
                 type="button"
                 onClick={() => setSelectedId(id)}
-                className={`w-full rounded-2xl px-4 py-3 text-left transition-colors border ${
-                  isActive ? "dp-border dp-surface-muted border-2" : "dp-border dp-surface"
-                } ${alreadyAdded ? "opacity-60" : "dp-hover-bg"}`}
+                className={`w-full rounded-2xl px-4 py-3.5 text-left transition-colors border ${
+                  isActive
+                    ? "border-primary bg-canvas-soft shadow-sm"
+                    : "border-hairline bg-surface-card hover:bg-canvas-soft/50"
+                } ${alreadyAdded ? "opacity-60 cursor-not-allowed" : ""}`}
+                disabled={alreadyAdded}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="dp-text font-semibold truncate">{rowTitle}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-ink font-semibold text-sm truncate">{rowTitle}</p>
                     {subtitle ? (
-                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">{subtitle}</p>
+                      <p className="text-muted mt-0.5 text-xs line-clamp-2 leading-relaxed">{subtitle}</p>
                     ) : null}
                   </div>
                   {alreadyAdded ? (
-                    <span className="dp-text-muted text-xs whitespace-nowrap">Added</span>
+                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Added</span>
                   ) : null}
                 </div>
               </button>
@@ -63,13 +66,13 @@ export default function CollectionPickerExisting({
           })}
 
           {filtered.length > 60 ? (
-            <p className="dp-text-muted text-xs">Showing 60 of {filtered.length}</p>
+            <p className="text-muted text-xs">Showing 60 of {filtered.length}</p>
           ) : null}
         </div>
       ) : (
-        <div className="dp-surface-muted dp-border rounded-2xl border p-4">
-          <p className="dp-text font-semibold">Nothing to add</p>
-          <p className="dp-text-muted mt-1 text-sm">Use "Create new" to add items from here.</p>
+        <div className="bg-canvas-soft border border-hairline rounded-2xl p-4">
+          <p className="text-ink font-semibold text-sm">Nothing to add</p>
+          <p className="text-muted mt-1 text-xs">Use "Create new" to add items from here.</p>
         </div>
       )}
     </>

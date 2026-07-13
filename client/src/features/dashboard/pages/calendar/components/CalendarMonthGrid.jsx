@@ -11,20 +11,20 @@ export default function CalendarMonthGrid({
   onSelectDate,
 }) {
   return (
-    <div className="dp-surface dp-border overflow-hidden rounded-2xl border">
-      <div className="grid grid-cols-7 border-b dp-border dp-surface-muted">
+    <div className="bg-surface-card border border-hairline overflow-hidden rounded-2xl shadow-sm">
+      <div className="grid grid-cols-7 border-b border-hairline bg-canvas-soft select-none">
         {weekdays.map((weekday) => (
           <div
             key={weekday}
-            className="px-3 py-2 dp-text-muted text-[11px] font-semibold uppercase tracking-wide"
+            className="px-4 py-2.5 text-muted text-[10px] font-bold uppercase tracking-wider text-center sm:text-left"
           >
             {weekday}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
-        {monthGrid.map((date) => {
+      <div className="grid grid-cols-7 divide-x divide-y divide-hairline/60">
+        {monthGrid.map((date, idx) => {
           const inMonth = date.getMonth() === month.getMonth();
           const isTodayCell = isSameDay(date, today);
           const isSelected = isSameDay(date, selectedDate);
@@ -36,20 +36,23 @@ export default function CalendarMonthGrid({
               type="button"
               onClick={() => onSelectDate(date)}
               className={
-                "group min-h-[96px] border-b border-r dp-border p-2 text-left transition-all motion-safe:duration-200 motion-safe:ease-out lg:min-h-[118px] " +
+                "group min-h-[96px] p-2.5 text-left transition-all duration-200 ease-out lg:min-h-[118px] relative " +
                 (isSelected
-                  ? "dp-surface-muted shadow-[inset_0_0_0_1px_var(--dp-border)]"
-                  : "dp-hover-bg")
+                  ? "bg-canvas-soft/80"
+                  : "hover:bg-canvas-soft/30") +
+                // Fix grid borders since grid division applies to children
+                (idx < 7 ? " border-t-0" : "") +
+                (idx % 7 === 0 ? " border-l-0" : "")
               }
             >
               <div className="flex items-center justify-between">
                 <div
                   className={
-                    "inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-lg text-xs font-semibold transition-all motion-safe:duration-200 motion-safe:ease-out " +
-                    (inMonth ? "dp-text" : "dp-text-muted") +
+                    "text-xs font-semibold select-none " +
+                    (inMonth ? "text-ink" : "text-muted-soft") +
                     (isTodayCell
-                      ? " ring-1 ring-inset ring-[var(--dp-toast-info)]"
-                      : " group-hover:dp-surface")
+                      ? " bg-ink text-canvas rounded-full h-6 w-6 inline-flex items-center justify-center shadow-sm"
+                      : " group-hover:text-ink h-6 w-6 inline-flex items-center justify-center rounded-lg hover:bg-canvas-soft")
                   }
                   aria-label={date.toDateString()}
                 >
@@ -57,30 +60,30 @@ export default function CalendarMonthGrid({
                 </div>
 
                 {dayEvents.length ? (
-                  <span className="dp-text-subtle text-[10px] font-semibold">
+                  <span className="text-[10px] font-bold text-muted bg-canvas-soft px-1.5 py-0.5 rounded-full select-none">
                     {dayEvents.length}
                   </span>
                 ) : null}
               </div>
 
-              <div className="mt-2 space-y-1">
+              <div className="mt-2.5 space-y-1">
                 {dayEvents.slice(0, 3).map((event) => (
                   <div
                     key={event.id}
                     className={
-                      "dp-surface dp-border rounded-lg border px-2 py-1 " + getEventChipClass(event)
+                      "border border-hairline/60 bg-canvas-soft/40 rounded-lg px-2 py-1 shadow-[0_1px_2px_rgba(0,0,0,0.01)] hover:bg-canvas-soft transition-colors " + getEventChipClass(event)
                     }
                     title={event.summary}
                   >
-                    <p className="dp-text text-[11px] font-semibold truncate">{event.summary}</p>
-                    <p className="dp-text-subtle mt-0.5 text-[10px] truncate">
-                      {formatEventTimeLabel(event) || "Time"}
+                    <p className="text-ink text-[11px] font-semibold truncate leading-tight">{event.summary}</p>
+                    <p className="text-muted-soft mt-0.5 text-[9px] truncate">
+                      {formatEventTimeLabel(event) || "All day"}
                     </p>
                   </div>
                 ))}
 
                 {dayEvents.length > 3 ? (
-                  <p className="dp-text-muted text-[11px]">+{dayEvents.length - 3} more</p>
+                  <p className="text-muted text-[10px] font-semibold select-none pl-1">+{dayEvents.length - 3} more</p>
                 ) : null}
               </div>
             </button>

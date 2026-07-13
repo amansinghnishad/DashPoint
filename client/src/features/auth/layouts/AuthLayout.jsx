@@ -9,9 +9,25 @@ const MotionDiv = motion.div;
 
 const GlowBackdrop = () => {
   return (
-    <div className="dp-glow pointer-events-none absolute inset-0" aria-hidden="true">
-      <div className="absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-white/15 blur-3xl" />
-      <div className="absolute -bottom-24 right-[-10rem] h-72 w-[36rem] rounded-full bg-white/10 blur-3xl" />
+    <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
+      {/* Pastel Mint/Lavender orb at top left */}
+      <div
+        className="absolute -top-24 -left-24 h-96 w-96 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(167, 229, 211, 0.4) 0%, rgba(200, 184, 224, 0.1) 60%, transparent 100%)",
+          filter: "blur(60px)",
+          WebkitFilter: "blur(60px)",
+        }}
+      />
+      {/* Pastel Peach/Sky orb at bottom right */}
+      <div
+        className="absolute -bottom-24 -right-24 h-[30rem] w-[30rem] rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(244, 197, 168, 0.3) 0%, rgba(168, 200, 232, 0.1) 60%, transparent 100%)",
+          filter: "blur(80px)",
+          WebkitFilter: "blur(80px)",
+        }}
+      />
     </div>
   );
 };
@@ -49,8 +65,8 @@ export default function AuthLayout({
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="dp-bg dp-text min-h-screen relative overflow-hidden">
-        <div className="dp-showcase-bg absolute inset-0" aria-hidden="true" />
+      <div className="bg-canvas text-ink min-h-screen relative overflow-hidden">
+        <div className="absolute inset-0" aria-hidden="true" />
         <TopBar />
         <GlowBackdrop />
 
@@ -59,17 +75,17 @@ export default function AuthLayout({
             initial={shellInitial}
             animate={shellAnimate}
             transition={shellTransition}
-            className="max-w-4xl mx-auto rounded-3xl dp-surface backdrop-blur-sm shadow-2xl border dp-border overflow-hidden"
+            className="max-w-[896px] mx-auto rounded-xl bg-surface-card border border-hairline overflow-hidden shadow-xl"
           >
-            <div className="px-6 py-5 sm:px-10 sm:py-6 border-b dp-border">
-              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight dp-text">
+            <div className="px-6 py-5 sm:px-10 sm:py-6 border-b border-hairline bg-canvas-soft">
+              <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-ink">
                 {pageTitle}
               </h1>
-              {pageSubtitle ? <p className="mt-1 text-sm dp-text-muted">{pageSubtitle}</p> : null}
+              {pageSubtitle ? <p className="mt-1 text-sm text-body">{pageSubtitle}</p> : null}
             </div>
 
             <div className="flex flex-col lg:flex-row">
-              <aside className="hidden lg:block lg:w-1/2 dp-surface-muted p-8 border-r dp-border">
+              <aside className="hidden lg:block lg:w-1/2 bg-canvas-soft p-8 border-r border-hairline">
                 <MotionDiv
                   initial={blockInitial}
                   animate={blockAnimate}
@@ -79,16 +95,16 @@ export default function AuthLayout({
                   <div className="space-y-6">
                     <div>
                       {asideBadge ? (
-                        <div className="inline-flex items-center gap-2 border dp-border dp-surface-muted dp-text px-4 py-2 rounded-full text-sm font-medium mb-4">
+                        <div className="inline-flex items-center gap-2 border border-hairline bg-surface-strong text-ink px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-[0.08em] mb-4">
                           {asideBadge}
                         </div>
                       ) : null}
 
                       {asideTitle ? (
-                        <h2 className="text-xl font-semibold dp-text mb-3">{asideTitle}</h2>
+                        <h2 className="text-xl font-semibold text-ink mb-3">{asideTitle}</h2>
                       ) : null}
                       {asideDescription ? (
-                        <p className="dp-text-muted leading-relaxed">{asideDescription}</p>
+                        <p className="text-body leading-relaxed">{asideDescription}</p>
                       ) : null}
                     </div>
 
@@ -99,10 +115,10 @@ export default function AuthLayout({
                             key={title || description || "aside-item"}
                             className="flex items-start gap-3"
                           >
-                            {Icon ? <Icon className="dp-hero-accent mt-0.5" size={20} /> : null}
+                            {Icon ? <Icon className="text-primary mt-0.5" size={20} /> : null}
                             <div>
-                              <h3 className="font-medium dp-text">{title}</h3>
-                              <p className="text-sm dp-text-muted">{description}</p>
+                              <h3 className="font-medium text-ink">{title}</h3>
+                              <p className="text-sm text-body">{description}</p>
                             </div>
                           </div>
                         ))}
@@ -110,12 +126,12 @@ export default function AuthLayout({
                     ) : null}
 
                     {asideFooterTitle || asideFooterItems?.length ? (
-                      <div className="rounded-2xl border dp-border dp-surface p-4">
+                      <div className="rounded-xl border border-hairline bg-surface-card p-4">
                         {asideFooterTitle ? (
-                          <h3 className="font-medium dp-text mb-2">{asideFooterTitle}</h3>
+                          <h3 className="font-medium text-ink mb-2">{asideFooterTitle}</h3>
                         ) : null}
                         {asideFooterItems?.length ? (
-                          <ul className="space-y-1 text-sm dp-text-muted">
+                          <ul className="space-y-1 text-sm text-body">
                             {asideFooterItems.map((line) => (
                               <li key={line}>{line}</li>
                             ))}
@@ -127,7 +143,7 @@ export default function AuthLayout({
                 </MotionDiv>
               </aside>
 
-              <section className="w-full lg:w-1/2 p-6 sm:p-10">
+              <section className="w-full lg:w-1/2 p-6 sm:p-10 bg-surface-card">
                 <MotionDiv
                   initial={blockInitial}
                   animate={blockAnimate}
@@ -137,13 +153,13 @@ export default function AuthLayout({
                   }}
                   className="h-full flex flex-col justify-center"
                 >
-                  <div className="max-w-sm mx-auto w-full">
+                  <div className="max-w-[384px] mx-auto w-full">
                     <div className="text-center mb-6 sm:mb-8">
                       {formTitle ? (
-                        <h2 className="text-xl sm:text-2xl font-bold dp-text mb-2">{formTitle}</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-ink mb-2">{formTitle}</h2>
                       ) : null}
                       {formSubtitle ? (
-                        <p className="text-sm sm:text-base dp-text-muted">{formSubtitle}</p>
+                        <p className="text-sm sm:text-base text-body">{formSubtitle}</p>
                       ) : null}
                     </div>
 

@@ -78,7 +78,7 @@ function ResultRow({ item, isActive, onSelect }) {
   );
 }
 
-const UniversalSearch = forwardRef(function UniversalSearch({ onResultSelect }, ref) {
+const UniversalSearch = forwardRef(function UniversalSearch({ onResultSelect, placeholder = "Search..." }, ref) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -176,9 +176,9 @@ const UniversalSearch = forwardRef(function UniversalSearch({ onResultSelect }, 
   };
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-xl">
-      <div className="dp-surface dp-border flex h-11 items-center gap-3 rounded-2xl border px-3">
-        <Search size={17} className="dp-text-muted shrink-0" />
+    <div ref={rootRef} className="relative">
+      <div className="bg-canvas-soft border border-hairline flex h-9 items-center gap-2 rounded-full px-3 w-[240px] focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-200">
+        <Search size={15} className="text-muted shrink-0" />
         <input
           ref={ref}
           value={query}
@@ -188,12 +188,12 @@ const UniversalSearch = forwardRef(function UniversalSearch({ onResultSelect }, 
             setIsOpen(true);
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search everything..."
+          placeholder={placeholder}
           aria-label="Universal search"
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none dp-text placeholder:opacity-60"
+          className="min-w-0 flex-1 bg-transparent text-[13px] outline-none text-ink placeholder:text-muted-soft"
         />
-        <kbd className="dp-border hidden shrink-0 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold dp-text-subtle sm:inline">
-          Ctrl K
+        <kbd className="hidden shrink-0 border border-hairline rounded px-1 text-[9px] font-semibold text-muted-soft bg-white/50 sm:inline">
+          ⌘K
         </kbd>
       </div>
 

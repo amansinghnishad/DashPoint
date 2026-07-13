@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-
 import {
   FileText,
   Image,
-  IconDelete,
-  IconEdit,
+  Trash2,
+  Edit2,
   LayoutGrid,
   Move,
   Youtube,
-} from "@/shared/ui/icons/icons";
+} from "lucide-react";
 
 import PlannerWidgetBody from "./plannerWidgets/PlannerWidgetBody";
 import { useResizableCard } from "./useResizableCard";
@@ -187,8 +186,8 @@ export default function ResizableItemCard({
 
   return (
     <div
-      className={`group absolute dp-resize-handle-bg dp-border rounded-2xl border shadow-lg overflow-hidden flex flex-col ${
-        isDragging || isResizing ? "shadow-2xl" : ""
+      className={`group absolute bg-surface-card border border-hairline rounded-2xl shadow-md overflow-hidden flex flex-col ${
+        isDragging || isResizing ? "shadow-2xl border-primary" : ""
       }`}
       style={{
         left: currentLayout.x,
@@ -200,15 +199,15 @@ export default function ResizableItemCard({
       }}
     >
       <div
-        className="dp-surface dp-border border-b px-3 py-2 flex items-center justify-between cursor-move select-none touch-none"
+        className="bg-canvas border-b border-hairline px-3.5 py-2 flex items-center justify-between cursor-move select-none touch-none"
         onPointerDown={handleDragStart}
         title="Drag to move"
       >
         <div className="min-w-0 flex items-center gap-2">
-          <Icon size={16} className="dp-text-muted" />
-          <p className="dp-text text-sm font-semibold truncate">{title}</p>
+          <Icon size={15} className="text-muted shrink-0" />
+          <p className="text-ink text-xs font-bold truncate">{title}</p>
         </div>
-        <div className="dp-text-muted flex items-center gap-1 text-xs whitespace-nowrap">
+        <div className="text-muted flex items-center gap-1.5 text-xs whitespace-nowrap">
           <button
             type="button"
             onMouseDown={(e) => e.stopPropagation()}
@@ -217,11 +216,11 @@ export default function ResizableItemCard({
               e.stopPropagation();
               onEdit?.(item);
             }}
-            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
             aria-label="Edit item"
             title="Edit"
           >
-            <IconEdit size={14} />
+            <Edit2 size={13} />
           </button>
 
           <button
@@ -232,24 +231,24 @@ export default function ResizableItemCard({
               e.stopPropagation();
               onDelete?.(item);
             }}
-            className="dp-text-muted dp-hover-bg dp-hover-text inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+            className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
             aria-label="Delete item"
             title="Delete"
           >
-            <IconDelete size={14} />
+            <Trash2 size={13} />
           </button>
 
-          <span className="mx-1 hidden sm:inline">{type}</span>
-          <Move size={14} />
+          <span className="mx-1 hidden sm:inline text-[10px] font-bold uppercase tracking-wider text-muted-soft">{type}</span>
+          <Move size={13} className="text-muted-soft" />
         </div>
       </div>
 
       <div className={bodyClassName}>
-        <div className="p-3 h-full">
+        <div className="p-3.5 h-full">
           {type === "planner" ? (
             <PlannerWidgetBody widget={item?.itemData} />
           ) : type === "youtube" ? (
-            <div className="h-full w-full dp-border rounded-xl border overflow-hidden bg-black">
+            <div className="h-full w-full border border-hairline rounded-xl overflow-hidden bg-black">
               {youtubeEmbedSrc ? (
                 <iframe
                   className="h-full w-full"
@@ -262,53 +261,55 @@ export default function ResizableItemCard({
               ) : null}
             </div>
           ) : type === "file" || type === "photo" ? (
-            <div className="h-full w-full dp-border rounded-xl border overflow-hidden">
-              {isImageFile(item?.itemData) && fileUrl ? (
-                <img
-                  src={fileUrl}
-                  alt={title}
-                  className="h-full w-full object-contain dp-surface"
-                />
-              ) : isPdfFile(item?.itemData) ? (
-                <object
-                  data={pdfPreviewUrl || undefined}
-                  type="application/pdf"
-                  className="h-full w-full dp-surface"
-                >
-                  <div className="h-full w-full p-3 flex flex-col justify-center">
-                    <p className="dp-text text-sm font-semibold">
-                      {pdfPreviewUrl
-                        ? "PDF preview is not available in this browser."
-                        : "Loading PDF preview..."}
+            <div className="h-full w-full border border-hairline rounded-xl overflow-hidden flex flex-col bg-canvas-soft">
+              <div className="flex-1 min-h-0 relative">
+                {isImageFile(item?.itemData) && fileUrl ? (
+                  <img
+                    src={fileUrl}
+                    alt={title}
+                    className="h-full w-full object-contain bg-surface-card"
+                  />
+                ) : isPdfFile(item?.itemData) ? (
+                  <object
+                    data={pdfPreviewUrl || undefined}
+                    type="application/pdf"
+                    className="h-full w-full bg-surface-card"
+                  >
+                    <div className="h-full w-full p-4 flex flex-col justify-center text-center">
+                      <p className="text-ink text-xs font-semibold">
+                        {pdfPreviewUrl
+                          ? "PDF preview is not available in this browser."
+                          : "Loading PDF preview..."}
+                      </p>
+                      {fileUrl ? (
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary text-xs underline mt-2 font-semibold"
+                        >
+                          Open PDF
+                        </a>
+                      ) : null}
+                    </div>
+                  </object>
+                ) : (
+                  <div className="h-full w-full p-4 flex flex-col justify-center text-center">
+                    <p className="text-ink text-xs font-bold">Preview not available</p>
+                    <p className="text-muted text-[11px] mt-1">
+                      Open or download this file to view it.
                     </p>
-                    {fileUrl ? (
-                      <a
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="dp-text text-xs underline mt-2"
-                      >
-                        Open PDF
-                      </a>
-                    ) : null}
                   </div>
-                </object>
-              ) : (
-                <div className="h-full w-full p-3 flex flex-col justify-center">
-                  <p className="dp-text text-sm font-semibold">Preview not available</p>
-                  <p className="dp-text-muted text-xs mt-1">
-                    Open or download this file to view it.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
 
               {fileDownloadUrl ? (
-                <div className="dp-surface/80 dp-border border-t px-3 py-2">
+                <div className="bg-surface-card border-t border-hairline px-3 py-2 shrink-0">
                   <a
                     href={fileDownloadUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="dp-text text-xs underline"
+                    className="text-primary text-xs font-bold hover:underline"
                   >
                     Open / Download
                   </a>
@@ -353,25 +354,25 @@ export default function ResizableItemCard({
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "nw")}
-          className="pointer-events-auto absolute left-0 top-0 h-5 w-5 sm:left-1 sm:top-1 sm:h-3 sm:w-3 cursor-nw-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
+          className="pointer-events-auto absolute left-0 top-0 h-5 w-5 sm:left-1 sm:top-1 sm:h-3 sm:w-3 cursor-nw-resize rounded-md sm:rounded-sm hover:bg-canvas-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "ne")}
-          className="pointer-events-auto absolute right-0 top-0 h-5 w-5 sm:right-1 sm:top-1 sm:h-3 sm:w-3 cursor-ne-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
+          className="pointer-events-auto absolute right-0 top-0 h-5 w-5 sm:right-1 sm:top-1 sm:h-3 sm:w-3 cursor-ne-resize rounded-md sm:rounded-sm hover:bg-canvas-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "sw")}
-          className="pointer-events-auto absolute left-0 bottom-0 h-5 w-5 sm:left-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-sw-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
+          className="pointer-events-auto absolute left-0 bottom-0 h-5 w-5 sm:left-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-sw-resize rounded-md sm:rounded-sm hover:bg-canvas-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
         <div
           role="presentation"
           onPointerDown={(e) => handleResizeStart(e, "se")}
-          className="pointer-events-auto absolute right-0 bottom-0 h-5 w-5 sm:right-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-se-resize rounded-md sm:rounded-sm dp-hover-bg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
+          className="pointer-events-auto absolute right-0 bottom-0 h-5 w-5 sm:right-1 sm:bottom-1 sm:h-3 sm:w-3 cursor-se-resize rounded-md sm:rounded-sm hover:bg-canvas-soft opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity touch-none"
           title="Resize"
         />
       </div>

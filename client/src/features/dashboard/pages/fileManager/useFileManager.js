@@ -83,6 +83,30 @@ export function useFileManager() {
     [toast],
   );
 
+  const addWebLink = useCallback(
+    async ({ url, title, description, tags }) => {
+      try {
+        setIsBusy(true);
+        const response = await fileService.addWebLink({ url, title, description, tags });
+        if (!response?.success) {
+          throw new Error(response?.error || response?.message || "Failed to add web link");
+        }
+
+        const newFileItem = toFileItem(response.data);
+        setItems((previousItems) => [newFileItem, ...previousItems]);
+        setSelectedId(newFileItem.id);
+        toast.success("Web link added successfully.");
+        return true;
+      } catch (error) {
+        toast.error(getRequestErrorMessage(error, "Failed to add web link"));
+        return false;
+      } finally {
+        setIsBusy(false);
+      }
+    },
+    [toast],
+  );
+
   const removeFile = useCallback(async () => {
     const fileId = deleteItem?.id;
     if (!fileId) return;
@@ -166,6 +190,7 @@ export function useFileManager() {
       removeFile,
       downloadSelectedFile,
       setInsightQueue,
+      addWebLink,
     },
   };
 }

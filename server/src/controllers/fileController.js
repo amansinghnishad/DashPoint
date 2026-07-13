@@ -679,6 +679,58 @@ const summarizeFileToCollection = async (req, res) => {
   }
 };
 
+const createLink = async (req, res) => {
+  try {
+    const { url, title, description, tags } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+
+    let formattedUrl = url.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+
+    let resolvedTitle = (title || '').trim();
+    if (!resolvedTitle) {
+      try {
+        const parsed = new URL(formattedUrl);
+        resolvedTitle = parsed.hostname;
+      } catch {
+        resolvedTitle = 'Web Link';
+      }
+    }
+
+    const newFile = new File({
+      filename: `weblink-${Date.now()}`,
+      originalName: resolvedTitle,
+      mimetype: 'text/html',
+      size: 1,
+      path: null,
+      url: formattedUrl,
+      storageProvider: 'local',
+      userId: req.user.id,
+      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      description: description || ''
+    });
+
+    await newFile.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Web link added successfully',
+      data: {
+        ...newFile.toObject(),
+        formattedSize: 'Web Link',
+        category: 'link'
+      }
+    });
+  } catch (error) {
+    console.error('Error creating web link:', error);
+    res.status(500).json({ error: error.message || 'Failed to add web link' });
+  }
+};
+
 module.exports = {
   getFiles,
   uploadFiles,
@@ -689,5 +741,6 @@ module.exports = {
   toggleStar,
   updateFile,
   getStorageStats,
-  summarizeFileToCollection
+  summarizeFileToCollection,
+  createLink
 };

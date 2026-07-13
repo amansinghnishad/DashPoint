@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 
 import CalendarAgendaPanel from "./calendar/components/CalendarAgendaPanel";
 import CalendarHeader from "./calendar/components/CalendarHeader";
@@ -10,7 +10,7 @@ import { useCalendarMonthData } from "./calendar/hooks/useCalendarMonthData";
 import { dayKey } from "./calendar/utils/dateUtils";
 import { useCalendar } from "../../../hooks/useCalendar";
 
-export default function CalendarPage() {
+export default function CalendarPage({ triggerRef }) {
   const today = useMemo(() => new Date(), []);
 
   const {
@@ -63,6 +63,16 @@ export default function CalendarPage() {
     onError: setMonthError,
   });
 
+  // Wire up the header create trigger ref
+  useEffect(() => {
+    if (triggerRef) {
+      triggerRef.current = () => openCreate();
+    }
+    return () => {
+      if (triggerRef) triggerRef.current = null;
+    };
+  }, [triggerRef, openCreate]);
+
   const onRefresh = useCallback(async () => {
     const status = await refreshStatus();
     const isConnected = Boolean(status?.data?.connected);
@@ -70,12 +80,21 @@ export default function CalendarPage() {
   }, [loadMonthEvents, refreshStatus]);
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border dp-border dp-surface p-4 lg:p-6">
-      <div className="pointer-events-none absolute inset-0 opacity-70">
-        <div className="absolute -top-16 -left-8 h-36 w-36 rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="absolute -bottom-16 right-8 h-44 w-44 rounded-full bg-indigo-500/10 blur-3xl" />
+    <section className="w-full max-w-[1024px] mx-auto py-4 relative">
+      {/* Breadcrumbs matching layout */}
+      <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
+        <span className="opacity-70">INTELLIGENCE LAYER</span>
+        <span className="opacity-30">/</span>
+        <span className="opacity-70 font-semibold text-ink">AGENDA</span>
       </div>
 
+      <div className="mb-8 min-w-0">
+        <h2 className="font-waldenburg-light text-5xl text-ink leading-tight select-none">
+          Calendar
+        </h2>
+      </div>
+
+      {/* Modern styled Calendar Header */}
       <CalendarHeader
         monthLabel={monthLabel}
         selectedDate={selectedDate}
@@ -93,7 +112,8 @@ export default function CalendarPage() {
         onGoToNextMonth={goToNextMonth}
       />
 
-      <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="relative z-10 mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Main Grid View */}
         <div>
           <CalendarMonthGrid
             month={month}
@@ -106,6 +126,7 @@ export default function CalendarPage() {
           />
         </div>
 
+        {/* Agenda details */}
         <div>
           <CalendarAgendaPanel
             connected={connected}

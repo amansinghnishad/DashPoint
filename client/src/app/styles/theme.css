@@ -20,84 +20,82 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Theme palette (light) */
-  --dp-bg: rgb(255 255 255);
-  --dp-fg: rgb(15 23 42); /* slate-900 */
-  --dp-fg-soft: rgb(30 41 59); /* slate-800 */
-  --dp-muted: rgb(71 85 105); /* slate-600 */
-  --dp-subtle: rgb(100 116 139); /* slate-500 */
-  --dp-border: rgb(226 232 240); /* slate-200 */
-  --dp-surface: rgb(255 255 255);
-  --dp-surface-muted: rgb(248 250 252); /* slate-50 */
-  --dp-nav-scrolled-bg: rgb(255 255 255 / 0.7);
-  --dp-nav-panel-bg: rgb(255 255 255 / 0.9);
-  --dp-glow-opacity: 0.35;
-  --dp-placeholder: rgb(148 163 184); /* slate-400 */
+  /* Theme palette (light) - ElevenLabs Style */
+  --dp-bg: #f5f5f5;
+  --dp-fg: #0c0a09;
+  --dp-fg-soft: #292524;
+  --dp-muted: #777169;
+  --dp-subtle: #a8a29e;
+  --dp-border: #e7e5e4;
+  --dp-surface: #ffffff;
+  --dp-surface-muted: #fafafa;
+  --dp-nav-scrolled-bg: rgba(245, 245, 245, 0.7);
+  --dp-nav-panel-bg: rgba(255, 255, 255, 0.9);
+  --dp-glow-opacity: 0.15;
+  --dp-placeholder: #a8a29e;
 
   /* Semantic CTAs in light mode */
-  --dp-btn-primary-bg: rgb(15 23 42);
-  --dp-btn-primary-fg: rgb(255 255 255);
-  --dp-btn-primary-bg-hover: rgb(30 41 59);
+  --dp-btn-primary-bg: #292524;
+  --dp-btn-primary-fg: #ffffff;
+  --dp-btn-primary-bg-hover: #0c0a09;
 
   /* Hero/topbar CTA */
-  --dp-btn-hero-bg: rgb(15 23 42);
-  --dp-btn-hero-fg: rgb(255 255 255);
-  --dp-btn-hero-bg-hover: rgb(30 41 59);
-  --dp-btn-hero-fg-hover: rgb(255 255 255);
-  --dp-hero-fg: rgb(255 255 255);
-  --dp-hero-muted: rgb(255 255 255 / 0.82);
+  --dp-btn-hero-bg: #292524;
+  --dp-btn-hero-fg: #ffffff;
+  --dp-btn-hero-bg-hover: #0c0a09;
+  --dp-btn-hero-fg-hover: #ffffff;
+  --dp-hero-fg: #0c0a09;
+  --dp-hero-muted: rgba(12, 10, 9, 0.8);
 
   /* Sidebar primitives */
-  --dp-sidebar-bg: rgb(255 255 255 / 0.96);
-  --dp-hover-bg: rgb(15 23 42 / 0.06);
-  --dp-overlay-bg: rgb(15 23 42 / 0.5);
+  --dp-sidebar-bg: #f5f5f5;
+  --dp-hover-bg: rgba(12, 10, 9, 0.05);
+  --dp-overlay-bg: rgba(12, 10, 9, 0.3);
 
   /* Status & danger */
-  --dp-status-online: rgb(34 197 94); /* green-500 */
-  --dp-toast-success: rgb(34 197 94); /* green-500 */
-  --dp-toast-error: rgb(239 68 68); /* red-500 */
-  --dp-toast-warning: rgb(245 158 11); /* amber-500 */
-  --dp-toast-info: rgb(59 130 246); /* blue-500 */
-  --dp-danger-bg: rgb(239 68 68 / 0.1);
-  --dp-danger-bg-hover: rgb(239 68 68 / 0.15);
-  --dp-danger-border: rgb(239 68 68 / 0.2);
-  --dp-danger-fg: rgb(127 29 29); /* red-900-ish */
+  --dp-status-online: #16a34a;
+  --dp-toast-success: #16a34a;
+  --dp-toast-error: #dc2626;
+  --dp-danger-bg: rgba(220, 38, 38, 0.08);
+  --dp-danger-bg-hover: rgba(220, 38, 38, 0.12);
+  --dp-danger-border: rgba(220, 38, 38, 0.15);
+  --dp-danger-fg: #dc2626;
 
-  --dp-resize-handle-bg: rgb(255 255 255 / 0.6);
+  --dp-resize-handle-bg: rgba(12, 10, 9, 0.1);
 
   /* Chat UI */
-  --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
-  --dp-chat-bubble-user: rgb(15 23 42);
-  --dp-chat-bubble-user-fg: rgb(255 255 255);
-  --dp-chat-bubble-assistant: rgb(248 250 252);
-  --dp-chat-bubble-assistant-fg: rgb(15 23 42);
-  --dp-chat-bubble-error: rgb(239 68 68 / 0.12);
-  --dp-chat-bubble-error-fg: rgb(127 29 29);
-  --dp-chat-avatar-bg: rgb(15 23 42 / 0.08);
+  --dp-chat-fade-bg: rgba(255, 255, 255, 0.92);
+  --dp-chat-bubble-user: #292524;
+  --dp-chat-bubble-user-fg: #ffffff;
+  --dp-chat-bubble-assistant: #ffffff;
+  --dp-chat-bubble-assistant-fg: #0c0a09;
+  --dp-chat-bubble-error: rgba(220, 38, 38, 0.08);
+  --dp-chat-bubble-error-fg: #dc2626;
+  --dp-chat-avatar-bg: rgba(12, 10, 9, 0.06);
 
   --dp-showcase-gradient:
-    radial-gradient(1000px 500px at 50% -250px, rgba(59, 130, 246, 0.12), transparent 60%),
-    radial-gradient(800px 400px at 80% 20%, rgba(168, 85, 247, 0.08), transparent 60%);
+    radial-gradient(1000px 500px at 50% -250px, rgba(167, 229, 211, 0.15), transparent 60%),
+    radial-gradient(800px 400px at 80% 20%, rgba(200, 184, 224, 0.1), transparent 60%);
 }
 
-/* Defaults for dark mode (match current Hero/Auth look) */
+/* Defaults for dark mode */
 :root:not([data-theme]),
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Neutral dark grey theme */
-  --dp-bg: rgb(10 10 10); /* almost black */
-  --dp-fg: rgb(255 255 255); /* pure white */
-  --dp-fg-soft: rgb(230 230 230); /* soft white */
-  --dp-muted: rgb(180 180 180); /* medium grey */
-  --dp-subtle: rgb(140 140 140); /* lighter grey */
-  --dp-border: rgb(255 255 255 / 0.08);
-  --dp-surface: rgb(20 20 20); /* dark grey surface */
-  --dp-surface-muted: rgb(28 28 28); /* slightly lighter */
-  --dp-nav-scrolled-bg: rgb(10 10 10 / 0.7);
-  --dp-nav-panel-bg: rgb(18 18 18 / 0.95);
-  --dp-glow-opacity: 0.5;
-  --dp-placeholder: rgb(120 120 120);
+  /* ElevenLabs Dark palette */
+  --dp-bg: #0c0a09;
+  --dp-fg: #ffffff;
+  --dp-fg-soft: #e7e5e4;
+  --dp-muted: #a8a29e;
+  --dp-subtle: #777169;
+  --dp-border: #1c1917;
+  --dp-surface: #1c1917;
+  --dp-surface-muted: #292524;
+  --dp-nav-scrolled-bg: rgba(12, 10, 9, 0.7);
+  --dp-nav-panel-bg: rgba(28, 25, 23, 0.95);
+  --dp-glow-opacity: 0.3;
+  --dp-placeholder: #777169;
 
   /* Buttons */
   --dp-btn-primary-bg: rgb(255 255 255);

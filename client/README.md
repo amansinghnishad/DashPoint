@@ -5,8 +5,6 @@ React + Vite frontend for DashPoint.
 ## Tech Stack
 
 - React 19
-- Vite 6
-- React Router
 - Tailwind CSS 4
 - Axios
 

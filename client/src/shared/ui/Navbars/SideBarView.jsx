@@ -1,11 +1,11 @@
+import { Link } from "react-router-dom";
 import {
   IconClose,
   IconDownload,
   LogOut,
-  Moon,
   Settings,
   Sun,
-  User,
+  Moon,
 } from "@/shared/ui/icons/icons";
 
 const getSidebarDisplayName = (user) => {
@@ -32,14 +32,10 @@ export default function SideBarView({
   onClose,
   setIsHovered,
   isExpanded,
-  subBorderClass,
-  fullLogoSrc,
   menuItems,
   activeTab,
   setActiveTab,
-  itemBaseClass,
   onInstallClick,
-  mutedTextClass,
   user,
   onSettingsOpen,
   isDark,
@@ -50,10 +46,11 @@ export default function SideBarView({
 
   return (
     <>
+      {/* Mobile drawer overlay */}
       {isOpen ? (
         <button
           type="button"
-          className="fixed inset-0 dp-overlay backdrop-blur-sm z-[84] lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-[84] lg:hidden transition-opacity duration-300"
           onClick={onClose}
           aria-label="Close sidebar overlay"
         />
@@ -63,179 +60,165 @@ export default function SideBarView({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`fixed left-0 top-0 h-full transform transition-all duration-300 ease-in-out z-[85] \
-					${isOpen ? "translate-x-0" : "-translate-x-full"} \
-					lg:translate-x-0 \
-					border-r ${subBorderClass} dp-sidebar-surface backdrop-blur-sm shadow-2xl \
-					${isExpanded ? "w-64" : "w-64 lg:w-16"}`}
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} \
+          lg:translate-x-0 \
+          bg-canvas border-r border-hairline \
+          ${isExpanded ? "w-60 shadow-xl" : "w-16"}`}
         aria-label="Sidebar"
       >
-        <div className="flex flex-col h-full">
-          <div className={`p-4 border-b ${subBorderClass} transition-colors duration-200`}>
-            <div
-              className={`flex items-center ${isExpanded ? "justify-between" : "justify-center"}`}
-            >
-              <img
-                src={isExpanded ? fullLogoSrc : "/logo.png"}
-                alt="DashPoint"
-                className={`transition-all duration-200 object-contain ${
-                  isExpanded ? "h-12 w-auto" : "h-10 w-10"
-                }`}
-              />
-              <button
-                type="button"
-                onClick={onClose}
-                className="lg:hidden p-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 dp-hover-bg dp-text-muted dp-hover-text"
-                aria-label="Close sidebar"
-              >
-                <IconClose size={20} />
-              </button>
+        <div className="flex flex-col h-full py-4">
+          {/* Top Logo Icon */}
+          <div className="px-4 mb-8 flex items-center justify-center relative">
+            <div className={`flex items-center w-full ${isExpanded ? "justify-between" : "justify-center"}`}>
+              {isExpanded ? (
+                <Link
+                  to="/"
+                  className="font-waldenburg-light text-xl font-bold text-ink tracking-tight select-none"
+                  onClick={onClose}
+                >
+                  DASHPOINT
+                </Link>
+              ) : (
+                <Link
+                  to="/"
+                  className="w-10 h-10 rounded-xl bg-[#0c0a09] flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
+                  onClick={onClose}
+                >
+                  <span className="font-waldenburg-light text-lg font-bold text-[#ffffff] tracking-tighter select-none">DP</span>
+                </Link>
+              )}
+              
+              {isOpen ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="lg:hidden p-1.5 rounded-full hover:bg-canvas-soft text-ink"
+                  aria-label="Close sidebar"
+                >
+                  <IconClose size={18} />
+                </button>
+              ) : null}
             </div>
           </div>
 
-          <nav className={`flex-1 overflow-y-auto scrollable-area ${isExpanded ? "p-4" : "p-2"}`}>
-            <ul className="space-y-1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab?.(item.id);
-                        onClose?.();
-                      }}
-                      className={`w-full flex items-center rounded-xl transition-all duration-200 relative \
-												${isActive ? "dp-sidebar-item-active" : itemBaseClass} \
-												${
-                          isExpanded
-                            ? "space-x-3 px-4 py-3 text-left"
-                            : "px-0 py-0 lg:mx-auto lg:w-12 lg:h-12 lg:justify-center"
-                        }`}
-                      title={!isExpanded ? item.label : undefined}
-                    >
-                      <Icon size={20} />
-                      <span
-                        className={`font-medium transition-all duration-200 ${
-                          isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
-                        }`}
-                      >
-                        {item.label}
-                      </span>
+          {/* Navigation Links */}
+          <nav className="flex-1 px-3 space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              
+              const btnClass = isActive
+                ? "bg-ink text-canvas shadow-sm font-semibold"
+                : "text-muted hover:text-ink hover:bg-canvas-soft";
 
-                      {isActive && isExpanded ? (
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-l-full" />
-                      ) : null}
-                    </button>
-                  </li>
-                );
-              })}
-
-              <li className="lg:hidden">
-                <button
-                  type="button"
-                  onClick={onInstallClick}
-                  className={`w-full flex items-center rounded-xl transition-all duration-200 relative ${itemBaseClass} space-x-3 px-4 py-3 text-left`}
-                >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl dp-hover-bg">
-                    <IconDownload size={18} className={mutedTextClass} />
-                  </span>
-                  <span className="text-sm font-medium">Download app</span>
-                </button>
-              </li>
-            </ul>
-
-            <div
-              className={`${
-                isExpanded ? "mt-6 pt-4 border-t" : "mt-3 pt-2"
-              } border-t dp-border transition-colors duration-200`}
-            />
-          </nav>
-
-          <div
-            className={`${
-              isExpanded ? "p-4" : "p-3"
-            } border-t ${subBorderClass} transition-colors duration-200`}
-          >
-            <div
-              className={`flex items-center mb-4 p-3 rounded-xl transition-all duration-200 dp-surface ${
-                isExpanded ? "space-x-3" : "mb-3 lg:justify-center"
-              }`}
-              title={!isExpanded ? displayName : undefined}
-            >
-              <div className="relative">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg dp-btn-hero">
-                  <User size={20} />
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 dp-border-bg dp-status-online" />
-              </div>
-              <div
-                className={`flex-1 min-w-0 transition-all duration-200 ${
-                  isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
-                }`}
-              >
-                <p className="font-medium truncate dp-text">{displayName}</p>
-                <p className={`text-sm truncate ${mutedTextClass}`}>
-                  {user?.email || "user@example.com"}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div
-                className={`flex ${
-                  isExpanded ? "space-x-2" : "lg:flex-col lg:space-x-0 lg:space-y-2"
-                }`}
-              >
-                {isExpanded ? (
+              return (
+                <div key={item.id}>
                   <button
                     type="button"
-                    onClick={toggleTheme}
-                    className="flex items-center justify-center p-2 rounded-lg transition-all duration-200 dp-surface dp-hover-bg dp-text-muted dp-hover-text"
-                    title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                    onClick={() => {
+                      setActiveTab?.(item.id);
+                      onClose?.();
+                    }}
+                    className={`flex items-center rounded-xl transition-all duration-200 ${
+                      isExpanded
+                        ? "w-full px-4 py-3 gap-3 justify-start text-sm font-medium"
+                        : "mx-auto w-10 h-10 justify-center"
+                    } ${btnClass}`}
+                    title={!isExpanded ? item.label : undefined}
                   >
-                    {isDark ? <Sun size={16} /> : <Moon size={16} />}
+                    <Icon size={20} />
+                    {isExpanded ? <span>{item.label}</span> : null}
                   </button>
-                ) : null}
+                </div>
+              );
+            })}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSettingsOpen?.();
-                    onClose?.();
-                  }}
-                  className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 dp-surface dp-hover-bg dp-text-muted dp-hover-text ${
-                    isExpanded ? "space-x-2" : "lg:flex-initial lg:w-10 lg:h-10 lg:px-0 lg:py-0"
-                  }`}
-                  title={!isExpanded ? "Settings" : undefined}
-                >
-                  <Settings size={16} />
-                  <span
-                    className={`text-sm font-medium transition-all duration-200 ${
-                      isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
-                    }`}
-                  >
-                    Settings
-                  </span>
-                </button>
+            {/* Install PWA Option (Mobile Only) */}
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={onInstallClick}
+                className={`w-full flex items-center rounded-xl transition-all duration-200 px-4 py-3 gap-3 justify-start text-sm font-medium text-muted hover:text-ink hover:bg-canvas-soft`}
+              >
+                <IconDownload size={20} />
+                <span>Download app</span>
+              </button>
+            </div>
+          </nav>
+
+          {/* Bottom Profile & Actions */}
+          <div className="px-3 border-t border-hairline/60 pt-4 space-y-3">
+            {/* User Profile Card */}
+            {isExpanded ? (
+              <div className="flex items-center gap-3 p-2 rounded-xl bg-canvas-soft border border-hairline/40">
+                <div className="relative shrink-0">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
+                    alt={displayName}
+                    className="w-10 h-10 rounded-full object-cover border border-hairline"
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-green-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm truncate text-ink">{displayName}</p>
+                  <p className="text-xs truncate text-muted-soft">{user?.email || "user@example.com"}</p>
+                </div>
               </div>
+            ) : (
+              <div className="flex justify-center">
+                <div className="relative shrink-0">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
+                    alt={displayName}
+                    className="w-10 h-10 rounded-full object-cover border border-hairline"
+                  />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-green-500" />
+                </div>
+              </div>
+            )}
 
+            {/* Actions Stack */}
+            <div className={`flex ${isExpanded ? "flex-row gap-1.5" : "flex-col gap-2 items-center"}`}>
+              {/* Theme Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
+                  isExpanded ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60" : "w-10 h-10"
+                }`}
+                title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+                {isExpanded ? <span>{isDark ? "Light" : "Dark"}</span> : null}
+              </button>
+
+              {/* Settings Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onSettingsOpen?.();
+                  onClose?.();
+                }}
+                className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
+                  isExpanded ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60" : "w-10 h-10"
+                }`}
+                title="Settings"
+              >
+                <Settings size={18} />
+                {isExpanded ? <span>Settings</span> : null}
+              </button>
+
+              {/* Logout Button */}
               <button
                 type="button"
                 onClick={logoutUser}
-                className={`dp-danger border flex items-center justify-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  isExpanded ? "w-full" : "lg:w-10 lg:h-10 lg:mx-auto lg:px-0 lg:py-0"
+                className={`flex items-center justify-center rounded-xl text-semantic-error hover:bg-semantic-error/10 transition-all duration-200 ${
+                  isExpanded ? "py-2 px-2 gap-1.5 text-xs font-semibold border border-semantic-error/20" : "w-10 h-10"
                 }`}
-                title={!isExpanded ? "Logout" : undefined}
+                title="Logout"
               >
-                <LogOut size={16} />
-                <span
-                  className={`text-sm font-medium transition-all duration-200 ${
-                    isExpanded ? "opacity-100" : "lg:opacity-0 lg:w-0 lg:overflow-hidden"
-                  }`}
-                >
-                  Logout
-                </span>
+                <LogOut size={18} />
+                {isExpanded ? <span>Logout</span> : null}
               </button>
             </div>
           </div>

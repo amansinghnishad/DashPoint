@@ -44,13 +44,13 @@ export default function Register() {
     clearError?.();
   }, [clearError]);
 
-  const labelClass = "dp-text";
-  const iconClass = "dp-text-subtle";
+  const labelClass = "text-ink";
+  const iconClass = "text-muted-soft";
   const fieldWrapClass =
-    "dp-border dp-surface-muted transition-all duration-200 focus-within:-translate-y-px focus-within:ring-2 focus-within:ring-white/20";
-  const inputClass = "dp-text placeholder-white/40";
-  const subtleClass = "dp-text-muted";
-  const linkClass = "dp-text hover:opacity-80";
+    "border-hairline bg-canvas-soft transition-all duration-200 focus-within:-translate-y-px focus-within:ring-2 focus-within:ring-primary/20";
+  const inputClass = "text-ink placeholder-ink/40";
+  const subtleClass = "text-body";
+  const linkClass = "text-ink hover:opacity-80";
 
   return (
     <AuthLayout
@@ -87,7 +87,7 @@ export default function Register() {
       ]}
       alert={
         formError || error ? (
-          <div className="rounded-2xl border dp-danger px-4 py-3 text-sm">{formError || error}</div>
+          <div className="rounded-xl border border-semantic-error/20 bg-semantic-error/10 text-semantic-error px-4 py-3 text-sm">{formError || error}</div>
         ) : null
       }
     >
@@ -115,7 +115,7 @@ export default function Register() {
             />
           </div>
           {nameError && (
-            <p id="name-error" className="mt-2 text-xs dp-text-danger">
+            <p id="name-error" className="mt-2 text-xs text-semantic-error">
               {nameError}
             </p>
           )}
@@ -144,7 +144,7 @@ export default function Register() {
             />
           </div>
           {emailError && (
-            <p id="email-error" className="mt-2 text-xs dp-text-danger">
+            <p id="email-error" className="mt-2 text-xs text-semantic-error">
               {emailError}
             </p>
           )}
@@ -181,7 +181,7 @@ export default function Register() {
             </button>
           </div>
           {passwordError && (
-            <p id="password-error" className="mt-2 text-xs dp-text-danger">
+            <p id="password-error" className="mt-2 text-xs text-semantic-error">
               {passwordError}
             </p>
           )}
@@ -220,7 +220,7 @@ export default function Register() {
             </button>
           </div>
           {confirmError && (
-            <p id="confirm-error" className="mt-2 text-xs dp-text-danger">
+            <p id="confirm-error" className="mt-2 text-xs text-semantic-error">
               {confirmError}
             </p>
           )}
@@ -229,16 +229,16 @@ export default function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="dp-btn-primary mt-2 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+          className="bg-primary hover:bg-primary-active text-on-primary mt-2 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? "Creating..." : "Create account"}
         </button>
         {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="h-px flex-1 dp-border border-t" />
-              <span className="text-xs dp-text-subtle">OR</span>
-              <div className="h-px flex-1 dp-border border-t" />
+              <div className="h-px flex-1 border-hairline border-t" />
+              <span className="text-xs text-muted-soft">OR</span>
+              <div className="h-px flex-1 border-hairline border-t" />
             </div>
             <GoogleLogin
               onSuccess={async (credentialResponse) => {

@@ -1,7 +1,9 @@
-import { lazy, Suspense, useCallback, useMemo, useReducer, useRef } from "react";
+import { Bell, History, Plus, Search } from "lucide-react";
+import { lazy, Suspense, useCallback, useMemo, useReducer, useRef, useState } from "react";
 
 import { IconMenu } from "@/shared/ui/icons/icons";
 
+import { useAuth } from "../../../context/AuthContext";
 import Clock from "../../../shared/ui/Clock/Clock";
 import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { SideBar } from "../../../shared/ui/Navbars/SideBar";
@@ -27,6 +29,14 @@ function ContentFallback() {
     </div>
   );
 }
+
+const SECTION_LABEL_BY_TAB = {
+  focus: "Focus",
+  collections: "Collections",
+  calendar: "Calendar",
+  youtube: "YouTube",
+  files: "File Manager",
+};
 
 const DASHBOARD_UI_INITIAL_STATE = {
   activeTab: "focus",
@@ -60,6 +70,23 @@ export default function DashboardPage() {
   const [uiState, dispatchUi] = useReducer(dashboardUiReducer, DASHBOARD_UI_INITIAL_STATE);
   const desktopSearchInputRef = useRef(null);
   const mobileSearchInputRef = useRef(null);
+  const createCollectionTriggerRef = useRef(null);
+  const searchTriggerRef = useRef(null);
+  const [ytSearch, setYtSearch] = useState("");
+
+  const { user } = useAuth();
+  const displayName = useMemo(() => {
+    const username = String(user?.username || "").trim();
+    if (username) return username;
+
+    const explicitName = String(user?.name || "").trim();
+    if (explicitName) return explicitName;
+
+    const email = String(user?.email || "").trim();
+    if (email) return email.split("@")[0];
+
+    return "User";
+  }, [user]);
 
   const setActiveTab = useCallback((value) => {
     dispatchUi({ type: "SET_ACTIVE_TAB", payload: value });
@@ -133,27 +160,16 @@ export default function DashboardPage() {
       case "calendar":
         return <CalendarPage />;
       case "youtube":
-        return <YoutubePage />;
+        return <YoutubePage triggerRef={createCollectionTriggerRef} searchTriggerRef={searchTriggerRef} />;
       case "files":
-        return <FileManagerPage />;
+        return <FileManagerPage triggerRef={createCollectionTriggerRef} searchTriggerRef={searchTriggerRef} />;
       case "collections":
       default:
-        return <CollectionsHome onOpenCollection={onOpenCollection} />;
+        return <CollectionsHome onOpenCollection={onOpenCollection} triggerRef={createCollectionTriggerRef} />;
     }
-  }, [onOpenCollection, onShortcutNavigate, uiState.activeTab]);
+  }, [onOpenCollection, uiState.activeTab, createCollectionTriggerRef, searchTriggerRef]);
 
-  const currentSectionLabel =
-    uiState.activeTab === "focus"
-      ? "Focus"
-      : uiState.activeTab === "collections"
-        ? "Collections"
-        : uiState.activeTab === "calendar"
-          ? "Calendar"
-          : uiState.activeTab === "youtube"
-            ? "YouTube"
-            : uiState.activeTab === "files"
-              ? "File Manager"
-              : "";
+  const currentSectionLabel = SECTION_LABEL_BY_TAB[uiState.activeTab] || "";
 
   if (uiState.openCollectionId) {
     return (
@@ -180,31 +196,111 @@ export default function DashboardPage() {
 
       <div className="lg:pl-16">
         <div className="w-full max-w-6xl mx-auto">
-          <header className="p-4 lg:p-6">
+          <header className="py-6 px-4 lg:px-8 border-b border-hairline/40 bg-canvas/80 backdrop-blur-md sticky top-0 z-40">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <button
                   type="button"
                   onClick={() => dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: true })}
-                  className="dp-btn-secondary inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-white hover:bg-canvas-soft lg:hidden transition-colors"
                   aria-label="Open sidebar"
                 >
-                  <IconMenu size={18} />
+                  <IconMenu size={16} className="text-ink" />
                 </button>
                 <div className="min-w-0">
-                  <p className="dp-text text-lg font-semibold truncate">Dashboard</p>
-                  <p className="dp-text-muted text-sm truncate">{currentSectionLabel}</p>
+                  <p className="text-xs text-muted-soft font-semibold uppercase tracking-[0.06em]">Dashboard</p>
+                  <h1 className="text-xl font-bold text-ink tracking-tight mt-0.5">{currentSectionLabel}</h1>
                 </div>
               </div>
 
-              <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-                <div className="hidden min-w-0 flex-1 justify-end sm:flex">
-                  <UniversalSearch
-                    ref={desktopSearchInputRef}
-                    onResultSelect={onUniversalSearchSelect}
-                  />
-                </div>
-                <Clock />
+              <div className="flex min-w-0 items-center gap-4">
+                {(uiState.activeTab === "collections" || uiState.activeTab === "youtube" || uiState.activeTab === "files") ? (
+                  <>
+                    <div className="hidden sm:block">
+                      {uiState.activeTab === "collections" ? (
+                        <UniversalSearch
+                          ref={desktopSearchInputRef}
+                          onResultSelect={onUniversalSearchSelect}
+                          placeholder="Search collections, files, or tasks..."
+                        />
+                      ) : (
+                        <div className="bg-canvas-soft border border-hairline flex h-9 items-center gap-2 rounded-full px-3 w-[240px] focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-200">
+                          <Search size={15} className="text-muted shrink-0" />
+                          <input
+                            value={ytSearch}
+                            onChange={(e) => {
+                              setYtSearch(e.target.value);
+                              searchTriggerRef.current?.(e.target.value);
+                            }}
+                            placeholder={uiState.activeTab === "youtube" ? "Search YouTube..." : "Search files..."}
+                            className="min-w-0 flex-1 bg-transparent text-[13px] outline-none text-ink placeholder:text-muted-soft"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Clock time and Action button matching the screenshot */}
+                    <div className="flex items-center gap-4">
+                      <Clock showSeconds={true} className="border-none bg-transparent shadow-none p-0 text-sm font-medium tabular-nums text-muted-soft hidden md:block" />
+                      <button
+                        type="button"
+                        onClick={() => createCollectionTriggerRef.current?.()}
+                        className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-[13px] font-semibold transition-all h-9 flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                      >
+                        <Plus size={15} />
+                        <span>
+                          {uiState.activeTab === "collections"
+                            ? "Create Collection"
+                            : uiState.activeTab === "youtube"
+                              ? "Add Video"
+                              : "Add Document"}
+                        </span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="hidden sm:block">
+                      <UniversalSearch
+                        ref={desktopSearchInputRef}
+                        onResultSelect={onUniversalSearchSelect}
+                      />
+                    </div>
+
+                    {/* Header Action Icons matching the screenshot */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: true })}
+                        className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-canvas-soft transition-colors relative"
+                        aria-label="Notifications"
+                      >
+                        <Bell size={18} />
+                        <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-canvas-soft transition-colors"
+                        aria-label="History"
+                      >
+                        <History size={18} />
+                      </button>
+
+                      <div className="h-8 w-px bg-hairline mx-1" />
+
+                      {/* Profile Picture */}
+                      <div className="relative group cursor-pointer">
+                        <img
+                          src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
+                          alt={displayName}
+                          className="w-8 h-8 rounded-full border border-hairline object-cover"
+                        />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white bg-green-500" />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="mt-3 sm:hidden">
@@ -243,20 +339,20 @@ export default function DashboardPage() {
         description="Workspace preferences and quick controls."
       >
         <div className="space-y-4">
-          <div className="dp-surface dp-border rounded-2xl border p-4">
-            <p className="dp-text text-sm font-semibold">Current section</p>
-            <p className="dp-text-muted mt-1 text-sm">{currentSectionLabel}</p>
+          <div className="border border-hairline bg-surface-card rounded-2xl p-4">
+            <p className="text-ink text-sm font-semibold">Current section</p>
+            <p className="text-muted mt-1 text-sm">{currentSectionLabel}</p>
           </div>
-          <div className="dp-surface dp-border rounded-2xl border p-4">
-            <p className="dp-text text-sm font-semibold">Fast navigation</p>
-            <p className="dp-text-muted mt-1 text-sm">
-              Press <kbd className="dp-border rounded-md border px-1.5 py-0.5">?</kbd> any time on
+          <div className="border border-hairline bg-surface-card rounded-2xl p-4">
+            <p className="text-ink text-sm font-semibold">Fast navigation</p>
+            <p className="text-muted mt-1 text-sm">
+              Press <kbd className="border border-hairline rounded-md px-1.5 py-0.5 bg-canvas-soft">?</kbd> any time on
               the dashboard to review app shortcuts.
             </p>
           </div>
-          <div className="dp-surface dp-border rounded-2xl border p-4">
-            <p className="dp-text text-sm font-semibold">Theme</p>
-            <p className="dp-text-muted mt-1 text-sm">
+          <div className="border border-hairline bg-surface-card rounded-2xl p-4">
+            <p className="text-ink text-sm font-semibold">Theme</p>
+            <p className="text-muted mt-1 text-sm">
               Use the sidebar sun or moon control to switch between light and dark mode.
             </p>
           </div>
@@ -273,19 +369,19 @@ export default function DashboardPage() {
         <div className="grid gap-5 md:grid-cols-2">
           {DASHBOARD_SHORTCUT_GROUPS.map((group) => (
             <section key={group.title}>
-              <p className="dp-text mb-2 text-sm font-semibold">{group.title}</p>
-              <div className="divide-y dp-border overflow-hidden rounded-2xl border">
+              <p className="text-ink mb-2 text-sm font-semibold">{group.title}</p>
+              <div className="divide-y divide-hairline overflow-hidden rounded-2xl border border-hairline bg-surface-card">
                 {group.items.map((item) => (
                   <div
                     key={`${group.title}-${item.description}`}
                     className="flex items-center justify-between gap-4 px-4 py-3"
                   >
-                    <span className="dp-text-muted text-sm">{item.description}</span>
+                    <span className="text-muted text-sm">{item.description}</span>
                     <span className="flex shrink-0 items-center gap-1">
                       {item.keys.map((key) => (
                         <kbd
                           key={`${item.description}-${key}`}
-                          className="dp-surface dp-border min-w-7 rounded-md border px-2 py-1 text-center text-xs font-semibold dp-text"
+                          className="bg-canvas-soft border border-hairline min-w-7 rounded-md px-2 py-1 text-center text-xs font-semibold text-ink"
                         >
                           {key}
                         </kbd>

@@ -217,12 +217,9 @@ export default function useYoutubePageController() {
   }, [search]);
 
   useEffect(() => {
-    if (!items.length) {
-      setSelectedId(null);
-      return;
-    }
+    if (!selectedId) return;
     const stillExists = items.some((it) => it.id === selectedId);
-    if (!stillExists) setSelectedId(items[0].id);
+    if (!stillExists) setSelectedId(null);
   }, [items, selectedId]);
 
   const confirmDelete = useCallback(async () => {

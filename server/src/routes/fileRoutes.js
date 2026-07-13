@@ -10,7 +10,8 @@ const {
   toggleStar,
   updateFile,
   getStorageStats,
-  summarizeFileToCollection
+  summarizeFileToCollection,
+  createLink
 } = require('../controllers/fileController');
 const { upload, handleMulterError } = require('../middleware/upload');
 const auth = require('../middleware/auth');
@@ -20,6 +21,8 @@ router.use(auth);
 router.get('/stats', getStorageStats);
 
 router.get('/', getFiles);
+
+router.post('/link', createLink);
 
 router.post('/upload', upload.array('files', 10), handleMulterError, uploadFiles);
 

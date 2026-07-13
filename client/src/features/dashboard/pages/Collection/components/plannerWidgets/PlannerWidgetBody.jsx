@@ -18,7 +18,7 @@ export default function PlannerWidgetBody({ widget }) {
   if (Component) return <Component widget={widget} />;
 
   return (
-    <div className="dp-text-muted text-sm">
+    <div className="text-muted text-xs font-semibold">
       This planner widget type is not supported: {widgetType || "unknown"}
     </div>
   );

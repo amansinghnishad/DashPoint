@@ -43,9 +43,9 @@ export default function Modal({
   const previousBodyOverflowRef = useRef(null);
 
   const maxWidthClass = useMemo(() => {
-    if (size === "sm") return "max-w-md";
-    if (size === "lg") return "max-w-3xl";
-    return "max-w-xl";
+    if (size === "sm") return "max-w-[448px]";
+    if (size === "lg") return "max-w-[768px]";
+    return "max-w-[576px]";
   }, [size]);
 
   const canClose = !disableClose;
@@ -160,12 +160,12 @@ export default function Modal({
           <div className={styleTheme.modal.headerRow}>
             <div className="min-w-0">
               {title ? (
-                <p id={titleId} className="dp-text text-lg font-semibold">
+                <p id={titleId} className="text-ink text-lg font-semibold">
                   {title}
                 </p>
               ) : null}
               {description ? (
-                <p id={descriptionId} className="dp-text-muted mt-1 text-sm">
+                <p id={descriptionId} className="text-muted mt-1 text-sm">
                   {description}
                 </p>
               ) : null}

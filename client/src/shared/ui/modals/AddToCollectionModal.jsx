@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import useApiRequest from "@/shared/hooks/useApiRequest";
 import { getCollectionsFromResponse } from "@/shared/lib/collections/collectionsResponse";
-
 import Modal from "./Modal";
 import { useToast } from "../../../hooks/useToast";
 import { collectionsAPI } from "../../../services/modules/collectionsApi";
@@ -118,9 +116,9 @@ export default function AddToCollectionModal({ open, onClose, itemType, itemId, 
       }
     >
       {loading && !collections.length ? (
-        <div className="dp-text-muted text-sm">Loading collections...</div>
+        <div className="text-muted text-sm">Loading collections...</div>
       ) : collections.length ? (
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
           {collections.map((c) => {
             const id = c?._id || c?.id;
             if (!id) return null;
@@ -131,32 +129,34 @@ export default function AddToCollectionModal({ open, onClose, itemType, itemId, 
                 key={id}
                 type="button"
                 onClick={() => setSelectedCollectionId(id)}
-                className={`w-full rounded-2xl px-4 py-3 text-left transition-colors ${
+                className={`w-full rounded-2xl px-4 py-3.5 text-left transition-colors border ${
                   isActive
-                    ? "dp-border dp-surface-muted border-2 shadow-lg"
-                    : "dp-border dp-surface border"
-                } ${isActive ? "" : "dp-hover-bg"}`}
+                    ? "border-primary bg-canvas-soft/80 shadow-sm"
+                    : "border-hairline bg-surface-card hover:bg-canvas-soft/50"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="dp-text font-semibold truncate">{c?.name || "Untitled"}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-ink font-semibold truncate text-sm">{c?.name || "Untitled"}</p>
                     {c?.description ? (
-                      <p className="dp-text-muted mt-0.5 text-sm line-clamp-2">{c.description}</p>
+                      <p className="text-muted mt-1 text-xs line-clamp-2 leading-relaxed">{c.description}</p>
                     ) : null}
                   </div>
                   <div
-                    className={`mt-1 h-4 w-4 shrink-0 rounded-full border ${
-                      isActive ? "dp-border dp-surface" : "dp-border"
+                    className={`mt-1.5 h-4 w-4 shrink-0 rounded-full border flex items-center justify-center ${
+                      isActive ? "border-primary" : "border-hairline"
                     }`}
                     aria-hidden="true"
-                  />
+                  >
+                    {isActive && <div className="h-2 w-2 rounded-full bg-primary" />}
+                  </div>
                 </div>
               </button>
             );
           })}
         </div>
       ) : (
-        <div className="dp-text-muted text-sm">
+        <div className="text-muted text-sm">
           No collections found. Create one from the Collections page first.
         </div>
       )}

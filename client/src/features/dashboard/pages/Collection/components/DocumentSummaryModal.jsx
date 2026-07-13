@@ -1,7 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-
 import { FileText, Loader2, Upload } from "@/shared/ui/icons/icons";
-
 import Modal from "../../../../../shared/ui/modals/Modal";
 
 export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) {
@@ -9,10 +7,10 @@ export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) 
   const inputRef = useRef(null);
 
   const dropZoneClassName = useMemo(() => {
-    const base = "dp-border rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer";
+    const base = "border-hairline rounded-xl border-2 border-dashed p-6 transition-all duration-200 cursor-pointer bg-canvas/30 text-ink";
     if (busy) return `${base} opacity-70 cursor-not-allowed`;
-    if (dragActive) return `${base} border-blue-500 bg-blue-50/40`;
-    return `${base} hover:border-blue-400`;
+    if (dragActive) return `${base} border-primary bg-primary/5 scale-[0.99]`;
+    return `${base} hover:border-primary/60`;
   }, [busy, dragActive]);
 
   const handleFile = (file) => {
@@ -46,7 +44,7 @@ export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) 
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+            className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
           >
             Close
           </button>
@@ -88,12 +86,12 @@ export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) 
       >
         <div className="flex items-center gap-2">
           {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-          <span className="dp-text text-sm font-medium">
+          <span className="text-ink text-sm font-semibold">
             {busy ? "Summarizing..." : "Drop PDF here or click to upload"}
           </span>
-          <FileText size={14} className="dp-text-muted ml-auto" />
+          <FileText size={14} className="text-muted-soft ml-auto" />
         </div>
-        <p className="dp-text-muted mt-2 text-xs">Only `.pdf` files are supported.</p>
+        <p className="text-muted mt-2 text-xs">Only `.pdf` files are supported.</p>
       </div>
 
       <input

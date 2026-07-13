@@ -1,146 +1,36 @@
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import TopBarDesktop from "./TopBarDesktop";
-import TopBarMobile from "./TopBarMobile";
 import { APP_ROUTES } from "../../../app/routes/paths";
-import useTheme from "../../../hooks/useTheme";
 
-const isReducedMotionPreferred = () => {
-  if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-};
-
-const TopBar = () => {
-  const menuId = useId();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default function TopBar() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isInHeroSection, setIsInHeroSection] = useState(false);
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
 
-  const logoSrc = "/logo.png";
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const isAuthPage =
     location.pathname === APP_ROUTES.LOGIN || location.pathname === APP_ROUTES.REGISTER;
-
-  const handleScroll = useCallback(() => {
-    setIsScrolled(window.scrollY > 50);
-  }, []);
-
-  const handleHeroPosition = useCallback(() => {
-    if (typeof window === "undefined") return;
-
-    const heroSection = document.getElementById("hero");
-    if (!heroSection) {
-      setIsInHeroSection(false);
-      return;
-    }
-
-    const rect = heroSection.getBoundingClientRect();
-    const navAnchorY = 96;
-    const isInsideHero = rect.top <= navAnchorY && rect.bottom > navAnchorY;
-
-    setIsInHeroSection(isInsideHero);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    window.addEventListener("scroll", handleHeroPosition, { passive: true });
-    window.addEventListener("resize", handleHeroPosition);
-    handleHeroPosition();
-
-    return () => {
-      window.removeEventListener("scroll", handleHeroPosition);
-      window.removeEventListener("resize", handleHeroPosition);
-    };
-  }, [handleHeroPosition, location.pathname]);
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") setIsMenuOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [isMenuOpen]);
-
-  const toggleMenu = useCallback(() => {
-    setIsMenuOpen((v) => !v);
-  }, []);
-
-  const onToggleTheme = toggleTheme;
-
-  const scrollToSection = useCallback((sectionId) => {
-    const el = document.getElementById(sectionId);
-    if (el)
-      el.scrollIntoView({
-        behavior: isReducedMotionPreferred() ? "auto" : "smooth",
-      });
-    setIsMenuOpen(false);
-  }, []);
-
-  const navClassName = useMemo(() => {
-    if (isMenuOpen) {
-      return "fixed z-50";
-    }
-
-    const base =
-      "fixed top-0 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl z-50 transition-all duration-300";
-
-    const scrolled = isScrolled ? "shadow-md py-2" : "py-4";
-    const bg = isScrolled ? "dp-nav-panel-bg backdrop-blur-sm rounded-3xl top-5" : "bg-transparent";
-
-    return `${base} ${bg} ${scrolled}`;
-  }, [isMenuOpen, isScrolled]);
-
-  const useHeroTextInLightMode = theme === "light" && isInHeroSection && !isMenuOpen;
-  const useDarkText = theme === "light" && !useHeroTextInLightMode;
-  const textClass = useHeroTextInLightMode
-    ? "dp-nav-hero-text"
-    : useDarkText
-      ? "text-black"
-      : "text-white";
-  const hoverClass = "hover:text-amber-300";
-  const navItemClass = `${textClass} ${hoverClass} transition-colors duration-300`;
-  const activeNavLinkClass = "text-amber-300";
-
-  const themeButtonClass = useDarkText
-    ? "inline-flex items-center justify-center rounded-full border border-black/15 bg-black/5 p-2 text-black hover:bg-black/10 transition-colors duration-300"
-    : "inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 text-white hover:bg-white/10 transition-colors duration-300";
 
   const authCta = useMemo(() => {
     if (!isAuthPage) {
       return {
         secondary: { to: APP_ROUTES.LOGIN, label: "Sign In" },
-        primary: { to: APP_ROUTES.REGISTER, label: "Start Free" },
+        primary: { to: APP_ROUTES.REGISTER, label: "Try free" },
       };
     }
-
     if (location.pathname === APP_ROUTES.LOGIN) {
       return {
         secondary: null,
-        primary: { to: APP_ROUTES.REGISTER, label: "Sign Up" },
+        primary: { to: APP_ROUTES.REGISTER, label: "Try free" },
       };
     }
-
     // /register
     return {
       secondary: { to: APP_ROUTES.LOGIN, label: "Sign In" },
@@ -149,43 +39,53 @@ const TopBar = () => {
   }, [isAuthPage, location.pathname]);
 
   return (
-    <nav className={navClassName} aria-label="Primary">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            to={APP_ROUTES.HOME}
-            className={isMenuOpen ? "hidden md:flex items-center" : "flex items-center"}
-            aria-label="DashPoint"
+    <nav
+      className={`fixed top-0 w-full z-50 flex justify-between items-center transition-all duration-500 px-xl md:px-xxl ${
+        isScrolled
+          ? "bg-white/80 backdrop-blur-lg h-16 border-b border-hairline"
+          : "h-20"
+      }`}
+    >
+      <div className="flex items-center gap-xl">
+        <Link
+          to={APP_ROUTES.HOME}
+          className="font-waldenburg-light text-2xl tracking-tight text-ink"
+        >
+          DASHPOINT
+        </Link>
+        <div className="hidden md:flex gap-lg">
+          <a
+            href="/#capabilities"
+            className="text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
           >
-            <img src={logoSrc} alt="DashPoint Logo" className="h-12 sm:h-14" />
-          </Link>
-
-          <TopBarDesktop
-            navItemClass={navItemClass}
-            activeNavLinkClass={activeNavLinkClass}
-            scrollToSection={scrollToSection}
-            authCta={authCta}
-            theme={theme}
-            onToggleTheme={onToggleTheme}
-            themeButtonClass={themeButtonClass}
-          />
-
-          <TopBarMobile
-            themeButtonClass={themeButtonClass}
-            theme={theme}
-            onToggleTheme={onToggleTheme}
-            toggleMenu={toggleMenu}
-            isMenuOpen={isMenuOpen}
-            menuId={menuId}
-            setIsMenuOpen={setIsMenuOpen}
-            scrollToSection={scrollToSection}
-            logoSrc={logoSrc}
-            authCta={authCta}
-          />
+            Capabilities
+          </a>
+          <a
+            href="/#manifesto"
+            className="text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
+          >
+            Manifesto
+          </a>
         </div>
+      </div>
+      <div className="flex items-center gap-base">
+        {authCta.secondary ? (
+          <Link
+            to={authCta.secondary.to}
+            className="hidden md:block text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
+          >
+            {authCta.secondary.label}
+          </Link>
+        ) : null}
+        {authCta.primary ? (
+          <Link
+            to={authCta.primary.to}
+            className="bg-ink text-canvas px-8 py-2.5 rounded-full text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
+          >
+            {authCta.primary.label}
+          </Link>
+        ) : null}
       </div>
     </nav>
   );
-};
-
-export default TopBar;
+}

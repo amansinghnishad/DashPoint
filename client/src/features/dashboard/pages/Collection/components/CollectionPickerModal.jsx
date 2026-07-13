@@ -132,7 +132,7 @@ export default function CollectionPickerModal({
             <button
               type="button"
               onClick={() => dispatchPicker({ type: "SET_MODE", payload: "existing" })}
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+              className="bg-canvas hover:bg-canvas-soft border border-hairline text-ink rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
               disabled={pickerState.busy}
             >
               Back to existing
@@ -150,7 +150,7 @@ export default function CollectionPickerModal({
                   payload: isCreateMode ? "existing" : "create",
                 })
               }
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+              className="bg-canvas hover:bg-canvas-soft border border-hairline text-ink rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
               disabled={pickerState.busy}
             >
               {isCreateMode ? "Pick existing" : "Create new"}
@@ -159,7 +159,7 @@ export default function CollectionPickerModal({
             <button
               type="button"
               onClick={() => onClose?.()}
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+              className="bg-canvas hover:bg-canvas-soft border border-hairline text-ink rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
               disabled={pickerState.busy}
             >
               Cancel
@@ -168,7 +168,7 @@ export default function CollectionPickerModal({
             <button
               type="button"
               onClick={isCreateMode ? createAndAdd : submitExisting}
-              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-ink text-canvas hover:bg-primary-active rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
               disabled={primaryDisabled}
             >
               {pickerState.busy

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
-import { IconAdd, IconDelete, IconEdit } from "@/shared/ui/icons/icons";
+import { Plus, Trash2, Edit2 } from "lucide-react";
 
 import { normalizeDailyScheduleData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
@@ -55,23 +54,23 @@ export default function PlannerDailyScheduleCard({ widget }) {
 
   return (
     <div className="space-y-3">
-      <div className="dp-text-muted text-xs">{filledCount} blocks</div>
+      <div className="text-muted text-xs font-semibold">{filledCount} blocks</div>
 
-      <div className="dp-border rounded-2xl border p-3">
+      <div className="border border-hairline rounded-2xl p-3 bg-canvas-soft/30">
         {blocks.length === 0 ? (
-          <div className="dp-text-muted text-sm">No blocks yet. Add one below.</div>
+          <div className="text-muted text-sm py-2">No blocks yet. Add one below.</div>
         ) : (
-          <div className="max-h-48 space-y-2 overflow-auto pr-1">
+          <div className="max-h-48 space-y-2 overflow-auto pr-1 scrollbar-thin">
             {blocks.map((b, idx) => {
               const isEditing = editingIndex === idx;
               return (
                 <div
                   key={b.clientKey}
-                  className="dp-border dp-hover-bg flex items-start justify-between gap-2 rounded-xl border px-3 py-2"
+                  className="border border-hairline hover:bg-canvas-soft/55 flex items-start justify-between gap-2 rounded-xl bg-surface-card px-3 py-2 transition-colors"
                 >
                   <div className="min-w-0 flex-1">
                     {isEditing ? (
-                      <div className="grid grid-cols-1 gap-2 md:grid-cols-[120px_120px_1fr]">
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-[100px_100px_1fr]">
                         <input
                           type="time"
                           value={b.start}
@@ -80,7 +79,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
                             next[idx] = { ...next[idx], start: e.target.value };
                             setBlocks(next);
                           }}
-                          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
                         />
                         <input
                           type="time"
@@ -90,7 +89,7 @@ export default function PlannerDailyScheduleCard({ widget }) {
                             next[idx] = { ...next[idx], end: e.target.value };
                             setBlocks(next);
                           }}
-                          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
                         />
                         <input
                           value={b.title}
@@ -100,39 +99,39 @@ export default function PlannerDailyScheduleCard({ widget }) {
                             setBlocks(next);
                           }}
                           placeholder="What are you doing?"
-                          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+                          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
                         />
                       </div>
                     ) : (
                       <div className="space-y-0.5">
-                        <div className="dp-text truncate text-sm font-semibold">
+                        <div className="text-ink truncate text-sm font-semibold">
                           {(b.title || "").trim() || "(Untitled)"}
                         </div>
-                        <div className="dp-text-muted text-xs">
+                        <div className="text-muted-soft text-[10px] font-bold uppercase tracking-wider">
                           {(b.start || "").trim() || "--:--"} - {(b.end || "").trim() || "--:--"}
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => setEditingIndex((prev) => (prev === idx ? null : idx))}
-                      className="dp-btn-icon inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm transition-colors"
+                      className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label={isEditing ? "Done editing" : "Edit"}
                       title={isEditing ? "Done" : "Edit"}
                     >
-                      <IconEdit size={14} />
+                      <Edit2 size={13} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setBlocks((prev) => prev.filter((_, i) => i !== idx))}
-                      className="dp-text-danger inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+                      className="text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label="Delete"
                       title="Delete"
                     >
-                      <IconDelete size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
@@ -142,18 +141,20 @@ export default function PlannerDailyScheduleCard({ widget }) {
         )}
       </div>
 
-      <div className="dp-border grid grid-cols-1 gap-2 rounded-2xl border p-2 md:grid-cols-[120px_120px_1fr_auto] md:items-center">
+      <div className="border border-hairline grid grid-cols-1 gap-2 rounded-2xl p-2 md:grid-cols-[100px_100px_1fr_auto] md:items-center bg-surface-card">
         <input
           type="time"
           value={draft.start}
           onChange={(e) => setDraft((prev) => ({ ...prev, start: e.target.value }))}
-          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
+          aria-label="Start time"
         />
         <input
           type="time"
           value={draft.end}
           onChange={(e) => setDraft((prev) => ({ ...prev, end: e.target.value }))}
-          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
+          aria-label="End time"
         />
         <input
           value={draft.title}
@@ -162,17 +163,17 @@ export default function PlannerDailyScheduleCard({ widget }) {
             if (e.key === "Enter") addDraftBlock();
           }}
           placeholder="What are you doing?"
-          className="dp-surface dp-border dp-text w-full rounded-xl border px-3 py-2 text-sm outline-none"
+          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
         />
-        <div className="dp-border flex items-center justify-center border-l pl-2">
+        <div className="border-l border-hairline flex items-center justify-center pl-2 h-8">
           <button
             type="button"
             onClick={addDraftBlock}
-            className="dp-text inline-flex h-10 w-10 items-center justify-center text-lg font-semibold transition-opacity hover:opacity-80"
+            className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-9 w-9 items-center justify-center text-lg transition-all rounded-xl shrink-0"
             aria-label="Add"
             title="Add"
           >
-            <IconAdd size={14} />
+            <Plus size={15} />
           </button>
         </div>
       </div>

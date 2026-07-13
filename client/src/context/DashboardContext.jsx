@@ -40,56 +40,38 @@ export const DashboardProvider = ({ children }) => {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
   const { addActivity, getRecentActivities } = useActivity();
 
-  // loadStats function
   const loadStats = useCallback(async () => {
+    dispatch({ type: "SET_LOADING", payload: { key: "stats", value: true } });
+
     try {
-      dispatch({
-        type: "SET_LOADING",
-        payload: { key: "stats", value: true },
-      });
       const [collectionsRes, videosRes] = await Promise.all([
         collectionsAPI.getCollections(1, 1),
         youtubeAPI.getAll(1, 1),
       ]);
 
-      const stats = {
-        collections: collectionsRes.success ? collectionsRes.data?.pagination?.total || 0 : 0,
-        videos: videosRes.success ? videosRes.pagination?.total || 0 : 0,
-      };
-
-      dispatch({ type: "SET_STATS", payload: stats });
-    } catch (error) {
-      console.error("Failed to load stats:", error);
       dispatch({
         type: "SET_STATS",
-        payload: { collections: 0, videos: 0 },
+        payload: {
+          collections: collectionsRes.success ? collectionsRes.data?.pagination?.total || 0 : 0,
+          videos: videosRes.success ? videosRes.pagination?.total || 0 : 0,
+        },
       });
+    } catch (error) {
+      console.error("Failed to load dashboard stats:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+      dispatch({ type: "SET_STATS", payload: { collections: 0, videos: 0 } });
     } finally {
-      dispatch({
-        type: "SET_LOADING",
-        payload: { key: "stats", value: false },
-      });
+      dispatch({ type: "SET_LOADING", payload: { key: "stats", value: false } });
     }
   }, []);
 
-  // loadDashboardData function
-  const loadDashboardData = useCallback(async () => {
-    try {
-      // Load stats
-      await loadStats();
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      dispatch({ type: "SET_ERROR", payload: error.message });
-    }
+  useEffect(() => {
+    loadStats();
   }, [loadStats]);
 
-  // Load dashboard data on mount
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
   const value = {
     ...state,
-    loadDashboardData,
+    loadDashboardData: loadStats,
     loadStats,
     dispatch,
     addActivity,

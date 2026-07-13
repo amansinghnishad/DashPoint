@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
-import { IconAdd, IconDelete, IconEdit, IconTime } from "@/shared/ui/icons/icons";
+import { Plus, Trash2, Edit2, Clock } from "lucide-react";
 
 import { normalizeAppointmentsData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";
@@ -79,24 +78,24 @@ export default function PlannerAppointmentsCard({ widget }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="dp-text-muted text-xs">{upcomingCount} upcoming</div>
+        <div className="text-muted text-xs font-semibold">{upcomingCount} upcoming</div>
       </div>
 
-      <div className="dp-border rounded-2xl border p-3">
+      <div className="border border-hairline rounded-2xl p-3 bg-canvas-soft/30">
         {items.length === 0 ? (
-          <div className="dp-text-muted text-sm">No appointments yet. Add one below.</div>
+          <div className="text-muted text-sm py-2">No appointments yet. Add one below.</div>
         ) : (
-          <div className="max-h-48 space-y-2 overflow-auto pr-1">
+          <div className="max-h-48 space-y-2 overflow-auto pr-1 scrollbar-thin">
             {items.map((it, idx) => {
               const isEditing = editingIndex === idx;
               return (
                 <div
                   key={it.clientKey}
-                  className="dp-hover-bg flex items-start justify-between gap-2 rounded-xl px-3 py-2"
+                  className="hover:bg-canvas-soft/50 flex items-start justify-between gap-2 rounded-xl px-3 py-2 transition-colors bg-surface-card border border-hairline"
                 >
                   <div className="min-w-0 flex-1">
                     {isEditing ? (
-                      <div className="grid grid-cols-1 gap-2 md:grid-cols-[220px_1fr]">
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-[180px_1fr]">
                         <input
                           type="datetime-local"
                           value={it.when}
@@ -105,7 +104,7 @@ export default function PlannerAppointmentsCard({ widget }) {
                             next[idx] = { ...next[idx], when: e.target.value };
                             setItems(next);
                           }}
-                          className=" dp-text w-full rounded-xl px-3 py-2 text-sm outline-none"
+                          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
                         />
                         <input
                           value={it.title}
@@ -115,39 +114,40 @@ export default function PlannerAppointmentsCard({ widget }) {
                             setItems(next);
                           }}
                           placeholder="Appointment..."
-                          className=" dp-text w-full rounded-xl px-3 py-2 text-sm outline-none"
+                          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
                         />
                       </div>
                     ) : (
                       <div className="space-y-0.5">
-                        <div className="dp-text truncate text-sm font-semibold">
+                        <div className="text-ink truncate text-sm font-semibold">
                           {(it.title || "").trim() || "(Untitled)"}
                         </div>
-                        <div className="dp-text-muted text-xs">
-                          {formatWhen(it.when) || "No date/time"}
+                        <div className="text-muted-soft text-xs flex items-center gap-1">
+                          <Clock size={11} className="text-muted-soft" />
+                          <span>{formatWhen(it.when) || "No date/time"}</span>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => setEditingIndex((prev) => (prev === idx ? null : idx))}
-                      className="inline-flex h-9 w-9 items-center justify-center text-sm transition-colors"
+                      className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label={isEditing ? "Done editing" : "Edit"}
                       title={isEditing ? "Done" : "Edit"}
                     >
-                      <IconEdit size={14} />
+                      <Edit2 size={13} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setItems((prev) => prev.filter((_, i) => i !== idx))}
-                      className="dp-text-danger inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+                      className="text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 inline-flex h-8 w-8 items-center justify-center rounded-xl text-sm transition-colors"
                       aria-label="Delete"
                       title="Delete"
                     >
-                      <IconDelete size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export default function PlannerAppointmentsCard({ widget }) {
         )}
       </div>
 
-      <div className="dp-border flex items-center gap-2 rounded-2xl border p-2">
+      <div className="border border-hairline flex items-center gap-2 rounded-2xl p-2 bg-surface-card">
         <input
           value={draftTitle}
           onChange={(e) => setDraftTitle(e.target.value)}
@@ -165,10 +165,10 @@ export default function PlannerAppointmentsCard({ widget }) {
             if (e.key === "Enter") addDraftAppointment();
           }}
           placeholder="Appointment..."
-          className=" dp-text w-full rounded-xl px-3 py-2 text-sm outline-none"
+          className="bg-canvas border border-hairline text-ink w-full rounded-xl px-3 py-2 text-sm outline-none"
         />
 
-        <div className="dp-border h-8 border-l" />
+        <div className="border-l border-hairline h-8" />
 
         <input
           ref={draftWhenRef}
@@ -187,21 +187,21 @@ export default function PlannerAppointmentsCard({ widget }) {
             if (typeof el.showPicker === "function") el.showPicker();
             else el.click();
           }}
-          className=" inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-semibold transition-colors"
+          className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-9 w-9 items-center justify-center rounded-xl text-sm transition-colors shrink-0"
           aria-label="Pick date/time"
           title="Pick date/time"
         >
-          <IconTime size={14} />
+          <Clock size={15} />
         </button>
 
         <button
           type="button"
           onClick={addDraftAppointment}
-          className="dp-text inline-flex h-10 w-10 items-center justify-center text-lg font-semibold transition-opacity hover:opacity-80"
+          className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-9 w-9 items-center justify-center text-lg transition-all rounded-xl shrink-0"
           aria-label="Add"
           title="Add"
         >
-          <IconAdd size={14} />
+          <Plus size={15} />
         </button>
       </div>
     </div>

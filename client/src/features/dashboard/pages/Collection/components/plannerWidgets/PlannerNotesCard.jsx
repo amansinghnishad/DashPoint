@@ -25,14 +25,14 @@ export default function PlannerNotesCard({ widget }) {
   });
 
   return (
-    <div className="h-full flex flex-col gap-2">
+    <div className="h-full flex flex-col gap-2.5">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Write notes..."
-        className="dp-surface dp-border dp-text w-full flex-1 resize-none rounded-xl border px-3 py-2 text-sm outline-none"
+        className="bg-canvas border border-hairline text-ink w-full flex-1 resize-none rounded-xl px-3 py-2 text-sm outline-none placeholder:text-muted/65"
       />
-      <div className="dp-text-muted text-xs">Autosaves</div>
+      <div className="text-muted text-[10px] font-bold uppercase tracking-wider shrink-0 pl-1">Autosaved</div>
     </div>
   );
 }

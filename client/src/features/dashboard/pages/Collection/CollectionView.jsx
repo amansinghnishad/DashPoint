@@ -129,15 +129,15 @@ export default function CollectionView({ collectionId, onBack }) {
   if (!collectionId) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] dp-bg dp-text">
+    <div className="fixed inset-0 z-[70] bg-canvas text-ink font-sans">
       <div className="h-full flex flex-col">
-        <div className="shrink-0 dp-surface dp-border border-b px-4 py-3">
+        <div className="shrink-0 bg-surface-card border-b border-hairline px-4 py-3.5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={onBack}
-                className="dp-btn-secondary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
+                className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all h-9"
                 aria-label="Back"
               >
                 <ArrowLeft size={18} />
@@ -145,21 +145,23 @@ export default function CollectionView({ collectionId, onBack }) {
               </button>
 
               <div className="min-w-0">
-                <p className="dp-text font-semibold truncate">{title}</p>
-                <p className="dp-text-muted text-sm">
+                <p className="font-waldenburg-light text-lg font-bold text-ink leading-tight truncate">{title}</p>
+                <p className="text-muted text-xs font-semibold mt-0.5">
                   {loading ? "Loading..." : `${items.length} item${items.length === 1 ? "" : "s"}`}
                 </p>
               </div>
             </div>
 
-            <Clock />
+            <div className="hidden sm:block">
+              <Clock />
+            </div>
           </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
           <div
             ref={canvasSurfaceRef}
-            className="relative dp-surface w-full h-full overflow-hidden touch-none"
+            className="relative bg-canvas w-full h-full overflow-hidden touch-none"
           >
             <BottomBar
               activeTool={activeTool}
@@ -197,39 +199,39 @@ export default function CollectionView({ collectionId, onBack }) {
             >
               {!loading && items.length > 0
                 ? items
-                    .map((it) => ({ key: getItemKey(it), item: it }))
-                    .filter((x) => x.key)
-                    .map(({ key, item }) => (
-                      <ResizableItemCard
-                        key={key}
-                        item={item}
-                        containerRef={canvasSurfaceRef}
-                        viewportScale={viewportScale}
-                        layout={layoutsByItemKey[key]}
-                        onLayoutChange={(nextLayout) =>
-                          setLayoutsByItemKey((prev) => ({
-                            ...prev,
-                            [key]: nextLayout,
-                          }))
-                        }
-                        onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
-                      />
-                    ))
+                  .map((it) => ({ key: getItemKey(it), item: it }))
+                  .filter((x) => x.key)
+                  .map(({ key, item }) => (
+                    <ResizableItemCard
+                      key={key}
+                      item={item}
+                      containerRef={canvasSurfaceRef}
+                      viewportScale={viewportScale}
+                      layout={layoutsByItemKey[key]}
+                      onLayoutChange={(nextLayout) =>
+                        setLayoutsByItemKey((prev) => ({
+                          ...prev,
+                          [key]: nextLayout,
+                        }))
+                      }
+                      onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
+                    />
+                  ))
                 : null}
             </div>
 
             {loading ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="dp-surface dp-border rounded-2xl border px-4 py-3">
-                  <p className="dp-text-soft text-sm font-medium">Loading collection...</p>
+                <div className="bg-surface-card border border-hairline rounded-2xl px-6 py-4 shadow-md">
+                  <p className="text-ink text-sm font-semibold">Loading collection...</p>
                 </div>
               </div>
             ) : items.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center select-none">
                 <div className="text-center px-6">
-                  <FolderOpen size={40} className="mx-auto dp-text-muted" />
-                  <p className="mt-4 dp-text font-semibold">Empty canvas</p>
-                  <p className="mt-1 dp-text-muted text-sm">
+                  <FolderOpen size={40} className="mx-auto text-muted-soft" />
+                  <p className="mt-4 text-ink font-bold text-base">Empty canvas</p>
+                  <p className="mt-1 text-muted text-sm">
                     Select a tool from the bottom bar to add items.
                   </p>
                 </div>

@@ -1,6 +1,5 @@
+import { Plus } from "lucide-react";
 import { createElement } from "react";
-
-import { IconAdd } from "@/shared/ui/icons/icons";
 
 import Modal from "../../../../shared/ui/modals/Modal";
 
@@ -40,24 +39,25 @@ export default function CollectionsHomeView({
   getCollectionId,
 }) {
   return (
-    <section className="rounded-3xl border dp-border dp-surface p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="dp-text text-xl font-semibold">Collections</h1>
-          <p className="dp-text-muted mt-1 text-sm">{headerSubtitle}</p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setIsCreateOpen(true)}
-          className="dp-btn-primary inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors"
-          aria-label="Create collection"
-        >
-          <IconAdd size={16} />
-          Create
-        </button>
+    <section className="w-full max-w-[1024px] mx-auto py-4 relative">
+      {/* Breadcrumbs matching the screenshot */}
+      <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
+        <span className="opacity-70">Dashboard</span>
+        <span className="opacity-30">&gt;</span>
+        <span className="opacity-70 font-semibold text-ink">Collections</span>
       </div>
 
+      {/* Main serif Heading & Subtitle */}
+      <div className="mb-10 min-w-0">
+        <h2 className="font-waldenburg-light text-5xl text-ink leading-tight mb-4 select-none">
+          Collections
+        </h2>
+        <p className="text-body text-[15px] leading-relaxed max-w-[640px] select-none">
+          {headerSubtitle || "Organize your intelligence layer into refined clusters. Manage projects, research journals, and media libraries with precise editorial control."}
+        </p>
+      </div>
+
+      {/* Create Collection Modal */}
       <Modal
         open={isCreateOpen}
         title="Create collection"
@@ -72,7 +72,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={() => setIsCreateOpen(false)}
               disabled={isCreating}
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -80,7 +80,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={createCollection}
               disabled={isCreating}
-              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               {isCreating ? "Creating..." : "Create"}
             </button>
@@ -89,28 +89,29 @@ export default function CollectionsHomeView({
       >
         <div className="space-y-4">
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">Name</span>
+            <span className="text-ink text-sm font-medium">Name</span>
             <input
               value={createName}
               onChange={(e) => setCreateName(e.target.value)}
               placeholder="e.g., Work, Recipes, Ideas"
-              className="dp-surface dp-border dp-text mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none"
+              className="border border-hairline bg-canvas-soft text-ink mt-2 w-full rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-primary/20"
             />
           </label>
 
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">Description (optional)</span>
+            <span className="text-ink text-sm font-medium">Description (optional)</span>
             <textarea
               value={createDescription}
               onChange={(e) => setCreateDescription(e.target.value)}
               placeholder="What will you store here?"
-              className="dp-surface dp-border dp-text mt-2 w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none"
+              className="border border-hairline bg-canvas-soft text-ink mt-2 w-full resize-none rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-primary/20"
               rows={3}
             />
           </label>
         </div>
       </Modal>
 
+      {/* Edit Collection Modal */}
       <Modal
         open={isEditOpen}
         title="Edit collection"
@@ -131,7 +132,7 @@ export default function CollectionsHomeView({
                 setEditingCollection(null);
               }}
               disabled={isSavingEdit}
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -139,7 +140,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={saveEdit}
               disabled={isSavingEdit}
-              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               {isSavingEdit ? "Saving..." : "Save"}
             </button>
@@ -148,28 +149,29 @@ export default function CollectionsHomeView({
       >
         <div className="space-y-4">
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">Name</span>
+            <span className="text-ink text-sm font-medium">Name</span>
             <input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               placeholder="Collection name"
-              className="dp-surface dp-border dp-text mt-2 w-full rounded-xl border px-4 py-3 text-sm outline-none"
+              className="border border-hairline bg-canvas-soft text-ink mt-2 w-full rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-primary/20"
             />
           </label>
 
           <label className="block">
-            <span className="dp-text-soft text-sm font-medium">Description (optional)</span>
+            <span className="text-ink text-sm font-medium">Description (optional)</span>
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="What will you store here?"
-              className="dp-surface dp-border dp-text mt-2 w-full resize-none rounded-xl border px-4 py-3 text-sm outline-none"
+              className="border border-hairline bg-canvas-soft text-ink mt-2 w-full resize-none rounded-xl px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-primary/20"
               rows={3}
             />
           </label>
         </div>
       </Modal>
 
+      {/* Delete Collection Modal */}
       <Modal
         open={isDeleteOpen}
         title="Delete collection?"
@@ -194,7 +196,7 @@ export default function CollectionsHomeView({
                 setDeletingCollection(null);
               }}
               disabled={isDeleting}
-              className="dp-btn-secondary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -202,33 +204,26 @@ export default function CollectionsHomeView({
               type="button"
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="bg-semantic-error hover:opacity-90 text-white rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </button>
           </div>
         }
       >
-        <p className="dp-text-muted text-sm">You can't undo this action.</p>
+        <p className="text-muted text-sm">You can't undo this action.</p>
       </Modal>
 
       <div className="mt-6">
         {loading ? (
           createElement(LoadingGridComponent)
         ) : error ? (
-          <div className="dp-surface dp-border rounded-2xl border p-5">
-            <p className="dp-text font-medium">Couldn't load collections</p>
-            <p className="dp-text-muted mt-1 text-sm">{error}</p>
-          </div>
-        ) : !collections.length ? (
-          <div className="dp-surface dp-border rounded-2xl border p-8 text-center">
-            <p className="dp-text font-semibold">No collections yet</p>
-            <p className="dp-text-muted mt-1 text-sm">
-              Create a collection to start organizing your content.
-            </p>
+          <div className="border border-hairline bg-surface-card rounded-2xl p-5">
+            <p className="text-ink font-medium">Couldn't load collections</p>
+            <p className="text-body mt-1 text-sm">{error}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {collections.map((c) =>
               createElement(CollectionCardComponent, {
                 key: getCollectionId(c) || c.name,
@@ -238,6 +233,23 @@ export default function CollectionsHomeView({
                 onDelete: openDelete,
               }),
             )}
+
+            {/* Dashed New Collection Card matching the screenshot */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsCreateOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setIsCreateOpen(true);
+              }}
+              className="border-2 border-dashed border-hairline bg-canvas/30 hover:bg-canvas-soft rounded-2xl flex flex-col items-center justify-center h-[230px] transition-colors cursor-pointer"
+              title="Create collection"
+            >
+              <div className="w-10 h-10 rounded-full bg-white border border-hairline flex items-center justify-center text-muted mb-3 shadow-sm">
+                <Plus size={20} />
+              </div>
+              <span className="text-sm font-semibold text-muted">New Collection</span>
+            </div>
           </div>
         )}
       </div>
