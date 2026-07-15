@@ -4,6 +4,7 @@ export const usePWA = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOSDevice, setIsIOSDevice] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed
@@ -28,6 +29,11 @@ export const usePWA = () => {
     };
 
     checkIfInstalled();
+    const userAgent = navigator.userAgent || "";
+    setIsIOSDevice(
+      /iPad|iPhone|iPod/i.test(userAgent) ||
+        (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1),
+    );
 
     // Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e) => {
@@ -79,6 +85,7 @@ export const usePWA = () => {
   return {
     isInstallable,
     isInstalled,
+    isIOSDevice,
     installApp,
   };
 };

@@ -1,7 +1,7 @@
 {
   "name": "client",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:ci": "npm run lint && npm run format:check",
+    "validate:pwa": "node scripts/validate-pwa.mjs",
+    "check:pwa": "npm run build && npm run validate:pwa",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview"

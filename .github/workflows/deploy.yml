@@ -1,0 +1,42 @@
+name: Production deployment
+
+on:
+  workflow_run:
+    workflows: [PWA CI]
+    types: [completed]
+    branches: [master]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dashpoint-frontend-${{ github.event.workflow_run.head_sha }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: dist
+      - name: Package immutable deployment artifact
+        run: tar -czf dashpoint-${{ github.event.workflow_run.head_sha }}.tar.gz dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashpoint-production-${{ github.event.workflow_run.head_sha }}
+          path: dashpoint-${{ github.event.workflow_run.head_sha }}.tar.gz
+          retention-days: 90
+      - name: Smoke test deployed PWA
+        if: ${{ vars.PRODUCTION_URL != '' }}
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+          API_HEALTH_URL: ${{ vars.API_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          for path in / /manifest.webmanifest /sw.js /icon-192.svg /icon-512.svg; do
+            curl --fail --silent --show-error --location --max-time 20 "$PRODUCTION_URL$path" > /dev/null
+          done
+          if [ -n "${API_HEALTH_URL:-}" ]; then curl --fail --silent --show-error --location --max-time 20 "$API_HEALTH_URL" > /dev/null; fi

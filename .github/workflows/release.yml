@@ -1,0 +1,52 @@
+name: Semantic release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (for example 1.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate immutable version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(node -p "require('./client/package.json').version")" = "$VERSION"
+          ! git rev-parse "v$VERSION" >/dev/null 2>&1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+        working-directory: client
+      - run: npm run build
+        working-directory: client
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
+          BUILD_TIMESTAMP: ${{ github.event.repository.updated_at }}
+      - run: npm run validate:pwa
+        working-directory: client
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashpoint-release-${{ inputs.version }}
+          path: client/dist
+          retention-days: 365
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          generate_release_notes: true
+          files: client/dist/build-info.json

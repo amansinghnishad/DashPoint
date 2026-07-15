@@ -1,0 +1,40 @@
+name: PWA CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+        env:
+          VITE_COMMIT_SHA: ${{ github.sha }}
+          BUILD_TIMESTAMP: ${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at }}
+      - run: npm run validate:pwa
+      - run: npm audit --audit-level=high
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashpoint-frontend-${{ github.sha }}
+          path: client/dist
+          if-no-files-found: error
+          retention-days: 14
