@@ -24,16 +24,16 @@ export default function PWAUpdatePrompt() {
   if (!showUpdatePrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-[90] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2">
-      <div className="dp-surface dp-border dp-text flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-sm">
+    <div className="fixed bottom-4 left-4 right-4 z-[90] sm:left-1/2 sm:right-auto sm:w-[calc(100vw-2rem)] sm:max-w-xl sm:-translate-x-1/2">
+      <div className="dp-surface dp-border dp-text flex flex-col gap-3 rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold">Update available</p>
-          <p className="dp-text-muted text-xs">
+          <p className="dp-text-muted text-pretty text-xs">
             Version {BUILD_INFO.version} is ready. Refresh to apply the update.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 justify-end gap-2">
           <button
             type="button"
             onClick={dismissUpdate}
