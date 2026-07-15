@@ -7,10 +7,7 @@ export default function FloatingInstallDownloadButtons() {
   const { isInstallable, isInstalled, isIOSDevice, installApp } = usePWA();
   const toast = useToast();
 
-  // Keep this floating control contextual: desktop browsers only expose the
-  // native prompt after beforeinstallprompt has fired. The sidebar still
-  // provides browser-menu/iOS guidance when a prompt is unavailable.
-  if (isInstalled || (!isInstallable && !isIOSDevice)) return null;
+  if (isInstalled) return null;
 
   const onClick = () => {
     if (isInstalled) {
@@ -35,16 +32,16 @@ export default function FloatingInstallDownloadButtons() {
   // Keep the footprint small and avoid blocking content interactions.
   // Container is pointer-events-none; buttons re-enable pointer events.
   return (
-    <div className="fixed bottom-6 right-6 z-[60] pointer-events-none lg:block">
-      <div className="pointer-events-auto dp-surface dp-border rounded-2xl border p-2 shadow-2xl backdrop-blur-sm">
+    <div className="hidden lg:block fixed bottom-6 right-6 z-[60] pointer-events-none">
+      <div className="pointer-events-auto bg-surface-card border border-hairline rounded-2xl p-2 shadow-2xl backdrop-blur-sm">
         <button
           type="button"
           onClick={onClick}
-          className="group dp-btn-primary inline-flex h-11 w-11 touch-manipulation items-center justify-center overflow-hidden rounded-xl px-3 text-sm font-semibold transition-[width,background-color,color,box-shadow] duration-250 ease-out hover:w-40 focus-visible:w-40"
+          className="group bg-ink text-canvas hover:bg-neutral-900 inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl px-3 text-sm font-semibold transition-[width,background-color,color,box-shadow] duration-250 ease-out hover:w-40 focus-visible:w-40 cursor-pointer"
           aria-label="Install DashPoint"
           title="Install DashPoint"
         >
-          <IconDownload size={16} className="shrink-0" aria-hidden="true" />
+          <IconDownload size={16} className="shrink-0" />
           <span className="ml-0 max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-250 ease-out group-hover:ml-2 group-hover:max-w-[8rem] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[8rem] group-focus-visible:opacity-100">
             Install app
           </span>

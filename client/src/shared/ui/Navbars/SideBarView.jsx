@@ -41,6 +41,9 @@ export default function SideBarView({
   isDark,
   toggleTheme,
   logoutUser,
+  isInstalled,
+  isInstallable,
+  isIOSDevice,
 }) {
   const displayName = getSidebarDisplayName(user);
 
@@ -134,16 +137,18 @@ export default function SideBarView({
             })}
 
             {/* Install PWA Option (Mobile Only) */}
-            <div className="lg:hidden">
-              <button
-                type="button"
-                onClick={onInstallClick}
-                className={`w-full flex items-center rounded-xl transition-all duration-200 px-4 py-3 gap-3 justify-start text-sm font-medium text-muted hover:text-ink hover:bg-canvas-soft`}
-              >
-                <IconDownload size={20} />
-                <span>Download app</span>
-              </button>
-            </div>
+            {!isInstalled ? (
+              <div className="lg:hidden">
+                <button
+                  type="button"
+                  onClick={onInstallClick}
+                  className={`w-full flex items-center rounded-xl transition-all duration-200 px-4 py-3 gap-3 justify-start text-sm font-medium text-muted hover:text-ink hover:bg-canvas-soft`}
+                >
+                  <IconDownload size={20} />
+                  <span>Download app</span>
+                </button>
+              </div>
+            ) : null}
           </nav>
 
           {/* Bottom Profile & Actions */}

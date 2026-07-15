@@ -40,7 +40,7 @@ export default defineConfig({
     tailwindcss(),
     buildInfoPlugin,
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["icon-192.svg", "icon-512.svg"],
       manifest: {
         name: "DashPoint - Personal Productivity Dashboard",

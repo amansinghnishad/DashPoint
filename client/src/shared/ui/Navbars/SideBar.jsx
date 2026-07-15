@@ -19,7 +19,7 @@ export const SideBar = ({
 }) => {
   const { user, logoutUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { isInstallable, isInstalled, installApp } = usePWA();
+  const { isInstallable, isInstalled, isIOSDevice, installApp } = usePWA();
   const toast = useToast();
   const [isHovered, setIsHovered] = useState(false);
 
@@ -86,6 +86,9 @@ export const SideBar = ({
       isDark={isDark}
       toggleTheme={toggleTheme}
       logoutUser={logoutUser}
+      isInstalled={isInstalled}
+      isInstallable={isInstallable}
+      isIOSDevice={isIOSDevice}
     />
   );
 };
