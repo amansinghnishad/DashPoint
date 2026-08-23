@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
@@ -15,34 +15,14 @@ export default function TopBar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isAuthPage =
-    location.pathname === APP_ROUTES.LOGIN || location.pathname === APP_ROUTES.REGISTER;
-
-  const authCta = useMemo(() => {
-    if (!isAuthPage) {
-      return {
-        secondary: { to: APP_ROUTES.LOGIN, label: "Sign In" },
-        primary: { to: APP_ROUTES.REGISTER, label: "Try free" },
-      };
-    }
-    if (location.pathname === APP_ROUTES.LOGIN) {
-      return {
-        secondary: null,
-        primary: { to: APP_ROUTES.REGISTER, label: "Try free" },
-      };
-    }
-    // /register
-    return {
-      secondary: { to: APP_ROUTES.LOGIN, label: "Sign In" },
-      primary: null,
-    };
-  }, [isAuthPage, location.pathname]);
+  const isLoginPage = location.pathname === APP_ROUTES.LOGIN;
+  const isRegisterPage = location.pathname === APP_ROUTES.REGISTER;
 
   return (
     <nav
       className={`fixed top-0 w-full z-50 flex justify-between items-center transition-all duration-500 px-xl md:px-xxl ${
         isScrolled
-          ? "bg-white/80 backdrop-blur-lg h-16 border-b border-hairline"
+          ? "bg-canvas/80 backdrop-blur-lg h-16 border-b border-hairline"
           : "h-20"
       }`}
     >
@@ -69,22 +49,36 @@ export default function TopBar() {
         </div>
       </div>
       <div className="flex items-center gap-base">
-        {authCta.secondary ? (
+        {isLoginPage ? (
           <Link
-            to={authCta.secondary.to}
-            className="hidden md:block text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
-          >
-            {authCta.secondary.label}
-          </Link>
-        ) : null}
-        {authCta.primary ? (
-          <Link
-            to={authCta.primary.to}
+            to={APP_ROUTES.REGISTER}
             className="bg-ink text-canvas px-8 py-2.5 rounded-full text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
           >
-            {authCta.primary.label}
+            Register
           </Link>
-        ) : null}
+        ) : isRegisterPage ? (
+          <Link
+            to={APP_ROUTES.LOGIN}
+            className="bg-ink text-canvas px-8 py-2.5 rounded-full text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
+          >
+            Sign In
+          </Link>
+        ) : (
+          <>
+            <Link
+              to={APP_ROUTES.LOGIN}
+              className="hidden md:block text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
+            >
+              Sign In
+            </Link>
+            <Link
+              to={APP_ROUTES.REGISTER}
+              className="bg-ink text-canvas px-8 py-2.5 rounded-full text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
+            >
+              Try free
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

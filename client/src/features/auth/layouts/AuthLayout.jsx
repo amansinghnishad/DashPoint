@@ -2,6 +2,7 @@ import { LazyMotion, domAnimation, motion, useReducedMotion } from "framer-motio
 
 import Footer from "../../../shared/ui/Footer/Footer";
 import TopBar from "../../../shared/ui/Navbars/TopBar";
+import KineticGrid from "../../landing/components/KineticGrid";
 
 const EMPTY_ASIDE_ITEMS = [];
 const EMPTY_ASIDE_FOOTER_ITEMS = [];
@@ -9,24 +10,40 @@ const MotionDiv = motion.div;
 
 const GlowBackdrop = () => {
   return (
-    <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
-      {/* Pastel Mint/Lavender orb at top left */}
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      {/* Top Primary Warm Peach Glow Orb */}
       <div
-        className="absolute -top-24 -left-24 h-96 w-96 rounded-full"
+        className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1100px] h-[900px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(167, 229, 211, 0.4) 0%, rgba(200, 184, 224, 0.1) 60%, transparent 100%)",
-          filter: "blur(60px)",
-          WebkitFilter: "blur(60px)",
+          background: "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
+          filter: "blur(90px)",
+          WebkitFilter: "blur(90px)",
         }}
       />
-      {/* Pastel Peach/Sky orb at bottom right */}
+      {/* Secondary Soft Amber Glow Center */}
       <div
-        className="absolute -bottom-24 -right-24 h-[30rem] w-[30rem] rounded-full"
+        className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[850px] h-[850px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(244, 197, 168, 0.3) 0%, rgba(168, 200, 232, 0.1) 60%, transparent 100%)",
-          filter: "blur(80px)",
-          WebkitFilter: "blur(80px)",
+          background: "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
+          filter: "blur(120px)",
+          WebkitFilter: "blur(120px)",
         }}
+      />
+      {/* Vignette Mask for Smooth Theme Canvas Blend */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
+        }}
+      />
+      <KineticGrid
+        dotColor="rgba(249, 145, 73, 0.55)"
+        lineColor="rgba(249, 145, 73, 0.45)"
+        trailColor="rgba(241, 137, 64, 0.9)"
+        spacing={44}
+        radius={280}
+        strength={4}
+        trail={true}
       />
     </div>
   );
@@ -172,7 +189,7 @@ export default function AuthLayout({
             </div>
           </MotionDiv>
         </main>
-        <Footer embedded />
+        <Footer />
       </div>
     </LazyMotion>
   );

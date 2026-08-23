@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
 import Footer from "../../../shared/ui/Footer/Footer";
+import TopBar from "../../../shared/ui/Navbars/TopBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
+import KineticGrid from "../components/KineticGrid";
 
 export default function LandingPage() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const videoRef1 = useRef(null);
   const videoRef2 = useRef(null);
   const videoRef3 = useRef(null);
@@ -17,7 +18,7 @@ export default function LandingPage() {
     const p1 = videoRef1.current?.play();
     const p2 = videoRef2.current?.play();
     const p3 = videoRef3.current?.play();
-    Promise.all([p1, p2, p3]).catch(() => {});
+    Promise.all([p1, p2, p3]).catch(() => { });
   };
 
   const handleMouseLeave = () => {
@@ -27,93 +28,55 @@ export default function LandingPage() {
     videoRef3.current?.pause();
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="bg-canvas text-ink min-h-screen font-sans antialiased selection:bg-ink/10">
       {/* Navigation */}
-      <nav
-        className={`fixed top-0 w-full z-50 flex justify-between items-center transition-all duration-500 px-xl md:px-xxl ${isScrolled
-            ? "bg-white/80 backdrop-blur-lg h-16 border-b border-hairline"
-            : "h-20"
-          }`}
-      >
-        <div className="flex items-center gap-xl">
-          <Link
-            to={APP_ROUTES.HOME}
-            className="font-waldenburg-light text-2xl tracking-tight text-ink"
-          >
-            DASHPOINT
-          </Link>
-          <div className="hidden md:flex gap-lg">
-            <a
-              href="#capabilities"
-              className="text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
-            >
-              Capabilities
-            </a>
-            <a
-              href="#manifesto"
-              className="text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
-            >
-              Manifesto
-            </a>
-          </div>
-        </div>
-        <div className="flex items-center gap-base">
-          <Link
-            to={APP_ROUTES.LOGIN}
-            className="hidden md:block text-[15px] font-medium text-on-surface-variant hover:text-ink transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            to={APP_ROUTES.REGISTER}
-            className="bg-ink text-canvas px-8 py-2.5 rounded-full text-[15px] font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
-          >
-            Try free
-          </Link>
-        </div>
-      </nav>
+      <TopBar />
 
       <main>
         {/* Hero Section */}
         <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-36 pb-12">
-          {/* Orange Gradient Background Circle Fade */}
+          {/* Orange Gradient Glow Backdrop & Kinetic Interactive Grid */}
           <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
+            {/* Top Primary Warm Peach Glow Orb */}
+            <div
+              className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1100px] h-[900px] rounded-full"
+              style={{
+                background: "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
+                filter: "blur(90px)",
+                WebkitFilter: "blur(90px)",
+              }}
+            />
+            {/* Secondary Soft Amber Glow Center */}
+            <div
+              className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[850px] h-[850px] rounded-full"
+              style={{
+                background: "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
+                filter: "blur(120px)",
+                WebkitFilter: "blur(120px)",
+              }}
+            />
+            {/* Vignette Mask for Smooth Theme Canvas Blend */}
             <div
               className="absolute inset-0"
               style={{
-                background: "radial-gradient(circle at center, rgba(255, 255, 255, 0) 0%, #f5f5f5 90%)",
+                background: "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
               }}
             />
-            <div
-              className="absolute top-[-250px] left-1/2 -translate-x-1/2 w-[1000px] h-[900px] rounded-full"
-              style={{
-                background: "linear-gradient(to bottom, rgba(254, 215, 170, 0.85), rgba(255, 237, 213, 0.3), transparent)",
-                filter: "blur(80px)",
-                WebkitFilter: "blur(80px)",
-              }}
-            />
-            <div
-              className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full"
-              style={{
-                background: "rgba(253, 186, 116, 0.15)",
-                filter: "blur(140px)",
-                WebkitFilter: "blur(140px)",
-              }}
+            <KineticGrid
+              dotColor="rgba(249, 145, 73, 0.55)"
+              lineColor="rgba(249, 145, 73, 0.45)"
+              trailColor="rgba(241, 137, 64, 0.9)"
+              spacing={44}
+              radius={280}
+              strength={4}
+              trail={true}
             />
           </div>
 
           {/* Hero Content */}
           <div className="relative z-20 max-w-[1280px] mx-auto w-full px-xl md:px-xxl flex flex-col items-center text-center pt-16">
-            <div className="inline-block glass-card px-4 py-1 rounded-full text-[12px] font-semibold uppercase tracking-[0.2em] mb-12 text-ink/80">
+            <div className="inline-block border border-hairline bg-surface-card/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[12px] font-semibold uppercase tracking-[0.2em] mb-12 text-ink/80 shadow-sm">
               PRECISION TOOLS
             </div>
 
@@ -124,7 +87,7 @@ export default function LandingPage() {
                 <span className="italic opacity-50 block -mt-2">articulated.</span>
               </h1>
               {/* Layered blurring shadow effect */}
-              <h1 className="absolute inset-0 font-waldenburg-light text-6xl md:text-[80px] hero-heading text-canvas/30 blur-[2px] translate-x-[4px] translate-y-[4px] -z-10 pointer-events-none select-none">
+              <h1 className="absolute inset-0 font-waldenburg-light text-6xl md:text-[80px] hero-heading text-ink/15 blur-[4px] translate-x-[4px] translate-y-[4px] -z-10 pointer-events-none select-none">
                 Your productivity,
                 <br />
                 <span className="italic block -mt-2">articulated.</span>
@@ -181,7 +144,7 @@ export default function LandingPage() {
                   playsInline
                   src="/1.mp4"
                 />
-                
+
                 {/* Vignette Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
@@ -252,7 +215,7 @@ export default function LandingPage() {
                   </Link>
                 </div>
                 <div className="lg:col-span-7 lg:col-start-6">
-                  <div className="p-2 bg-white/50 backdrop-blur shadow-2xl rounded-xl rotate-1 group overflow-hidden">
+                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl rotate-1 group overflow-hidden">
                     <img
                       alt="AI Interface"
                       className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
@@ -265,7 +228,7 @@ export default function LandingPage() {
               {/* Entry 2 */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-center border-t border-hairline pt-12">
                 <div className="lg:col-span-7 order-2 lg:order-1">
-                  <div className="p-2 bg-white/50 backdrop-blur shadow-2xl rounded-xl -rotate-1 group overflow-hidden">
+                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl -rotate-1 group overflow-hidden">
                     <img
                       alt="Smart Calendar"
                       className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
@@ -314,7 +277,7 @@ export default function LandingPage() {
                   </Link>
                 </div>
                 <div className="lg:col-span-7 lg:col-start-6">
-                  <div className="p-2 bg-white/50 backdrop-blur shadow-2xl rounded-xl rotate-2 group overflow-hidden">
+                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl rotate-2 group overflow-hidden">
                     <img
                       alt="File Hub"
                       className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
@@ -328,7 +291,7 @@ export default function LandingPage() {
         </section>
 
         {/* Quote Section */}
-        <section className="px-xl md:px-xxl py-section bg-white text-center" id="manifesto">
+        <section className="px-xl md:px-xxl py-section bg-canvas-soft text-center" id="manifesto">
           <div className="max-w-[896px] mx-auto">
             <div className="mb-12">
               <span className="font-waldenburg-light text-7xl text-ink/20 opacity-40">99</span>
@@ -345,31 +308,31 @@ export default function LandingPage() {
         {/* Stack Section */}
         <section className="px-xl md:px-xxl py-section">
           <div className="max-w-[1280px] mx-auto">
-            <div className="bg-ink text-canvas p-12 md:p-24 rounded-[40px] relative overflow-hidden group">
+            <div className="bg-neutral-900 border border-neutral-800 text-white p-12 md:p-24 rounded-[40px] relative overflow-hidden group shadow-xl">
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <h2 className="font-waldenburg-light text-4xl mb-6">Engineered for Performance</h2>
-                  <p className="text-canvas/70 text-lg leading-relaxed">
-                    Built with the MERN stack for speed and scale. Experience real-time synchronization and near-zero latency across all your connected devices.
+                  <h2 className="font-waldenburg-light text-4xl mb-6 text-white">Engineered for Convenience</h2>
+                  <p className="text-neutral-300 text-lg leading-relaxed">
+                    Automate the routine, organize the chaos, and execute without hesitation. Experience a platform built to keep you in deep focus, anywhere, anytime.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-8 lg:justify-end">
-                  <span className="font-waldenburg-light text-2xl opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                    MONGODB
+                  <span className="font-waldenburg-light text-2xl text-neutral-400 hover:text-white transition-colors cursor-default tracking-wide">
+                    INTELLIGENT
                   </span>
-                  <span className="font-waldenburg-light text-2xl opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                    EXPRESS
+                  <span className="font-waldenburg-light text-2xl text-neutral-400 hover:text-white transition-colors cursor-default tracking-wide">
+                    AUTOMATED
                   </span>
-                  <span className="font-waldenburg-light text-2xl opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                    REACT
+                  <span className="font-waldenburg-light text-2xl text-neutral-400 hover:text-white transition-colors cursor-default tracking-wide">
+                    RESPONSIVE
                   </span>
-                  <span className="font-waldenburg-light text-2xl opacity-40 hover:opacity-100 transition-opacity cursor-default">
-                    NODE
+                  <span className="font-waldenburg-light text-2xl text-neutral-400 hover:text-white transition-colors cursor-default tracking-wide">
+                    SECURE
                   </span>
                 </div>
               </div>
               {/* Subtle glow effect */}
-              <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-canvas/5 rounded-full blur-[100px]" />
+              <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-white/5 rounded-full blur-[100px]" />
             </div>
           </div>
         </section>

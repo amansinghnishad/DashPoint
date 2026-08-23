@@ -3,8 +3,14 @@
     "ignoreDeprecations": "6.0",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "exclude": ["dist", "dev-dist", "node_modules"]
+  "exclude": [
+    "dist",
+    "dev-dist",
+    "node_modules"
+  ]
 }
