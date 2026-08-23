@@ -40,7 +40,6 @@ function LoadingGrid() {
 
 export default function YoutubePageContent({
   search,
-  dispatchSearch,
   uiState,
   addVideo,
   items,

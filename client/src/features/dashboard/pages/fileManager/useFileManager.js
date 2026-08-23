@@ -6,6 +6,7 @@ import {
   getUploadValidationMessage,
   isTextPreviewable,
   mergeUploadedItems,
+  toFileItem,
   toFileItems,
 } from "./fileManager.helpers";
 import { useToast } from "../../../../hooks/useToast";

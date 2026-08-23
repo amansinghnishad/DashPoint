@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   FileText,
   Image,
@@ -8,6 +7,7 @@ import {
   Move,
   Youtube,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import PlannerWidgetBody from "./plannerWidgets/PlannerWidgetBody";
 import { useResizableCard } from "./useResizableCard";

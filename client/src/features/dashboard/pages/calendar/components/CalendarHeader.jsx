@@ -17,7 +17,6 @@ export default function CalendarHeader({
   monthLoading,
   onConnect,
   onDisconnect,
-  onOpenCreate,
   onRefresh,
   onGoToToday,
   onGoToPreviousMonth,

@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect, useMemo } from "react";
 import { Paperclip, Globe, ArrowRight, Sparkles } from "lucide-react";
+import { useRef, useState, useEffect, useMemo } from "react";
+
 import ChatMessageBubble from "./components/ChatMessageBubble";
 import useDashboardChatController from "./hooks/useDashboardChatController";
 
