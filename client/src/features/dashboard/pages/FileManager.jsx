@@ -252,8 +252,12 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
             <div className="bg-surface-card border border-hairline rounded-2xl overflow-hidden shadow-sm p-6">
               <div className="flex items-start justify-between gap-4 mb-6 border-b border-hairline/60 pb-4">
                 <div className="min-w-0">
-                  <h3 className="font-waldenburg-light text-2xl text-ink font-bold leading-tight">{selected.title}</h3>
-                  <p className="text-muted text-xs font-semibold mt-1">{selected.subtitle || getFileTypeLabel(selected.mime)}</p>
+                  <h3 className="font-waldenburg-light text-2xl text-ink font-bold leading-tight">
+                    {selected.title}
+                  </h3>
+                  <p className="text-muted text-xs font-semibold mt-1">
+                    {selected.subtitle || getFileTypeLabel(selected.mime)}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -315,7 +319,9 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
               ) : (
                 <div className="border border-hairline bg-canvas-soft rounded-xl p-8 text-center">
                   <p className="text-ink font-semibold text-sm">Preview not available</p>
-                  <p className="text-muted mt-1 text-xs">This file type can't be previewed directly in browser.</p>
+                  <p className="text-muted mt-1 text-xs">
+                    This file type can't be previewed directly in browser.
+                  </p>
                 </div>
               )}
             </div>
@@ -340,7 +346,9 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
             {isBusy && (
               <div className="bg-surface-card border border-hairline rounded-2xl p-4 shadow-sm mb-6 flex items-center gap-3 animate-pulse">
                 <Loader2 size={16} className="animate-spin text-primary" />
-                <span className="text-ink text-xs font-semibold">Processing document ingestion...</span>
+                <span className="text-ink text-xs font-semibold">
+                  Processing document ingestion...
+                </span>
               </div>
             )}
 
@@ -366,7 +374,9 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                   </thead>
                   <tbody className="divide-y divide-hairline/60 text-sm">
                     {filteredItems.map((it) => {
-                      const canSummarizePdf = String(it.mime || "").toLowerCase().includes("pdf");
+                      const canSummarizePdf = String(it.mime || "")
+                        .toLowerCase()
+                        .includes("pdf");
                       return (
                         <tr key={it.id} className="hover:bg-canvas-soft/80 transition-colors group">
                           {/* File details */}
@@ -382,7 +392,9 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                                 >
                                   {it.title}
                                 </button>
-                                <p className="text-[10px] text-muted-soft sm:hidden mt-0.5">{it.subtitle || "Web Page"}</p>
+                                <p className="text-[10px] text-muted-soft sm:hidden mt-0.5">
+                                  {it.subtitle || "Web Page"}
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -423,7 +435,11 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                                 className="text-muted hover:text-ink p-1 rounded-lg hover:bg-canvas-soft transition-colors"
                                 title={it.mime === "text/html" ? "Open Website" : "Download File"}
                               >
-                                {it.mime === "text/html" ? <Globe size={15} /> : <Download size={15} />}
+                                {it.mime === "text/html" ? (
+                                  <Globe size={15} />
+                                ) : (
+                                  <Download size={15} />
+                                )}
                               </button>
                               <button
                                 type="button"
@@ -459,15 +475,21 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
           <div className="flex border border-hairline rounded-full overflow-hidden p-0.5 bg-canvas-soft select-none">
             <button
               onClick={() => setAddTab("file")}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-full transition-all ${addTab === "file" ? "bg-surface-card text-ink shadow-sm" : "text-muted hover:text-ink"
-                }`}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-full transition-all ${
+                addTab === "file"
+                  ? "bg-surface-card text-ink shadow-sm"
+                  : "text-muted hover:text-ink"
+              }`}
             >
               Upload Local File
             </button>
             <button
               onClick={() => setAddTab("link")}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-full transition-all ${addTab === "link" ? "bg-surface-card text-ink shadow-sm" : "text-muted hover:text-ink"
-                }`}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-full transition-all ${
+                addTab === "link"
+                  ? "bg-surface-card text-ink shadow-sm"
+                  : "text-muted hover:text-ink"
+              }`}
             >
               Paste Web Link
             </button>
@@ -499,7 +521,10 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
             <form onSubmit={handleLinkSubmit} className="space-y-4">
               <div className="space-y-3.5">
                 <div>
-                  <label htmlFor="web-link-url" className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5">
+                  <label
+                    htmlFor="web-link-url"
+                    className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5"
+                  >
                     Website URL *
                   </label>
                   <input
@@ -514,7 +539,10 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 </div>
 
                 <div>
-                  <label htmlFor="web-link-title" className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5">
+                  <label
+                    htmlFor="web-link-title"
+                    className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5"
+                  >
                     Custom Title (Optional)
                   </label>
                   <input
@@ -528,7 +556,10 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 </div>
 
                 <div>
-                  <label htmlFor="web-link-desc" className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5">
+                  <label
+                    htmlFor="web-link-desc"
+                    className="text-xs font-bold text-ink uppercase tracking-wider block mb-1.5"
+                  >
                     Description (Optional)
                   </label>
                   <textarea

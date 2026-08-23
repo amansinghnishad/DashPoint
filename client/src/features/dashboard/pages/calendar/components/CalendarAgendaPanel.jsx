@@ -28,7 +28,9 @@ export default function CalendarAgendaPanel({
       <div className="flex items-start justify-between gap-3 border-b border-hairline/60 pb-3 select-none">
         <div className="min-w-0">
           <p className="font-waldenburg-light text-lg font-bold text-ink leading-tight">Agenda</p>
-          <p className="text-muted text-xs font-medium mt-1 truncate">{formatSelectedDay(selectedDate)}</p>
+          <p className="text-muted text-xs font-medium mt-1 truncate">
+            {formatSelectedDay(selectedDate)}
+          </p>
         </div>
 
         <button
@@ -76,16 +78,22 @@ export default function CalendarAgendaPanel({
                     <p className="text-ink text-sm font-bold truncate">
                       {event?.summary || "(No title)"}
                     </p>
-                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider bg-canvas px-2 py-0.5 rounded-full">{typeLabel}</span>
+                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider bg-canvas px-2 py-0.5 rounded-full">
+                      {typeLabel}
+                    </span>
                   </div>
 
                   <div className="mt-2.5 flex items-center gap-1.5 select-none">
                     <Clock size={13} className="text-muted" />
-                    <p className="text-muted-soft text-xs font-semibold">{timeLabel || "All day"}</p>
+                    <p className="text-muted-soft text-xs font-semibold">
+                      {timeLabel || "All day"}
+                    </p>
                   </div>
 
                   {event?.description ? (
-                    <p className="text-muted mt-2 line-clamp-2 text-xs leading-normal">{event.description}</p>
+                    <p className="text-muted mt-2 line-clamp-2 text-xs leading-normal">
+                      {event.description}
+                    </p>
                   ) : null}
                 </div>
               );

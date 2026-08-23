@@ -11,8 +11,7 @@ export default function Button({
   ...props
 }) {
   const baseStyle = "transition-all duration-200 active:scale-[0.98]";
-  const pageBtnStyle = { "landingBtn": " px-7 py-3 rounded-xl font-medium", "dashBtn": "" }
-
+  const pageBtnStyle = { landingBtn: " px-7 py-3 rounded-xl font-medium", dashBtn: "" };
 
   const variants = {
     primary: "dp-btn-primary",

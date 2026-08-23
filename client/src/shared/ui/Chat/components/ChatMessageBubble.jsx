@@ -5,7 +5,9 @@ import remarkGfm from "remark-gfm";
 function MarkdownBubble({ content, isStreaming = false, className = "text-ink" }) {
   if (isStreaming) {
     return (
-      <div className={`whitespace-pre-wrap text-sm leading-relaxed break-words ${className}`}>{content}</div>
+      <div className={`whitespace-pre-wrap text-sm leading-relaxed break-words ${className}`}>
+        {content}
+      </div>
     );
   }
 
@@ -63,7 +65,9 @@ function ChatMessageBubble({ entry }) {
             <div className="h-5 w-5 bg-ink text-canvas rounded flex items-center justify-center text-[10px] font-black tracking-tight shrink-0">
               DP
             </div>
-            <span className="text-xs font-bold text-ink tracking-tight">DashPoint Intelligence</span>
+            <span className="text-xs font-bold text-ink tracking-tight">
+              DashPoint Intelligence
+            </span>
           </div>
 
           {entry.status === "loading" ? (

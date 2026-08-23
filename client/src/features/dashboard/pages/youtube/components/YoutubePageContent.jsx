@@ -110,7 +110,9 @@ export default function YoutubePageContent({
               <span>Back to Videos</span>
             </button>
             <div className="bg-surface-card border border-hairline rounded-2xl overflow-hidden shadow-sm p-6">
-              <h3 className="font-waldenburg-light text-2xl text-ink font-bold mb-4">{selected.title}</h3>
+              <h3 className="font-waldenburg-light text-2xl text-ink font-bold mb-4">
+                {selected.title}
+              </h3>
               {viewer}
             </div>
           </div>
@@ -155,7 +157,9 @@ export default function YoutubePageContent({
             {uiState.isAdding ? (
               <div className="bg-surface-card border border-hairline rounded-2xl p-6 shadow-sm mb-8 max-w-[640px] mx-auto animate-slide-down">
                 <h4 className="text-ink font-bold text-base mb-1">Add a YouTube video</h4>
-                <p className="text-muted text-xs mb-4">Paste a YouTube URL or video identifier to ingest.</p>
+                <p className="text-muted text-xs mb-4">
+                  Paste a YouTube URL or video identifier to ingest.
+                </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     ref={inputRef}
@@ -205,10 +209,7 @@ export default function YoutubePageContent({
               /* Main Cards Grid */
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {(featuredVideo ? filteredVideos.slice(1) : filteredVideos).map((it, index) => (
-                  <div
-                    key={it.id || index}
-                    className="group flex flex-col justify-between"
-                  >
+                  <div key={it.id || index} className="group flex flex-col justify-between">
                     {/* Thumbnail container */}
                     <div className="relative aspect-video rounded-xl overflow-hidden bg-canvas-soft border border-hairline/60 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
                       <img
@@ -264,7 +265,10 @@ export default function YoutubePageContent({
                               <button
                                 onClick={() => {
                                   setActiveMenuId(null);
-                                  dispatchUi({ type: "OPEN_ADD_COLLECTION", payload: it.original || it });
+                                  dispatchUi({
+                                    type: "OPEN_ADD_COLLECTION",
+                                    payload: it.original || it,
+                                  });
                                 }}
                                 className="w-full text-left text-xs font-semibold text-ink hover:bg-canvas-soft px-2.5 py-1.5 rounded-lg flex items-center gap-2"
                               >

@@ -54,11 +54,15 @@ export default function CollectionPickerExisting({
                   <div className="min-w-0 flex-1">
                     <p className="text-ink font-semibold text-sm truncate">{rowTitle}</p>
                     {subtitle ? (
-                      <p className="text-muted mt-0.5 text-xs line-clamp-2 leading-relaxed">{subtitle}</p>
+                      <p className="text-muted mt-0.5 text-xs line-clamp-2 leading-relaxed">
+                        {subtitle}
+                      </p>
                     ) : null}
                   </div>
                   {alreadyAdded ? (
-                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Added</span>
+                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                      Added
+                    </span>
                   ) : null}
                 </div>
               </button>

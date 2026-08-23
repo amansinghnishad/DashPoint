@@ -53,7 +53,8 @@ export default function CollectionsHomeView({
           Collections
         </h2>
         <p className="text-body text-[15px] leading-relaxed max-w-[640px] select-none">
-          {headerSubtitle || "Organize your intelligence layer into refined clusters. Manage projects, research journals, and media libraries with precise editorial control."}
+          {headerSubtitle ||
+            "Organize your intelligence layer into refined clusters. Manage projects, research journals, and media libraries with precise editorial control."}
         </p>
       </div>
 

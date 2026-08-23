@@ -11,9 +11,11 @@ export default function Footer({ embedded = false }) {
   const borderStyle = embedded ? "border-white/10" : "border-hairline/60";
 
   return (
-    <footer className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
-      embedded ? "bg-transparent" : "bg-neutral-950 text-white border-t border-white/10"
-    }`}>
+    <footer
+      className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
+        embedded ? "bg-transparent" : "bg-neutral-950 text-white border-t border-white/10"
+      }`}
+    >
       {!embedded && (
         <InteractiveLines
           backgroundColor="#0c0a09"
@@ -37,7 +39,8 @@ export default function Footer({ embedded = false }) {
                 DASHPOINT
               </Link>
               <p className={`text-xs ${bodyText} leading-relaxed max-w-[280px]`}>
-                The print-editorial intelligence layer for files, calendar schedules, and workflows. Built with MERN stack precision.
+                The print-editorial intelligence layer for files, calendar schedules, and workflows.
+                Built with MERN stack precision.
               </p>
             </div>
           </div>
@@ -45,7 +48,9 @@ export default function Footer({ embedded = false }) {
           {/* Navigation link columns */}
           <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
             <div>
-              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>Platform</h4>
+              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>
+                Platform
+              </h4>
               <ul className={`space-y-2.5 text-xs ${bodyText}`}>
                 <li>
                   <Link to={APP_ROUTES.REGISTER} className={`${hoverText} transition-colors`}>
@@ -66,7 +71,9 @@ export default function Footer({ embedded = false }) {
             </div>
 
             <div>
-              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>Manifesto</h4>
+              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>
+                Manifesto
+              </h4>
               <ul className={`space-y-2.5 text-xs ${bodyText}`}>
                 <li>
                   <a href="/#capabilities" className={`${hoverText} transition-colors`}>
@@ -82,7 +89,9 @@ export default function Footer({ embedded = false }) {
             </div>
 
             <div>
-              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>Developer</h4>
+              <h4 className={`text-[11px] font-bold ${headingText} uppercase tracking-wider mb-4`}>
+                Developer
+              </h4>
               <ul className={`space-y-2.5 text-xs ${bodyText} font-mono`}>
                 <li>
                   <span className={softText}>amansinghnishad...</span>
@@ -96,13 +105,17 @@ export default function Footer({ embedded = false }) {
         </div>
 
         {/* Bottom row */}
-        <div className={`border-t ${borderStyle} pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] ${softText} font-semibold`}>
-          <div>
-            © 2026 DashPoint. All rights reserved.
-          </div>
+        <div
+          className={`border-t ${borderStyle} pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] ${softText} font-semibold`}
+        >
+          <div>© 2026 DashPoint. All rights reserved.</div>
           <div className="flex gap-6">
-            <a href="#" className={`${hoverText} transition-colors`}>Privacy Policy</a>
-            <a href="#" className={`${hoverText} transition-colors`}>Terms of Service</a>
+            <a href="#" className={`${hoverText} transition-colors`}>
+              Privacy Policy
+            </a>
+            <a href="#" className={`${hoverText} transition-colors`}>
+              Terms of Service
+            </a>
           </div>
         </div>
       </div>
