@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
+
 import { FileText, Loader2, Upload } from "@/shared/ui/icons/icons";
+
 import Modal from "../../../../../shared/ui/modals/Modal";
 
 export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) {
@@ -7,7 +9,8 @@ export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) 
   const inputRef = useRef(null);
 
   const dropZoneClassName = useMemo(() => {
-    const base = "border-hairline rounded-xl border-2 border-dashed p-6 transition-all duration-200 cursor-pointer bg-canvas/30 text-ink";
+    const base =
+      "border-hairline rounded-xl border-2 border-dashed p-6 transition-all duration-200 cursor-pointer bg-canvas/30 text-ink";
     if (busy) return `${base} opacity-70 cursor-not-allowed`;
     if (dragActive) return `${base} border-primary bg-primary/5 scale-[0.99]`;
     return `${base} hover:border-primary/60`;

@@ -117,7 +117,7 @@ function useCanvasAnimation({ deferStart = false, onSetup, onDraw }) {
         st.isVisible = entries[0]?.isIntersecting ?? true;
         st.isVisible && st.isPageVisible ? start() : stop();
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
 
     io.observe(container);
@@ -204,23 +204,13 @@ export default function InteractiveLines({
       for (let t = 0; t < o.linesNum; t++) {
         let r = t / (o.linesNum - 1);
 
-        let lineEnd = vec(
-          lerp(f.x, g.x, 1 - r * r),
-          lerp(f.y, g.y, 1 - r * r)
-        );
+        let lineEnd = vec(lerp(f.x, g.x, 1 - r * r), lerp(f.y, g.y, 1 - r * r));
 
         let l = vecAdd(vecMult(c, 0.5), vecMult(lineEnd, 0.5));
 
         let dispTarget = vecMult(vecAdd(f, l), 0.5);
 
-        (function (
-          ctx,
-          tStart,
-          tEnd,
-          tDisp,
-          biasVal,
-          dVal
-        ) {
+        (function (ctx, tStart, tEnd, tDisp, biasVal, dVal) {
           let oMid = vecLerp(tStart, tEnd, 0.5);
           let sDiff = vecSub(tDisp, oMid);
 
@@ -243,18 +233,9 @@ export default function InteractiveLines({
 
       if (fade) {
         const bg = toRGB(backgroundColor);
-        const rgba = (alpha) =>
-          `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${alpha})`;
-        const inner = clamp(
-          map(fadeIntensity, 1, 50, 0.82, 0.25),
-          0.25,
-          0.82
-        );
-        const maxA = clamp(
-          map(fadeIntensity, 1, 50, 0.35, 0.9),
-          0.35,
-          0.9
-        );
+        const rgba = (alpha) => `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${alpha})`;
+        const inner = clamp(map(fadeIntensity, 1, 50, 0.82, 0.25), 0.25, 0.82);
+        const maxA = clamp(map(fadeIntensity, 1, 50, 0.35, 0.9), 0.35, 0.9);
         e.save();
         let y = r / 2;
         let v = n / 2;
@@ -318,10 +299,7 @@ export default function InteractiveLines({
         ...style,
       }}
     >
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full block pointer-events-none"
-      />
+      <canvas ref={canvasRef} className="w-full h-full block pointer-events-none" />
     </div>
   );
 }

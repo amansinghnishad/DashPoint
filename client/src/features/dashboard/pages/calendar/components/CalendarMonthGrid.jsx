@@ -37,9 +37,7 @@ export default function CalendarMonthGrid({
               onClick={() => onSelectDate(date)}
               className={
                 "group min-h-[96px] p-2.5 text-left transition-all duration-200 ease-out lg:min-h-[118px] relative " +
-                (isSelected
-                  ? "bg-canvas-soft/80"
-                  : "hover:bg-canvas-soft/30") +
+                (isSelected ? "bg-canvas-soft/80" : "hover:bg-canvas-soft/30") +
                 // Fix grid borders since grid division applies to children
                 (idx < 7 ? " border-t-0" : "") +
                 (idx % 7 === 0 ? " border-l-0" : "")
@@ -71,11 +69,14 @@ export default function CalendarMonthGrid({
                   <div
                     key={event.id}
                     className={
-                      "border border-hairline/60 bg-canvas-soft/40 rounded-lg px-2 py-1 shadow-[0_1px_2px_rgba(0,0,0,0.01)] hover:bg-canvas-soft transition-colors " + getEventChipClass(event)
+                      "border border-hairline/60 bg-canvas-soft/40 rounded-lg px-2 py-1 shadow-[0_1px_2px_rgba(0,0,0,0.01)] hover:bg-canvas-soft transition-colors " +
+                      getEventChipClass(event)
                     }
                     title={event.summary}
                   >
-                    <p className="text-ink text-[11px] font-semibold truncate leading-tight">{event.summary}</p>
+                    <p className="text-ink text-[11px] font-semibold truncate leading-tight">
+                      {event.summary}
+                    </p>
                     <p className="text-muted-soft mt-0.5 text-[9px] truncate">
                       {formatEventTimeLabel(event) || "All day"}
                     </p>
@@ -83,7 +84,9 @@ export default function CalendarMonthGrid({
                 ))}
 
                 {dayEvents.length > 3 ? (
-                  <p className="text-muted text-[10px] font-semibold select-none pl-1">+{dayEvents.length - 3} more</p>
+                  <p className="text-muted text-[10px] font-semibold select-none pl-1">
+                    +{dayEvents.length - 3} more
+                  </p>
                 ) : null}
               </div>
             </button>

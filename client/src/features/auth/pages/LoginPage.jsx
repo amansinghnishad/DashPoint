@@ -81,7 +81,9 @@ export default function Login() {
       ]}
       alert={
         formError || error ? (
-          <div className="rounded-xl border border-semantic-error/20 bg-semantic-error/10 text-semantic-error px-4 py-3 text-sm">{formError || error}</div>
+          <div className="rounded-xl border border-semantic-error/20 bg-semantic-error/10 text-semantic-error px-4 py-3 text-sm">
+            {formError || error}
+          </div>
         ) : null
       }
     >

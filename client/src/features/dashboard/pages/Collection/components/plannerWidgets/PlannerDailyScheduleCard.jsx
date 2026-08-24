@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Edit2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 import { normalizeDailyScheduleData } from "./normalize";
 import { usePlannerWidgetAutosave } from "./usePlannerWidgetAutosave";

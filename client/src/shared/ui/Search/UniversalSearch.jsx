@@ -78,7 +78,10 @@ function ResultRow({ item, isActive, onSelect }) {
   );
 }
 
-const UniversalSearch = forwardRef(function UniversalSearch({ onResultSelect, placeholder = "Search..." }, ref) {
+const UniversalSearch = forwardRef(function UniversalSearch(
+  { onResultSelect, placeholder = "Search..." },
+  ref,
+) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

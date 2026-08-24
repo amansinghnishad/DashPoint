@@ -15,7 +15,8 @@ const GlowBackdrop = () => {
       <div
         className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1100px] h-[900px] rounded-full"
         style={{
-          background: "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
+          background:
+            "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
           filter: "blur(90px)",
           WebkitFilter: "blur(90px)",
         }}
@@ -24,7 +25,8 @@ const GlowBackdrop = () => {
       <div
         className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[850px] h-[850px] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
+          background:
+            "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
           filter: "blur(120px)",
           WebkitFilter: "blur(120px)",
         }}
@@ -33,7 +35,8 @@ const GlowBackdrop = () => {
       <div
         className="absolute inset-0"
         style={{
-          background: "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
+          background:
+            "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
         }}
       />
       <KineticGrid

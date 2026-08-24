@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import useApiRequest from "@/shared/hooks/useApiRequest";
 import { getCollectionsFromResponse } from "@/shared/lib/collections/collectionsResponse";
+
 import Modal from "./Modal";
 import { useToast } from "../../../hooks/useToast";
 import { collectionsAPI } from "../../../services/modules/collectionsApi";
@@ -137,9 +139,13 @@ export default function AddToCollectionModal({ open, onClose, itemType, itemId, 
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-ink font-semibold truncate text-sm">{c?.name || "Untitled"}</p>
+                    <p className="text-ink font-semibold truncate text-sm">
+                      {c?.name || "Untitled"}
+                    </p>
                     {c?.description ? (
-                      <p className="text-muted mt-1 text-xs line-clamp-2 leading-relaxed">{c.description}</p>
+                      <p className="text-muted mt-1 text-xs line-clamp-2 leading-relaxed">
+                        {c.description}
+                      </p>
                     ) : null}
                   </div>
                   <div

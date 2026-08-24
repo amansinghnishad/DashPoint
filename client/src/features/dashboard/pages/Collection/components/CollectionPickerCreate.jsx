@@ -27,13 +27,13 @@ export default function CollectionPickerCreate({
       {tool === "planner" ? (
         <div className="bg-canvas-soft border border-hairline rounded-2xl p-4">
           <p className="text-ink font-semibold text-sm">Create planner widget</p>
-          <p className="text-muted mt-1 text-xs">
-            Choose a widget type to add to this collection.
-          </p>
+          <p className="text-muted mt-1 text-xs">Choose a widget type to add to this collection.</p>
 
           <div className="mt-4 grid gap-3.5">
             <label className="grid gap-1.5">
-              <span className="text-muted text-[11px] font-bold uppercase tracking-wider">Widget type</span>
+              <span className="text-muted text-[11px] font-bold uppercase tracking-wider">
+                Widget type
+              </span>
               <select
                 value={createPlannerWidgetType}
                 onChange={(e) => setCreatePlannerWidgetType(e.target.value)}
@@ -48,7 +48,9 @@ export default function CollectionPickerCreate({
             </label>
 
             <label className="grid gap-1.5">
-              <span className="text-muted text-[11px] font-bold uppercase tracking-wider">Title</span>
+              <span className="text-muted text-[11px] font-bold uppercase tracking-wider">
+                Title
+              </span>
               <input
                 value={createPlannerWidgetTitle}
                 onChange={(e) => setCreatePlannerWidgetTitle(e.target.value)}

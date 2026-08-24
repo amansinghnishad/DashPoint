@@ -1,13 +1,5 @@
+import { FileText, Image, Trash2, Edit2, LayoutGrid, Move, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  FileText,
-  Image,
-  Trash2,
-  Edit2,
-  LayoutGrid,
-  Move,
-  Youtube,
-} from "lucide-react";
 
 import PlannerWidgetBody from "./plannerWidgets/PlannerWidgetBody";
 import { useResizableCard } from "./useResizableCard";
@@ -238,7 +230,9 @@ export default function ResizableItemCard({
             <Trash2 size={13} />
           </button>
 
-          <span className="mx-1 hidden sm:inline text-[10px] font-bold uppercase tracking-wider text-muted-soft">{type}</span>
+          <span className="mx-1 hidden sm:inline text-[10px] font-bold uppercase tracking-wider text-muted-soft">
+            {type}
+          </span>
           <Move size={13} className="text-muted-soft" />
         </div>
       </div>

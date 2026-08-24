@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from "react";
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
+import { useEffect, useMemo } from "react";
+
 import { useToast } from "../../../hooks/useToast";
 
 const TOAST_THEMES = {
@@ -32,7 +33,7 @@ export default function Toaster() {
     if (!toasts.length) return;
 
     const timers = toasts.map((t) =>
-      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000)
+      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000),
     );
 
     return () => timers.forEach((id) => window.clearTimeout(id));

@@ -17,7 +17,6 @@ export default function CalendarHeader({
   monthLoading,
   onConnect,
   onDisconnect,
-  onOpenCreate,
   onRefresh,
   onGoToToday,
   onGoToPreviousMonth,
@@ -29,13 +28,19 @@ export default function CalendarHeader({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <CalendarDays size={18} className="text-muted" />
-            <h1 className="font-waldenburg-light text-xl font-bold text-ink truncate leading-none">Calendar Workspace</h1>
+            <h1 className="font-waldenburg-light text-xl font-bold text-ink truncate leading-none">
+              Calendar Workspace
+            </h1>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <p className="text-muted text-xs font-semibold uppercase tracking-wider">{monthLabel}</p>
+            <p className="text-muted text-xs font-semibold uppercase tracking-wider">
+              {monthLabel}
+            </p>
             <span className="text-hairline-strong text-xs">|</span>
-            <p className="text-muted-soft text-xs font-medium">Selected: {formatSelectedDate(selectedDate)}</p>
+            <p className="text-muted-soft text-xs font-medium">
+              Selected: {formatSelectedDate(selectedDate)}
+            </p>
             <span
               className={
                 "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider " +

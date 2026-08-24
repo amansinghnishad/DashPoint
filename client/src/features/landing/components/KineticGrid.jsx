@@ -13,17 +13,8 @@ const COMPONENT_DEFAULTS = {
 
 export default function KineticGrid(props) {
   const settings = { ...COMPONENT_DEFAULTS, ...props };
-  const {
-    background,
-    dotColor,
-    lineColor,
-    trailColor,
-    spacing,
-    radius,
-    strength,
-    trail,
-    style,
-  } = settings;
+  const { background, dotColor, lineColor, trailColor, spacing, radius, strength, trail, style } =
+    settings;
 
   const hostRef = useRef(null);
   const canvasRef = useRef(null);
@@ -157,10 +148,7 @@ export default function KineticGrid(props) {
           const right = cols[c + 1]?.[rIdx];
           const down = cols[c]?.[rIdx + 1];
           const prox = m.active
-            ? Math.max(
-                0,
-                1 - Math.sqrt((m.x - d.x) ** 2 + (m.y - d.y) ** 2) / R
-              )
+            ? Math.max(0, 1 - Math.sqrt((m.x - d.x) ** 2 + (m.y - d.y) ** 2) / R)
             : 0;
           if (right) {
             ctx.globalAlpha = 0.18 + prox * 0.62;
@@ -186,10 +174,7 @@ export default function KineticGrid(props) {
       // Dots.
       for (const d of dots) {
         const prox = m.active
-          ? Math.max(
-              0,
-              1 - Math.sqrt((m.x - d.x) ** 2 + (m.y - d.y) ** 2) / R
-            )
+          ? Math.max(0, 1 - Math.sqrt((m.x - d.x) ** 2 + (m.y - d.y) ** 2) / R)
           : 0;
         ctx.globalAlpha = 0.35 + prox * 0.65;
         ctx.fillStyle = dotColor;
@@ -243,10 +228,7 @@ export default function KineticGrid(props) {
         ...(style || {}),
       }}
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
     </div>
   );
 }
