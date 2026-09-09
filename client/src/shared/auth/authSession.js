@@ -1,9 +1,10 @@
 const STORAGE_KEYS = Object.freeze({
-  token: "token",
   userData: "userData",
   isFirstTimeUser: "isFirstTimeUser",
   newlyRegisteredUser: "newlyRegisteredUser",
 });
+
+let inMemoryAccessToken = null;
 
 function getStorage() {
   if (typeof window === "undefined") return null;
@@ -31,16 +32,16 @@ function writeItem(key, value) {
 }
 
 export function getAuthToken() {
-  return readItem(STORAGE_KEYS.token);
+  return inMemoryAccessToken;
 }
 
 export function setAuthSession(token, user) {
-  writeItem(STORAGE_KEYS.token, token);
+  inMemoryAccessToken = token || null;
   writeItem(STORAGE_KEYS.userData, JSON.stringify(user || null));
 }
 
 export function clearAuthSession() {
-  writeItem(STORAGE_KEYS.token, null);
+  inMemoryAccessToken = null;
   writeItem(STORAGE_KEYS.userData, null);
   clearFirstTimeUserFlag();
   clearNewlyRegisteredUser();

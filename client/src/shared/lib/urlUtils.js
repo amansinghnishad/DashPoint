@@ -23,27 +23,25 @@ export const extractYouTubeId = (url) => {
 export const validateYouTubeUrl = (url) => {
   if (!url || typeof url !== "string") return false;
 
-  // Clean the URL
-  url = url.trim();
-
-  // Add protocol if missing
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    url = "https://" + url;
-  }
+  const trimmed = url.trim();
+  const normalizedUrl =
+    !trimmed.startsWith("http://") && !trimmed.startsWith("https://")
+      ? "https://" + trimmed
+      : trimmed;
 
   // Check if it's a valid URL format
   try {
-    new URL(url);
+    new URL(normalizedUrl);
   } catch {
     return false;
   }
 
   // Check if it's a YouTube URL and has a valid video ID
   const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-  const isYouTubeUrl = youtubeRegex.test(url);
+  const isYouTubeUrl = youtubeRegex.test(normalizedUrl);
 
   if (isYouTubeUrl) {
-    const videoId = extractYouTubeId(url);
+    const videoId = extractYouTubeId(normalizedUrl);
     return videoId !== null;
   }
 

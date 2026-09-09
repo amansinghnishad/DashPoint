@@ -12,7 +12,6 @@ export default function CollectionsHome({ onOpenCollection, triggerRef }) {
 
   const {
     getCollectionId,
-    headerSubtitle,
     createCollection,
     openEdit,
     saveEdit,
@@ -64,7 +63,6 @@ export default function CollectionsHome({ onOpenCollection, triggerRef }) {
 
   return (
     <CollectionsHomeView
-      headerSubtitle={headerSubtitle}
       setIsCreateOpen={setIsCreateOpen}
       isCreateOpen={isCreateOpen}
       isCreating={isCreating}

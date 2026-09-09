@@ -1,11 +1,14 @@
-import { useEffect, useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
 import Footer from "../../../shared/ui/Footer/Footer";
 import TopBar from "../../../shared/ui/Navbars/TopBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
+import ChatAssistantShowcase from "../components/ChatAssistantShowcase";
 import KineticGrid from "../components/KineticGrid";
+import KnowledgeCanvasShowcase from "../components/KnowledgeCanvasShowcase";
+import SmartCalendarShowcase from "../components/SmartCalendarShowcase";
 
 export default function LandingPage() {
   const videoRef1 = useRef(null);
@@ -28,14 +31,23 @@ export default function LandingPage() {
     videoRef3.current?.pause();
   };
 
+  const togglePlay = (e) => {
+    if (e.target.closest("a[href*='/register']")) return;
+    if (isPlaying) {
+      handleMouseLeave();
+    } else {
+      handleMouseEnter();
+    }
+  };
+
   return (
-    <div className="bg-canvas text-ink min-h-screen font-sans antialiased selection:bg-ink/10">
+    <div className="bg-canvas text-ink min-h-screen font-sans antialiased selection:bg-ink/10 overflow-x-hidden">
       {/* Navigation */}
       <TopBar />
 
-      <main>
+      <main className="overflow-x-hidden">
         {/* Hero Section */}
-        <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-36 pb-12">
+        <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-28 sm:pt-36 pb-8 sm:pb-12">
           {/* Orange Gradient Glow Backdrop & Kinetic Interactive Grid */}
           <div className="absolute inset-0 overflow-hidden z-0 pointer-events-none">
             {/* Top Primary Warm Peach Glow Orb */}
@@ -75,34 +87,35 @@ export default function LandingPage() {
           </div>
 
           {/* Hero Content */}
-          <div className="relative z-20 max-w-[1280px] mx-auto w-full px-xl md:px-xxl flex flex-col items-center text-center pt-16">
-            <div className="inline-block border border-hairline bg-surface-card/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[12px] font-semibold uppercase tracking-[0.2em] mb-12 text-ink/80 shadow-sm">
+          <div className="relative z-20 max-w-[1280px] mx-auto w-full px-4 sm:px-8 md:px-xxl flex flex-col items-center text-center pt-8 sm:pt-16">
+            <div className="inline-block border border-hairline bg-surface-card/80 backdrop-blur-md px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.2em] mb-6 sm:mb-12 text-ink/80 shadow-sm">
               PRECISION TOOLS
             </div>
 
-            <div className="relative mb-12">
-              <h1 className="font-waldenburg-light text-6xl md:text-[80px] hero-heading text-ink relative z-10">
+            <div className="relative mb-6 sm:mb-12">
+              <h1 className="font-waldenburg-light text-4xl sm:text-6xl md:text-[80px] leading-[1.1] sm:leading-tight hero-heading text-ink relative z-10">
                 Your productivity,
                 <br />
-                <span className="italic opacity-50 block -mt-2">articulated.</span>
+                <span className="italic opacity-50 block -mt-1 sm:-mt-2">articulated.</span>
               </h1>
               {/* Layered blurring shadow effect */}
-              <h1 className="absolute inset-0 font-waldenburg-light text-6xl md:text-[80px] hero-heading text-ink/15 blur-[4px] translate-x-[4px] translate-y-[4px] -z-10 pointer-events-none select-none">
+              <h1 className="absolute inset-0 font-waldenburg-light text-4xl sm:text-6xl md:text-[80px] leading-[1.1] sm:leading-tight hero-heading text-ink/15 blur-[4px] translate-x-[2px] sm:translate-x-[4px] translate-y-[2px] sm:translate-y-[4px] -z-10 pointer-events-none select-none">
                 Your productivity,
                 <br />
-                <span className="italic block -mt-2">articulated.</span>
+                <span className="italic block -mt-1 sm:-mt-2">articulated.</span>
               </h1>
             </div>
 
             <div
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className="relative w-full max-w-[1150px] mt-24 flex items-center justify-center select-none group"
+              onClick={togglePlay}
+              className="relative w-full max-w-[1150px] mt-6 sm:mt-14 md:mt-24 flex items-center justify-center select-none group cursor-pointer"
             >
-              {/* Left Video Panel (shifted left relative to center, scaled down, behind) */}
+              {/* Left Video Panel (visible on all screens including mobile) */}
               <Link
                 to={APP_ROUTES.REGISTER}
-                className="absolute w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-[32px] overflow-hidden shadow-lg z-10 transition-all duration-500 -translate-x-[25%] scale-[0.88] opacity-30 group-hover:opacity-60 group-hover:-translate-x-[32%] group-hover:scale-[0.9] hover:z-30 hover:!scale-[0.98] hover:!opacity-100 hover:!-translate-x-[38%] hover:shadow-2xl"
+                className="absolute w-[82%] sm:w-[88%] md:w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-xl sm:rounded-2xl md:rounded-[32px] overflow-hidden shadow-lg z-10 transition-all duration-500 -translate-x-[9%] sm:-translate-x-[18%] md:-translate-x-[25%] scale-[0.88] opacity-35 sm:opacity-30 group-hover:opacity-60 group-hover:-translate-x-[12%] sm:group-hover:-translate-x-[24%] md:group-hover:-translate-x-[32%] group-hover:scale-[0.9] hover:z-30 hover:!scale-[0.98] hover:!opacity-100 hover:!-translate-x-[14%] sm:hover:!-translate-x-[28%] md:hover:!-translate-x-[38%] hover:shadow-2xl"
               >
                 <video
                   ref={videoRef2}
@@ -115,10 +128,10 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-black/5" />
               </Link>
 
-              {/* Right Video Panel (shifted right relative to center, scaled down, behind) */}
+              {/* Right Video Panel (visible on all screens including mobile) */}
               <Link
                 to={APP_ROUTES.REGISTER}
-                className="absolute w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-[32px] overflow-hidden shadow-lg z-10 transition-all duration-500 translate-x-[25%] scale-[0.88] opacity-30 group-hover:opacity-60 group-hover:translate-x-[32%] group-hover:scale-[0.9] hover:z-30 hover:!scale-[0.98] hover:!opacity-100 hover:!translate-x-[38%] hover:shadow-2xl"
+                className="absolute w-[82%] sm:w-[88%] md:w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-xl sm:rounded-2xl md:rounded-[32px] overflow-hidden shadow-lg z-10 transition-all duration-500 translate-x-[9%] sm:translate-x-[18%] md:translate-x-[25%] scale-[0.88] opacity-35 sm:opacity-30 group-hover:opacity-60 group-hover:translate-x-[12%] sm:group-hover:translate-x-[24%] md:group-hover:translate-x-[32%] group-hover:scale-[0.9] hover:z-30 hover:!scale-[0.98] hover:!opacity-100 hover:!translate-x-[14%] sm:hover:!translate-x-[28%] md:hover:!translate-x-[38%] hover:shadow-2xl"
               >
                 <video
                   ref={videoRef3}
@@ -131,10 +144,9 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-black/5" />
               </Link>
 
-              {/* Main Video Link (centered, on top) */}
-              <Link
-                to={APP_ROUTES.REGISTER}
-                className="relative w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-[32px] overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.16)] z-20 cursor-pointer transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_32px_80px_rgba(0,0,0,0.22)] flex items-center justify-center"
+              {/* Main Video Link (centered, on top, fully responsive) */}
+              <div
+                className="relative w-[82%] sm:w-[88%] md:w-full max-w-[950px] aspect-video bg-canvas-soft border border-hairline rounded-xl sm:rounded-2xl md:rounded-[32px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.14)] sm:shadow-[0_16px_44px_rgba(0,0,0,0.16)] md:shadow-[0_24px_60px_rgba(0,0,0,0.16)] z-20 transition-all duration-500 group-hover:scale-[1.01] sm:group-hover:scale-[1.02] group-hover:shadow-[0_20px_48px_rgba(0,0,0,0.18)] md:group-hover:shadow-[0_32px_80px_rgba(0,0,0,0.22)] flex items-center justify-center"
               >
                 <video
                   ref={videoRef1}
@@ -149,26 +161,29 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 {/* Center Play Button Overlay */}
-                <div className={`absolute flex flex-col items-center gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
-                  <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
+                <div className={`absolute flex flex-col items-center gap-1.5 sm:gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
                     {/* Play Icon */}
-                    <svg className="w-6 h-6 text-neutral-900 fill-current translate-x-0.5" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-neutral-900 fill-current translate-x-0.5" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
-                  <span className="text-white text-xs font-semibold tracking-wide drop-shadow-md">
+                  <span className="text-white text-[9px] sm:text-[11px] md:text-xs font-semibold tracking-wide drop-shadow-md">
                     Watch DashPoint in Action
                   </span>
                 </div>
 
                 {/* Floating CTA Bottom Right */}
-                <div className="absolute bottom-6 right-6 bg-ink text-canvas px-6 py-3 rounded-full text-xs font-semibold shadow-lg border border-neutral-800/20 hover:bg-neutral-900 transition-colors z-10 flex items-center gap-2 group-hover:scale-105 duration-300">
+                <Link
+                  to={APP_ROUTES.REGISTER}
+                  className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 bg-ink text-canvas px-3 py-1 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg border border-neutral-800/20 hover:bg-neutral-900 transition-all z-10 flex items-center gap-1 sm:gap-2 group-hover:scale-105 duration-300"
+                >
                   <span>Get Started</span>
-                  <svg className="w-3.5 h-3.5 text-canvas transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 text-canvas transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                   </svg>
-                </div>
-              </Link>
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -194,7 +209,7 @@ export default function LandingPage() {
 
             {/* Journal Entries */}
             <div className="space-y-section">
-              {/* Entry 1 */}
+              {/* Entry 1: Interactive Chat Showcase */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-center border-t border-hairline pt-12">
                 <div className="lg:col-span-4">
                   <div className="flex items-center gap-4 mb-6">
@@ -202,7 +217,7 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">AI Chat Assistant</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-                    Conversational RAG (Retrieval-Augmented Generation) with direct tool-calling capabilities to interact with your data in real-time.
+                    Conversational RAG with real-time SSE token streaming, memory context, and multi-tier model routing. Try clicking the prompt suggestions in the live demo.
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -214,27 +229,15 @@ export default function LandingPage() {
                     </span>
                   </Link>
                 </div>
-                <div className="lg:col-span-7 lg:col-start-6">
-                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl rotate-1 group overflow-hidden">
-                    <img
-                      alt="AI Interface"
-                      className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuC01MXfHm-RUFqeY_ZHdREfxqwMA1POah1BStq-oyQ2rjUqt6soHN6liZSOqNA8OanxQx84SS7GrziTl7FSk2GPM5e3XTwAmwMBykSb_Bx7g9wrCqWj4b8iyzYbul0Mns3po20eLPilmhOMi06ot1aIKCgSxN76cr0rBPh5ofp1Yh6-SrSJC9TNG7ZZ4e7FDMUmAAYub57D7Y-xKtoveVRsfzNo4E_wmANwdNEi6XdHjtfMfohYuk2l8Q"
-                    />
-                  </div>
+                <div className="lg:col-span-7 lg:col-start-6 mx-auto w-full max-w-[760px] transform-gpu transition-transform duration-500 lg:rotate-[1deg] lg:hover:rotate-0 motion-reduce:transform-none motion-reduce:transition-none">
+                  <ChatAssistantShowcase />
                 </div>
               </div>
 
-              {/* Entry 2 */}
+              {/* Entry 2: Interactive Smart Calendar Showcase */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-center border-t border-hairline pt-12">
-                <div className="lg:col-span-7 order-2 lg:order-1">
-                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl -rotate-1 group overflow-hidden">
-                    <img
-                      alt="Smart Calendar"
-                      className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJkJlOR48fnsHHufUGErRonOXtxyzarfybTANPg182OocSVRXLpRuDmsnqLmW0QEJYssLlLjyb8RaJP8pUlLalO5iW9LmjZy8uT9K69OAk3N2TgH8CiBak_lDOB68JoIhUE8fnc3b3X8n7NcYI838hizLKbJLdRUmvmoyfbJuaFLrQy8twu5g6WYmBGpEjY39JAqOsq2RI7NwPFNZNrXwH5khcE1RY3ydpLxQzUKiyNaWWyIfR_L5ttA"
-                    />
-                  </div>
+                <div className="lg:col-span-7 order-2 lg:order-1 mx-auto w-full max-w-[760px] transform-gpu transition-transform duration-500 lg:-rotate-[1deg] lg:hover:rotate-0 motion-reduce:transform-none motion-reduce:transition-none">
+                  <SmartCalendarShowcase />
                 </div>
                 <div className="lg:col-span-4 lg:col-start-9 order-1 lg:order-2">
                   <div className="flex items-center gap-4 mb-6">
@@ -242,7 +245,7 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">Smart Calendar</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-                    AI-assisted scheduling and planning that understands your context, availability, and energy levels automatically.
+                    AI-assisted scheduling with smart interval merging and Google Calendar bidirectional sync. Click timetable chips to mark tasks complete.
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -256,15 +259,15 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Entry 3 */}
+              {/* Entry 3: Interactive Infinite Knowledge Canvas Showcase */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-center border-t border-hairline pt-12">
                 <div className="lg:col-span-4">
                   <div className="flex items-center gap-4 mb-6">
                     <span className="font-waldenburg-light text-3xl opacity-20">03</span>
-                    <h3 className="font-waldenburg-light text-3xl">Unified Management</h3>
+                    <h3 className="font-waldenburg-light text-3xl">Unified Canvas</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-                    Access YouTube videos, research files, and meeting notes in one unified, intelligent interface designed for pure focus.
+                    Combine interactive todo lists, audio dictation waveforms, and video transcript insights in one focused workspace.
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -276,14 +279,8 @@ export default function LandingPage() {
                     </span>
                   </Link>
                 </div>
-                <div className="lg:col-span-7 lg:col-start-6">
-                  <div className="p-2 bg-surface-card/70 border border-hairline backdrop-blur shadow-2xl rounded-xl rotate-2 group overflow-hidden">
-                    <img
-                      alt="File Hub"
-                      className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7LDA7NoIKnVmf8kQ2F3wUb_oj3scItDey-YhEfafAAp6Moud2oZSIjo6lNarwnyf9xhExv0IOQagVxyBoMTG1kWT8JErwoGSIftS6y70JU9AWb2nZBzgIJ3xLrlueCnFxNkW6Rlp7UW7ABxGJhMDmYjSyXA_CyP3K23CsSC_9RGUhdQTdoquFAEXdtWL0GiiY3ANHyHx8CtrYncrQZDjQhJbT7jVz1nW-GKTMu_wA2iwggTSaUeUE2w"
-                    />
-                  </div>
+                <div className="lg:col-span-7 lg:col-start-6 mx-auto w-full max-w-[760px] transform-gpu transition-transform duration-500 lg:rotate-[1deg] lg:hover:rotate-0 motion-reduce:transform-none motion-reduce:transition-none">
+                  <KnowledgeCanvasShowcase />
                 </div>
               </div>
             </div>

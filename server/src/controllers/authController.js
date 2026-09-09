@@ -3,7 +3,17 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { generateToken, verifyToken } = require('../utils/jwt');
+const {
+  generateToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  hashToken,
+  extractRefreshToken,
+  setAuthCookies,
+  clearAuthCookies
+} = require('../utils/jwt');
+
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const getGoogleClient = () => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -55,6 +65,30 @@ const generateUniqueUsername = async (preferredBase, email) => {
   return `${base.slice(0, 20)}_${Date.now().toString().slice(-6)}`.slice(0, 30);
 };
 
+const saveUserRefreshToken = async (user, rawRefreshToken, req) => {
+  const tokenHash = hashToken(rawRefreshToken);
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+  const userAgent = String(req.headers['user-agent'] || '').slice(0, 300);
+  const ip = String(req.ip || req.connection?.remoteAddress || '').slice(0, 60);
+
+  const activeTokens = (user.refreshTokens || []).filter(
+    (t) => t.expiresAt && new Date(t.expiresAt) > new Date()
+  );
+
+  user.refreshTokens = [
+    ...activeTokens.slice(-9),
+    {
+      tokenHash,
+      expiresAt,
+      createdAt: new Date(),
+      userAgent,
+      ip
+    }
+  ];
+
+  await user.save();
+};
+
 // Register new user
 exports.register = async (req, res, next) => {
   try {
@@ -87,22 +121,31 @@ exports.register = async (req, res, next) => {
           ? 'User with this email already exists'
           : 'Username is already taken'
       });
-    }    // Create new user (password will be hashed in pre-save middleware)
+    }
+
+    // Create new user (password will be hashed in pre-save middleware)
     const user = new User({
       authProvider: 'local',
       username: resolvedUsername,
       email: normalizedEmail,
-      password, // hashed in pre-save hook
+      password,
       firstName: resolvedFirstName,
-      lastName: resolvedLastName
+      lastName: resolvedLastName,
+      lastLogin: new Date()
     });
     await user.save();
 
-    // Generate JWT token
+    // Generate JWT Access & Refresh token
     const token = generateToken({
       userId: user._id.toString(),
       email: user.email
     });
+    const refreshToken = generateRefreshToken({
+      userId: user._id.toString()
+    });
+
+    await saveUserRefreshToken(user, refreshToken, req);
+    setAuthCookies(res, { accessToken: token, refreshToken });
 
     // Remove password from response
     const userResponse = user.toObject();
@@ -197,6 +240,12 @@ exports.googleAuth = async (req, res, next) => {
       userId: user._id.toString(),
       email: user.email
     });
+    const refreshToken = generateRefreshToken({
+      userId: user._id.toString()
+    });
+
+    await saveUserRefreshToken(user, refreshToken, req);
+    setAuthCookies(res, { accessToken: token, refreshToken });
 
     res.status(200).json({
       success: true,
@@ -235,23 +284,53 @@ exports.login = async (req, res, next) => {
         success: false,
         message: 'Invalid email or password'
       });
-    }    // Check password using model method
+    }
+
+    // Check if account is temporarily locked
+    if (user.isLocked()) {
+      const lockMinutesRemaining = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
+      return res.status(423).json({
+        success: false,
+        message: `Account is temporarily locked due to excessive failed attempts. Please try again in ${Math.max(1, lockMinutesRemaining)} minute(s).`
+      });
+    }
+
+    // Check password using model method
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
+      await user.incLoginAttempts();
+      const updatedUser = await User.findById(user._id);
+      if (updatedUser.isLocked()) {
+        return res.status(423).json({
+          success: false,
+          message: 'Account is temporarily locked due to excessive failed attempts. Please try again in 15 minutes.'
+        });
+      }
+
+      const attemptsLeft = Math.max(0, 5 - (updatedUser.failedLoginAttempts || 0));
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: `Invalid email or password. ${attemptsLeft > 0 ? `${attemptsLeft} attempt(s) remaining before lockout.` : ''}`
       });
-    }    // Update last login
+    }
+
+    // Reset login attempts on success
+    await user.resetLoginAttempts();
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate JWT token
+    // Generate JWT Access & Refresh token
     const token = generateToken({
       userId: user._id.toString(),
       email: user.email
     });
+    const refreshToken = generateRefreshToken({
+      userId: user._id.toString()
+    });
+
+    await saveUserRefreshToken(user, refreshToken, req);
+    setAuthCookies(res, { accessToken: token, refreshToken });
 
     // Remove password from response
     const userResponse = user.toObject();
@@ -263,6 +342,80 @@ exports.login = async (req, res, next) => {
       data: {
         user: userResponse,
         token
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Refresh access token
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const rawRefreshToken = extractRefreshToken(req);
+
+    if (!rawRefreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyRefreshToken(rawRefreshToken);
+    } catch (error) {
+      clearAuthCookies(res);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired refresh token'
+      });
+    }
+
+    const tokenHash = hashToken(rawRefreshToken);
+    const user = await User.findById(decoded.userId);
+
+    if (!user || !user.isActive) {
+      clearAuthCookies(res);
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or inactive'
+      });
+    }
+
+    // Find the token in user's refreshTokens
+    const matchingTokenIndex = (user.refreshTokens || []).findIndex(
+      (t) => t.tokenHash === tokenHash && t.expiresAt && new Date(t.expiresAt) > new Date()
+    );
+
+    if (matchingTokenIndex === -1) {
+      clearAuthCookies(res);
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token has expired or already been revoked'
+      });
+    }
+
+    // Token rotation: remove used token and issue new token pair
+    user.refreshTokens.splice(matchingTokenIndex, 1);
+
+    const newAccessToken = generateToken({
+      userId: user._id.toString(),
+      email: user.email
+    });
+    const newRefreshToken = generateRefreshToken({
+      userId: user._id.toString()
+    });
+
+    await saveUserRefreshToken(user, newRefreshToken, req);
+    setAuthCookies(res, { accessToken: newAccessToken, refreshToken: newRefreshToken });
+
+    res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        user,
+        token: newAccessToken
       }
     });
   } catch (error) {
@@ -391,14 +544,17 @@ exports.changePassword = async (req, res, next) => {
     const saltRounds = 12;
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // Update password
+    // Update password and invalidate all existing refresh sessions for security
     user.password = hashedNewPassword;
+    user.refreshTokens = [];
     user.updatedAt = new Date();
     await user.save();
 
+    clearAuthCookies(res);
+
     res.status(200).json({
       success: true,
-      message: 'Password changed successfully'
+      message: 'Password changed successfully. Please log in again.'
     });
   } catch (error) {
     next(error);
@@ -408,8 +564,19 @@ exports.changePassword = async (req, res, next) => {
 // Logout user
 exports.logout = async (req, res, next) => {
   try {
-    // Note: For JWT, logout is typically handled client-side by removing the token
-    // Here we can add token to a blacklist if needed in the future
+    const rawRefreshToken = extractRefreshToken(req);
+    const userId = req.user?._id;
+
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user && rawRefreshToken) {
+        const tokenHash = hashToken(rawRefreshToken);
+        user.refreshTokens = (user.refreshTokens || []).filter((t) => t.tokenHash !== tokenHash);
+        await user.save();
+      }
+    }
+
+    clearAuthCookies(res);
 
     res.status(200).json({
       success: true,

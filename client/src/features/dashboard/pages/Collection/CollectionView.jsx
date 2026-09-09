@@ -1,12 +1,16 @@
+import { Download, FolderOpen } from "lucide-react";
 import { useCallback, useMemo, useRef } from "react";
 
-import { ArrowLeft, FolderOpen } from "@/shared/ui/icons/icons";
+import { ArrowLeft } from "@/shared/ui/icons/icons";
 
 import CollectionPickerModal from "./components/CollectionPickerModal";
 import DocumentSummaryModal from "./components/DocumentSummaryModal";
 import { isPdfFile } from "./components/documentSummaryUtils";
+import ExportImportModal from "./components/ExportImportModal";
 import ResizableItemCard from "./components/ResizableItemCard";
+import VoiceNoteModal from "./components/VoiceNoteModal";
 import useCollectionData from "./hooks/useCollectionData";
+import useCollectionHistory from "./hooks/useCollectionHistory";
 import useCollectionKeyboardShortcuts from "./hooks/useCollectionKeyboardShortcuts";
 import useCollectionLayouts from "./hooks/useCollectionLayouts";
 import useCollectionViewActions from "./hooks/useCollectionViewActions";
@@ -59,6 +63,30 @@ export default function CollectionView({ collectionId, onBack }) {
     persistLayouts: persistCollectionLayouts,
   });
 
+  const {
+    recordSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useCollectionHistory(layoutsByItemKey);
+
+  const handleUndo = useCallback(() => {
+    const previousLayouts = undo();
+    if (previousLayouts) {
+      setLayoutsByItemKey(previousLayouts);
+      toast.info("Undo layout change");
+    }
+  }, [setLayoutsByItemKey, toast, undo]);
+
+  const handleRedo = useCallback(() => {
+    const nextLayouts = redo();
+    if (nextLayouts) {
+      setLayoutsByItemKey(nextLayouts);
+      toast.info("Redo layout change");
+    }
+  }, [redo, setLayoutsByItemKey, toast]);
+
   const { viewportScale, viewportOffset, recenterViewport } = useCollectionViewport({
     canvasRef: canvasSurfaceRef,
     worldRef,
@@ -71,11 +99,18 @@ export default function CollectionView({ collectionId, onBack }) {
     pickerState,
     isSummarizingDocument,
     documentSummaryOpen,
+    voiceNoteOpen,
+    exportImportOpen,
     deleteState,
     setPickerState,
     setDeleteState,
     setDocumentSummaryOpen,
+    setVoiceNoteOpen,
+    setExportImportOpen,
     createPlannerAndAdd,
+    saveVoiceAsNote,
+    saveVoiceAsTodoList,
+    importDataToCollection,
     confirmRemove,
     handleSelectTool,
     summarizeUploadedPdf,
@@ -105,6 +140,14 @@ export default function CollectionView({ collectionId, onBack }) {
     setDocumentSummaryOpen(false);
   }, [isSummarizingDocument, setDocumentSummaryOpen]);
 
+  const closeVoiceNote = useCallback(() => {
+    setVoiceNoteOpen(false);
+  }, [setVoiceNoteOpen]);
+
+  const closeExportImport = useCallback(() => {
+    setExportImportOpen(false);
+  }, [setExportImportOpen]);
+
   const closeDeleteConfirm = useCallback(() => {
     if (deleteState.isRemoving) return;
     setDeleteState((prev) => ({ ...prev, item: null }));
@@ -116,14 +159,20 @@ export default function CollectionView({ collectionId, onBack }) {
     deleteOpen: Boolean(deleteState.item),
     documentSummaryBusy: isSummarizingDocument,
     documentSummaryOpen,
+    voiceNoteOpen,
+    exportImportOpen,
     pickerOpen: pickerState.open,
     onBack,
     onCloseDelete: closeDeleteConfirm,
     onCloseDocumentSummary: closeDocumentSummary,
+    onCloseVoiceNote: closeVoiceNote,
+    onCloseExportImport: closeExportImport,
     onClosePicker: closePicker,
     onCreatePlanner: createPlannerAndAdd,
     onRecenterViewport: recenterViewport,
     onSelectTool: handleSelectTool,
+    onUndo: handleUndo,
+    onRedo: handleRedo,
   });
 
   if (!collectionId) return null;
@@ -137,7 +186,7 @@ export default function CollectionView({ collectionId, onBack }) {
               <button
                 type="button"
                 onClick={onBack}
-                className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all h-9"
+                className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all h-9 cursor-pointer"
                 aria-label="Back"
               >
                 <ArrowLeft size={18} />
@@ -152,8 +201,20 @@ export default function CollectionView({ collectionId, onBack }) {
               </div>
             </div>
 
-            <div className="hidden sm:block">
-              <Clock />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setExportImportOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-4 py-2 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
+                title="Export or Import collection data"
+              >
+                <Download size={14} />
+                <span className="hidden sm:inline">Export / Import</span>
+              </button>
+
+              <div className="hidden md:block">
+                <Clock />
+              </div>
             </div>
           </div>
         </div>
@@ -172,6 +233,10 @@ export default function CollectionView({ collectionId, onBack }) {
                 createPlannerAndAdd(type);
               }}
               onRecenterViewport={recenterViewport}
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
             />
 
             <CollectionPickerModal
@@ -188,6 +253,22 @@ export default function CollectionView({ collectionId, onBack }) {
               busy={isSummarizingDocument}
               onClose={closeDocumentSummary}
               onSubmit={summarizeUploadedPdf}
+            />
+
+            <VoiceNoteModal
+              open={voiceNoteOpen}
+              onClose={closeVoiceNote}
+              onSaveAsNote={saveVoiceAsNote}
+              onSaveAsTodoList={saveVoiceAsTodoList}
+            />
+
+            <ExportImportModal
+              open={exportImportOpen}
+              onClose={closeExportImport}
+              collection={collection}
+              items={items}
+              layouts={layoutsByItemKey}
+              onImportData={importDataToCollection}
             />
 
             <div
@@ -208,12 +289,16 @@ export default function CollectionView({ collectionId, onBack }) {
                       containerRef={canvasSurfaceRef}
                       viewportScale={viewportScale}
                       layout={layoutsByItemKey[key]}
-                      onLayoutChange={(nextLayout) =>
-                        setLayoutsByItemKey((prev) => ({
-                          ...prev,
-                          [key]: nextLayout,
-                        }))
-                      }
+                      onLayoutChange={(nextLayout) => {
+                        setLayoutsByItemKey((prev) => {
+                          const nextMap = {
+                            ...prev,
+                            [key]: nextLayout,
+                          };
+                          recordSnapshot(nextMap);
+                          return nextMap;
+                        });
+                      }}
                       onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
                     />
                   ))

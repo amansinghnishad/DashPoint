@@ -34,34 +34,42 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
   );
 
   const checkAuthStatus = useCallback(async () => {
+    dispatch({ type: AuthActionType.SET_LOADING, payload: true });
+
     const token = getAuthToken();
-    if (!token) {
-      dispatch({ type: AuthActionType.SET_LOADING, payload: false });
-      return;
+    if (token) {
+      try {
+        const response = await authAPI.verifyToken();
+        if (response?.success && response.data) {
+          dispatch({
+            type: AuthActionType.LOGIN_SUCCESS,
+            payload: response.data,
+            isFirstTimeUser: getFirstTimeUserFlag(),
+          });
+          return;
+        }
+      } catch {
+        // Token might have expired, proceed to attempt refresh below
+      }
     }
 
+    // Try silent refresh using httpOnly cookie
     try {
-      dispatch({ type: AuthActionType.SET_LOADING, payload: true });
-      const response = await authAPI.verifyToken();
-
-      if (!response?.success) {
-        applyLogout();
+      const refreshResponse = await authAPI.refreshToken();
+      if (refreshResponse?.success && refreshResponse.data?.token) {
+        setAuthSession(refreshResponse.data.token, refreshResponse.data.user);
+        dispatch({
+          type: AuthActionType.LOGIN_SUCCESS,
+          payload: refreshResponse.data.user,
+          isFirstTimeUser: getFirstTimeUserFlag(),
+        });
         return;
       }
-
-      dispatch({
-        type: AuthActionType.LOGIN_SUCCESS,
-        payload: response.data,
-        isFirstTimeUser: getFirstTimeUserFlag(),
-      });
-    } catch (error) {
-      if (error.response?.status === 401) {
-        applyLogout();
-        return;
-      }
-
-      dispatch({ type: AuthActionType.SET_LOADING, payload: false });
+    } catch {
+      // Refresh token unavailable or expired
     }
+
+    applyLogout();
   }, [applyLogout]);
 
   const loginUser = useCallback(
@@ -202,8 +210,14 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
     [toastError, toastSuccess],
   );
 
-  const logoutUser = useCallback(() => {
-    applyLogout(true);
+  const logoutUser = useCallback(async () => {
+    try {
+      await authAPI.logout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      applyLogout(true);
+    }
   }, [applyLogout]);
 
   const clearFirstTimeUser = useCallback(() => {

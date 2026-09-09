@@ -24,27 +24,27 @@ export default function PWAUpdatePrompt() {
   if (!showUpdatePrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[90] sm:left-1/2 sm:right-auto sm:w-[calc(100vw-2rem)] sm:max-w-xl sm:-translate-x-1/2">
-      <div className="bg-surface-card border border-hairline text-ink flex flex-col gap-3 rounded-2xl px-4 py-3 shadow-2xl backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">Update available</p>
-          <p className="text-muted text-pretty text-xs">
+    <div className="fixed inset-x-4 bottom-4 z-[90] sm:inset-x-auto sm:left-1/2 sm:w-[min(36rem,calc(100vw-2rem))] sm:-translate-x-1/2">
+      <div className="bg-surface-card border border-hairline text-ink flex w-full flex-col gap-4 rounded-2xl px-4 py-4 shadow-2xl backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold leading-tight">Update available</p>
+          <p className="text-muted mt-1 text-xs leading-relaxed">
             Version {BUILD_INFO.version} is ready. Refresh to apply the update.
           </p>
         </div>
 
-        <div className="flex shrink-0 justify-end gap-2">
+        <div className="flex shrink-0 justify-end gap-2 sm:justify-start">
           <button
             type="button"
             onClick={dismissUpdate}
-            className="bg-transparent hover:bg-canvas-soft border border-hairline text-ink rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors cursor-pointer"
+            className="bg-transparent hover:bg-canvas-soft border border-hairline text-ink rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
           >
             Later
           </button>
           <button
             type="button"
             onClick={updateApp}
-            className="bg-ink text-canvas hover:bg-neutral-900 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors cursor-pointer"
+            className="dp-btn-primary rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer"
           >
             Refresh
           </button>

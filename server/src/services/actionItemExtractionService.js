@@ -156,6 +156,7 @@ const splitIntoCandidates = (rawText) => {
 
 const normalizeCandidateTaskText = (value) => {
   let text = normalizeText(value, 280)
+    .replace(/^[\s\-*•\d.)\]]+/, '')
     .replace(/^(todo|action item|task)\s*[:\-]\s*/i, '')
     .replace(/^(i|we)\s+(need to|should|must|have to|want to|will|am going to)\s+/i, '')
     .replace(/^(need to|should|must|have to|please)\s+/i, '')
@@ -317,7 +318,9 @@ const fallbackExtractFromText = ({ rawText, maxItems }) => {
 };
 
 const extractActionItemsFromText = async ({ rawText, maxItems }) => {
-  const normalizedText = normalizeText(rawText, MAX_RAW_TEXT_CHARS);
+  const normalizedText = String(rawText || '')
+    .trim()
+    .slice(0, MAX_RAW_TEXT_CHARS);
   if (!normalizedText) {
     return {
       suggestions: [],

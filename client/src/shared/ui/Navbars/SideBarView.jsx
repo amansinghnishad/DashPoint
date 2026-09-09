@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 import {
   IconClose,
   IconDownload,
@@ -42,8 +43,6 @@ export default function SideBarView({
   toggleTheme,
   logoutUser,
   isInstalled,
-  isInstallable,
-  isIOSDevice,
 }) {
   const displayName = getSidebarDisplayName(user);
 

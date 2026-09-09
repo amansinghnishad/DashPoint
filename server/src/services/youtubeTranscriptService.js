@@ -5,7 +5,8 @@ const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
 const {
   createEmbedding,
   resolveEmbeddingConfig,
-  getEmbeddingModelLabel
+  getEmbeddingModelLabel,
+  getLegacyEmbeddingModelLabels
 } = require('./embeddingsService');
 
 const TIMEDTEXT_BASE_URL = 'https://video.google.com/timedtext';
@@ -420,7 +421,10 @@ const findRelevantTranscriptChunks = async ({
   limit = 6,
   numCandidates = 120
 }) => {
+  const embeddingConfig = resolveEmbeddingConfig();
   const queryVector = await createEmbedding(query, {
+    provider: embeddingConfig?.provider,
+    model: embeddingConfig?.model,
     taskType: 'RETRIEVAL_QUERY'
   });
   if (!queryVector) {
@@ -445,7 +449,12 @@ const findRelevantTranscriptChunks = async ({
         limit: parsedLimit,
         filter: {
           userId,
-          youtubeId
+          youtubeId,
+          embeddingModel: {
+            $in: embeddingConfig
+              ? getLegacyEmbeddingModelLabels(embeddingConfig.provider, embeddingConfig.model)
+              : []
+          }
         }
       }
     },

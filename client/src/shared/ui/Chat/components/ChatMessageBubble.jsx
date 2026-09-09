@@ -48,16 +48,22 @@ function ChatMessageBubble({ entry }) {
     <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"}`}>
       {isUser ? (
         /* User bubble styled as white card pill in mockup */
-        <div className="max-w-[85%] rounded-xl border border-hairline bg-surface-card px-4 py-2.5 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
-          <MarkdownBubble content={entry.content} className="text-ink" />
+        <div className="dp-chat-bubble-user max-w-[85%] rounded-xl px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.08)]">
+          <MarkdownBubble
+            content={entry.content}
+            className="text-[color:var(--dp-chat-bubble-user-fg)]"
+          />
         </div>
       ) : isError ? (
-        <div className="max-w-[85%] rounded-2xl border border-red-200/40 bg-red-500/10 px-4 py-3 text-red-950">
-          <MarkdownBubble content={entry.content} className="text-red-950" />
+        <div className="dp-chat-bubble-error max-w-[85%] rounded-2xl px-4 py-3">
+          <MarkdownBubble
+            content={entry.content}
+            className="text-[color:var(--dp-chat-bubble-error-fg)]"
+          />
         </div>
       ) : (
         /* Assistant bubble with DP logo header */
-        <div className="max-w-[85%] rounded-2xl border border-hairline/80 bg-canvas-soft p-5 text-ink shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="dp-chat-bubble-assistant max-w-[85%] rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
           {/* DashPoint Intelligence Logo Header */}
           <div className="flex items-center gap-2 mb-3.5 select-none">
             <div className="h-5 w-5 bg-ink text-canvas rounded flex items-center justify-center text-[10px] font-black tracking-tight shrink-0">
@@ -72,7 +78,7 @@ function ChatMessageBubble({ entry }) {
             <MarkdownBubble
               content={entry.content}
               isStreaming={entry.status === "streaming"}
-              className="text-ink"
+              className="text-[color:var(--dp-chat-bubble-assistant-fg)]"
             />
           )}
 

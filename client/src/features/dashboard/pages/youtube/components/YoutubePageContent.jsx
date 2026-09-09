@@ -40,7 +40,6 @@ function LoadingGrid() {
 
 export default function YoutubePageContent({
   search,
-  dispatchSearch,
   uiState,
   addVideo,
   items,
@@ -118,38 +117,9 @@ export default function YoutubePageContent({
         ) : (
           /* Grid list view */
           <div>
-            {/* Breadcrumbs & Title */}
-            <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
-              <span className="opacity-70">INTELLIGENCE LAYER</span>
-              <span className="opacity-30">/</span>
-              <span className="opacity-70 font-semibold text-ink">MULTIMEDIA</span>
-            </div>
-
-            <div className="mb-8 min-w-0">
-              <h2 className="font-waldenburg-light text-5xl text-ink leading-tight select-none">
-                {isSearchMode ? "Search Results" : "YouTube"}
-              </h2>
-            </div>
-
-            <div className="border-t border-b border-hairline/60 py-4 flex flex-wrap items-center justify-between gap-4 mb-8 text-xs select-none">
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-medium text-muted">
-                <span>Filter by:</span>
-                <button className="flex items-center gap-1.5 text-ink font-semibold">
-                  <span>All Channels</span>
-                  <span className="text-[10px] opacity-70">▼</span>
-                </button>
-                <button className="flex items-center gap-1.5 hover:text-ink transition-colors">
-                  <span>Most Recent</span>
-                  <span className="text-[10px] opacity-70">▼</span>
-                </button>
-                <button className="flex items-center gap-1.5 hover:text-ink transition-colors">
-                  <span>Categories</span>
-                  <span className="text-[10px] opacity-70">▼</span>
-                </button>
-              </div>
-              <div className="text-muted-soft font-medium">
-                Showing {filteredVideos.length} of 128 items
-              </div>
+            <div className="flex items-center justify-between gap-3 mb-6 text-xs text-muted-soft select-none">
+              <span>{filteredVideos.length} {filteredVideos.length === 1 ? "video" : "videos"}</span>
+              <span className="hidden sm:inline">Your saved library</span>
             </div>
 
             {/* Add Video Inline Input Form */}

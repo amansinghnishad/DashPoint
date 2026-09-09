@@ -41,7 +41,8 @@ const buildChatContextId = ({
   model = 'auto',
   topK = 3,
   collectionIds = [],
-  attemptSignature = ''
+  attemptSignature = '',
+  sessionId = null
 }) => {
   const normalizedCollectionIds = normalizeCollectionIds(collectionIds);
   const scopeSegment = normalizedCollectionIds.length
@@ -54,6 +55,7 @@ const buildChatContextId = ({
     `provider:${String(provider || 'auto').trim().toLowerCase() || 'auto'}`,
     `model:${String(model || 'auto').trim() || 'auto'}`,
     `topK:${normalizeTopK(topK)}`,
+    `session:${String(sessionId || 'new').trim()}`,
     `attempts:${String(attemptSignature || '').trim() || 'none'}`
   ].join('|');
 };

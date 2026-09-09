@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: true })}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-white hover:bg-canvas-soft lg:hidden transition-colors"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft lg:hidden transition-colors"
                   aria-label="Open sidebar"
                 >
                   <IconMenu size={16} className="text-ink" />
@@ -224,7 +224,7 @@ export default function DashboardPage() {
                           placeholder="Search collections, files, or tasks..."
                         />
                       ) : (
-                        <div className="bg-canvas-soft border border-hairline flex h-9 items-center gap-2 rounded-full px-3 w-[240px] focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-200">
+                        <div className="bg-surface-card border border-hairline flex h-9 items-center gap-2 rounded-full px-3 w-[240px] focus-within:bg-surface-card focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-200">
                           <Search size={15} className="text-muted shrink-0" />
                           <input
                             value={ytSearch}
@@ -245,7 +245,7 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => createCollectionTriggerRef.current?.()}
-                        className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-[13px] font-semibold transition-all h-9 flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                        className="dp-btn-primary rounded-full px-5 py-2 text-[13px] font-semibold transition-all h-9 flex items-center justify-center gap-1.5 shadow-sm shrink-0"
                       >
                         <Plus size={15} />
                         <span>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                           alt={displayName}
                           className="w-8 h-8 rounded-full border border-hairline object-cover"
                         />
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white bg-green-500" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-canvas bg-green-500" />
                       </div>
                     </div>
                   </>

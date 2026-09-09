@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 
 import { collectionsAPI } from "../../../../services/modules/collectionsApi";
 import { getCollectionsPayload } from "../../../../shared/lib/collections/collectionsResponse";
@@ -8,13 +8,9 @@ const getCollectionId = (collection) => collection?._id || collection?.id;
 
 export default function useCollectionsHomeController({ onOpenCollection, toast, state }) {
   const {
-    collections,
     setCollections,
-    total,
     setTotal,
-    loading,
     setLoading,
-    error,
     setError,
     errorToastShown,
     createName,
@@ -244,18 +240,8 @@ export default function useCollectionsHomeController({ onOpenCollection, toast, 
     toast,
   ]);
 
-  const headerSubtitle = useMemo(() => {
-    if (loading) return "Loading your collections...";
-    if (error) return "Unable to load collections.";
-    if (!collections.length) return "No collections yet.";
-    return `${total || collections.length} collection${
-      (total || collections.length) === 1 ? "" : "s"
-    }`;
-  }, [collections.length, error, loading, total]);
-
   return {
     getCollectionId,
-    headerSubtitle,
     createCollection,
     openEdit,
     saveEdit,

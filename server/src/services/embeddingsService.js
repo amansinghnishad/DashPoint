@@ -103,6 +103,11 @@ const getEmbeddingModelLabel = (config) => {
   return `${config.provider}:${config.model}`;
 };
 
+const getLegacyEmbeddingModelLabels = (provider, model) => [
+  `${provider}:${model}`,
+  model
+];
+
 const normalizeGeminiModelName = (model) =>
   String(model || '')
     .trim()
@@ -243,6 +248,7 @@ module.exports = {
   EMBEDDING_MODEL,
   resolveEmbeddingConfig,
   getEmbeddingModelLabel,
+  getLegacyEmbeddingModelLabels,
   isNoteWidgetType,
   buildPlannerWidgetEmbeddingText,
   createEmbedding,

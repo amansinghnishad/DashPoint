@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import RouteLoader from "./RouteLoader";
 import { DashboardProvider } from "../../context/DashboardContext";
+import ErrorBoundary from "../../shared/ui/ErrorBoundary/ErrorBoundary";
 import PWAUpdatePrompt from "../../shared/ui/PWAStatus/PWAUpdatePrompt";
 import Toaster from "../../shared/ui/Toaster/Toaster";
 import { APP_ROUTES } from "../routes/paths";
@@ -17,7 +18,8 @@ const LandingPage = lazy(() => import("../../features/landing/pages/LandingPage"
 export default function AppRouter() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<RouteLoader />}>
+      <ErrorBoundary>
+        <Suspense fallback={<RouteLoader />}>
         <Routes>
           <Route
             path={APP_ROUTES.HOME}
@@ -56,6 +58,7 @@ export default function AppRouter() {
           <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
 
       <Toaster />
       <PWAUpdatePrompt />

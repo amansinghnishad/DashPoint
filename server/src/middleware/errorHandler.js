@@ -6,7 +6,9 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   // Log error for debugging
-  console.error(err);
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(err);
+  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -37,9 +39,14 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 401 };
   }
 
-  res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const safeMessage = statusCode >= 500 && process.env.NODE_ENV === 'production'
+    ? 'An unexpected server error occurred'
+    : error.message || 'Server Error';
+
+  res.status(statusCode).json({
     success: false,
-    message: error.message || 'Server Error',
+    message: safeMessage,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };

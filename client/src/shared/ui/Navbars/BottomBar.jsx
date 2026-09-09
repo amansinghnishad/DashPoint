@@ -1,15 +1,18 @@
-import { createElement, useCallback, useEffect, useReducer, useRef } from "react";
 import {
   CalendarDays,
   CheckSquare,
   Clock,
   Crosshair,
-  LayoutGrid,
-  StickyNote,
   FileText,
   Image,
+  LayoutGrid,
+  Mic,
+  Redo2,
+  StickyNote,
+  Undo2,
   Youtube,
 } from "lucide-react";
+import { createElement, useCallback, useEffect, useReducer, useRef } from "react";
 
 const menuReducer = (state, action) => {
   switch (action.type) {
@@ -40,6 +43,7 @@ const TOOLS = [
   { id: "photo", label: "Photo", Icon: Image, shortcut: "5" },
   { id: "youtube", label: "YouTube", Icon: Youtube, shortcut: "6" },
   { id: "file", label: "File", Icon: FileText, shortcut: "7" },
+  { id: "voice", label: "Voice Note", Icon: Mic, shortcut: "8" },
 ];
 
 export default function BottomBar({
@@ -48,6 +52,10 @@ export default function BottomBar({
   plannerOptions,
   onPlannerSelect,
   onRecenterViewport,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
   className = "",
   show = true,
 }) {
@@ -204,19 +212,40 @@ export default function BottomBar({
             );
           })}
 
+          <div className="mx-1 h-6 border-l border-hairline" />
+
+          <button
+            type="button"
+            onClick={() => onUndo?.()}
+            disabled={!canUndo}
+            title="Undo (⌘Z)"
+            aria-label="Undo"
+            className="text-muted hover:text-ink hover:bg-canvas-soft disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer"
+          >
+            {createElement(Undo2, { size: 18 })}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onRedo?.()}
+            disabled={!canRedo}
+            title="Redo (⌘⇧Z)"
+            aria-label="Redo"
+            className="text-muted hover:text-ink hover:bg-canvas-soft disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer"
+          >
+            {createElement(Redo2, { size: 18 })}
+          </button>
+
           {typeof onRecenterViewport === "function" ? (
-            <>
-              <div className="mx-1 h-6 border-l border-hairline" />
-              <button
-                type="button"
-                onClick={() => onRecenterViewport()}
-                title="Re-center view (0)"
-                aria-label="Re-center view"
-                className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer"
-              >
-                {createElement(Crosshair, { size: 18 })}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={() => onRecenterViewport()}
+              title="Re-center view (0)"
+              aria-label="Re-center view"
+              className="text-muted hover:text-ink hover:bg-canvas-soft inline-flex h-10 w-10 items-center justify-center rounded-xl transition-colors cursor-pointer"
+            >
+              {createElement(Crosshair, { size: 18 })}
+            </button>
           ) : null}
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import useApiRequest from "@/shared/hooks/useApiRequest";
 import { getCollectionsFromResponse } from "@/shared/lib/collections/collectionsResponse";
+
 import Modal from "./Modal";
 import { useToast } from "../../../hooks/useToast";
 import { collectionsAPI } from "../../../services/modules/collectionsApi";

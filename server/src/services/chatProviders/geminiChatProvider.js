@@ -128,7 +128,7 @@ const requestGemini = async ({ model, payload, apiKey }) => {
   }
 };
 
-const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall }) => {
+const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall, onDelta }) => {
   const apiKey = getApiKey();
   const conversation = [
     {
@@ -194,6 +194,13 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall 
 
     if (!functionCalls.length) {
       const text = extractText(parts) || 'Done.';
+      if (typeof onDelta === 'function') {
+        // Stream token chunks for smooth real-time SSE display
+        const words = text.split(/(\s+)/);
+        for (const word of words) {
+          onDelta(word);
+        }
+      }
       return { text };
     }
 

@@ -8,7 +8,7 @@
     "start": "cross-env NODE_ENV=production node src/server.js",
     "dev": "nodemon src/server.js",
     "prod": "cross-env NODE_ENV=production node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --runInBand --detectOpenHandles --forceExit"
   },
   "keywords": [
     "dashboard",
@@ -23,6 +23,7 @@
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.1.0",
     "cloudinary": "^2.8.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
@@ -43,6 +44,8 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
-    "nodemon": "^3.1.14"
+    "jest": "^30.4.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }

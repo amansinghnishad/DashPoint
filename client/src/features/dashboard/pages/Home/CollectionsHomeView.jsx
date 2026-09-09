@@ -4,7 +4,6 @@ import { createElement } from "react";
 import Modal from "../../../../shared/ui/modals/Modal";
 
 export default function CollectionsHomeView({
-  headerSubtitle,
   setIsCreateOpen,
   isCreateOpen,
   isCreating,
@@ -40,23 +39,6 @@ export default function CollectionsHomeView({
 }) {
   return (
     <section className="w-full max-w-[1024px] mx-auto py-4 relative">
-      {/* Breadcrumbs matching the screenshot */}
-      <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
-        <span className="opacity-70">Dashboard</span>
-        <span className="opacity-30">&gt;</span>
-        <span className="opacity-70 font-semibold text-ink">Collections</span>
-      </div>
-
-      {/* Main serif Heading & Subtitle */}
-      <div className="mb-10 min-w-0">
-        <h2 className="font-waldenburg-light text-5xl text-ink leading-tight mb-4 select-none">
-          Collections
-        </h2>
-        <p className="text-body text-[15px] leading-relaxed max-w-[640px] select-none">
-          {headerSubtitle || "Organize your intelligence layer into refined clusters. Manage projects, research journals, and media libraries with precise editorial control."}
-        </p>
-      </div>
-
       {/* Create Collection Modal */}
       <Modal
         open={isCreateOpen}
@@ -214,7 +196,7 @@ export default function CollectionsHomeView({
         <p className="text-muted text-sm">You can't undo this action.</p>
       </Modal>
 
-      <div className="mt-6">
+      <div className="mt-2">
         {loading ? (
           createElement(LoadingGridComponent)
         ) : error ? (

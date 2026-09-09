@@ -3,12 +3,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
 const { connectRedis, disconnectRedis } = require('./config/redis');
 const errorHandler = require('./middleware/errorHandler');
+const { assertJwtConfiguration } = require('./utils/jwt');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -29,9 +31,13 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production';
 }
 
-// Connect to MongoDB
-connectDB();
-connectRedis();
+assertJwtConfiguration();
+
+// Connect to MongoDB and Redis in non-test environments
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+  connectRedis();
+}
 
 // Rate limiting
 const limiter = rateLimit({
@@ -100,6 +106,7 @@ app.options('*', cors(corsOptions));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
 // Serve static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -161,19 +168,24 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-  console.log(`Dashboard API available at http://localhost:${PORT}`);
-  console.log(`Health check at http://localhost:${PORT}/health`);
-});
+let server = null;
+if (process.env.NODE_ENV !== 'test') {
+  server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+    console.log(`Dashboard API available at http://localhost:${PORT}`);
+    console.log(`Health check at http://localhost:${PORT}/health`);
+  });
+}
 
 const shutdown = (signal) => {
   console.log(`${signal} received. Shutting down gracefully...`);
 
-  server.close(async () => {
-    await disconnectRedis();
-    console.log('Process terminated');
-  });
+  if (server) {
+    server.close(async () => {
+      await disconnectRedis();
+      console.log('Process terminated');
+    });
+  }
 };
 
 // Graceful shutdown

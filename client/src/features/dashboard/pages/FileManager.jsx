@@ -323,19 +323,6 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
         ) : (
           /* Table Listing Mode */
           <div>
-            {/* Breadcrumbs & Title */}
-            <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
-              <span className="opacity-70">INTELLIGENCE LAYER</span>
-              <span className="opacity-30">/</span>
-              <span className="opacity-70 font-semibold text-ink">DOCUMENTS</span>
-            </div>
-
-            <div className="mb-8 min-w-0">
-              <h2 className="font-waldenburg-light text-5xl text-ink leading-tight select-none">
-                File Manager
-              </h2>
-            </div>
-
             {/* Ingestion status/busy indicator */}
             {isBusy && (
               <div className="bg-surface-card border border-hairline rounded-2xl p-4 shadow-sm mb-6 flex items-center gap-3 animate-pulse">

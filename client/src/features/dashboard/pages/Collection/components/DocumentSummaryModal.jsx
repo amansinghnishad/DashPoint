@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
+
 import { FileText, Loader2, Upload } from "@/shared/ui/icons/icons";
+
 import Modal from "../../../../../shared/ui/modals/Modal";
 
 export default function DocumentSummaryModal({ open, busy, onClose, onSubmit }) {

@@ -4,7 +4,11 @@ const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
 const YouTube = require('../models/YouTube');
 const VideoIntelligenceChunk = require('../models/VideoIntelligenceChunk');
-const { createEmbedding } = require('./embeddingsService');
+const {
+  createEmbedding,
+  getEmbeddingModelLabel,
+  getLegacyEmbeddingModelLabels
+} = require('./embeddingsService');
 const { runAtlasVectorSearch } = require('./vectorSearchService');
 
 const DEFAULT_TOP_K = 3;
@@ -117,7 +121,8 @@ const searchPlannerNoteContext = async ({
   userObjectId,
   queryVector,
   limit,
-  allowedPlannerWidgetIds = null
+  allowedPlannerWidgetIds = null,
+  embeddingModelLabels = []
 }) => {
   if (Array.isArray(allowedPlannerWidgetIds) && !allowedPlannerWidgetIds.length) {
     return [];
@@ -126,6 +131,10 @@ const searchPlannerNoteContext = async ({
   const filter = {
     userId: userObjectId
   };
+
+  if (embeddingModelLabels.length) {
+    filter.embeddingModel = { $in: embeddingModelLabels };
+  }
 
   if (Array.isArray(allowedPlannerWidgetIds)) {
     filter._id = {
@@ -175,7 +184,8 @@ const searchYouTubeContext = async ({
   userObjectId,
   queryVector,
   limit,
-  allowedYoutubeIds = null
+  allowedYoutubeIds = null,
+  embeddingModelLabels = []
 }) => {
   if (Array.isArray(allowedYoutubeIds) && !allowedYoutubeIds.length) {
     return [];
@@ -184,6 +194,10 @@ const searchYouTubeContext = async ({
   const filter = {
     userId: userObjectId
   };
+
+  if (embeddingModelLabels.length) {
+    filter.embeddingModel = { $in: embeddingModelLabels };
+  }
 
   if (Array.isArray(allowedYoutubeIds)) {
     filter.youtubeId = {
@@ -288,7 +302,19 @@ const createQueryEmbeddingWithFallback = async ({ query, embeddingProviders = []
       if (Array.isArray(vector) && vector.length) {
         return {
           vector,
-          provider
+          provider,
+          model: getEmbeddingModelLabel({
+            provider,
+            model: provider === 'gemini'
+              ? process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004'
+              : process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
+          }),
+          modelLabels: getLegacyEmbeddingModelLabels(
+            provider,
+            provider === 'gemini'
+              ? process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004'
+              : process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small'
+          )
         };
       }
     } catch (error) {
@@ -362,13 +388,15 @@ const retrieveChatContext = async ({
       userObjectId,
       queryVector,
       limit: perSourceLimit,
-      allowedPlannerWidgetIds: scope.plannerWidgetIds
+      allowedPlannerWidgetIds: scope.plannerWidgetIds,
+      embeddingModelLabels: queryEmbedding.modelLabels || []
     }),
     searchYouTubeContext({
       userObjectId,
       queryVector,
       limit: perSourceLimit,
-      allowedYoutubeIds: scope.youtubeIds
+      allowedYoutubeIds: scope.youtubeIds,
+      embeddingModelLabels: queryEmbedding.modelLabels || []
     })
   ]);
 

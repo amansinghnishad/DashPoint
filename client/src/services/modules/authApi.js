@@ -18,6 +18,10 @@ export const authAPI = {
     return getResponseData(apiClient.get("/auth/verify"));
   },
 
+  refreshToken() {
+    return getResponseData(apiClient.post("/auth/refresh"));
+  },
+
   googleAuth(credential) {
     return getResponseData(apiClient.post("/auth/google", { credential }));
   },

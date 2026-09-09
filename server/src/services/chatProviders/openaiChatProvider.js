@@ -44,7 +44,7 @@ const extractFinalText = (response) => {
   return chunks.join('\n').trim();
 };
 
-const runOpenAiChat = async ({ model, systemPrompt, userPrompt, executeToolCall }) => {
+const runOpenAiChat = async ({ model, systemPrompt, userPrompt, executeToolCall, onDelta }) => {
   const openai = getClient();
 
   let response = await openai.responses.create({
@@ -104,6 +104,12 @@ const runOpenAiChat = async ({ model, systemPrompt, userPrompt, executeToolCall 
   }
 
   const text = extractFinalText(response) || 'Done.';
+  if (typeof onDelta === 'function') {
+    const words = text.split(/(\s+)/);
+    for (const word of words) {
+      onDelta(word);
+    }
+  }
 
   return {
     text

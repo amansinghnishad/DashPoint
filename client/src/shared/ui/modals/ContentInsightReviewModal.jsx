@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { CheckSquare, Sparkles } from "@/shared/ui/icons/icons";
+
+import Modal from "./Modal";
 import { contentInsightsAPI } from "../../../services/modules/contentInsightsApi";
 import { DASHPOINT_COLLECTIONS_CHANGED_EVENT } from "../../lib/dashboardEvents";
-import Modal from "./Modal";
 
 const getTaskId = (task, index) => String(task?.id || `task-${index}`);
 
@@ -15,7 +17,7 @@ export default function ContentInsightReviewModal({
 }) {
   const [selectedTaskIds, setSelectedTaskIds] = useState([]);
   const [busy, setBusy] = useState(false);
-  const tasks = Array.isArray(insight?.tasks) ? insight.tasks : [];
+  const tasks = useMemo(() => (Array.isArray(insight?.tasks) ? insight.tasks : []), [insight?.tasks]);
 
   useEffect(() => {
     if (!open || !insight) return;

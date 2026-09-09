@@ -81,19 +81,6 @@ export default function CalendarPage({ triggerRef }) {
 
   return (
     <section className="w-full max-w-[1024px] mx-auto py-4 relative">
-      {/* Breadcrumbs matching layout */}
-      <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
-        <span className="opacity-70">INTELLIGENCE LAYER</span>
-        <span className="opacity-30">/</span>
-        <span className="opacity-70 font-semibold text-ink">AGENDA</span>
-      </div>
-
-      <div className="mb-8 min-w-0">
-        <h2 className="font-waldenburg-light text-5xl text-ink leading-tight select-none">
-          Calendar
-        </h2>
-      </div>
-
       {/* Modern styled Calendar Header */}
       <CalendarHeader
         monthLabel={monthLabel}

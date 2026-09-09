@@ -75,6 +75,36 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  failedLoginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date,
+    default: null
+  },
+  refreshTokens: [{
+    tokenHash: {
+      type: String,
+      required: true
+    },
+    expiresAt: {
+      type: Date,
+      required: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    userAgent: {
+      type: String,
+      default: ''
+    },
+    ip: {
+      type: String,
+      default: ''
+    }
+  }],
   preferences: {
     theme: {
       type: String,
@@ -228,6 +258,9 @@ const userSchema = new mongoose.Schema({
       delete ret.passwordResetToken;
       delete ret.passwordResetExpires;
       delete ret.emailVerificationToken;
+      delete ret.refreshTokens;
+      delete ret.failedLoginAttempts;
+      delete ret.lockUntil;
       // Never expose OAuth tokens to the client
       if (ret.googleCalendar) {
         delete ret.googleCalendar.accessToken;
@@ -265,6 +298,40 @@ userSchema.pre('save', async function (next) {
     next(error);
   }
 });
+
+// Check if user account is temporarily locked
+userSchema.methods.isLocked = function () {
+  return Boolean(this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Increment failed login attempts and lock if threshold reached (5 attempts -> 15 min lock)
+userSchema.methods.incLoginAttempts = async function () {
+  // If a previous lock has expired, reset attempts
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return this.updateOne({
+      $set: { failedLoginAttempts: 1 },
+      $unset: { lockUntil: 1 }
+    });
+  }
+
+  const updates = { $inc: { failedLoginAttempts: 1 } };
+  const maxAttempts = 5;
+  const lockTime = 15 * 60 * 1000; // 15 minutes
+
+  if (this.failedLoginAttempts + 1 >= maxAttempts && !this.isLocked()) {
+    updates.$set = { lockUntil: new Date(Date.now() + lockTime) };
+  }
+
+  return this.updateOne(updates);
+};
+
+// Reset failed login attempts on successful login
+userSchema.methods.resetLoginAttempts = async function () {
+  return this.updateOne({
+    $set: { failedLoginAttempts: 0 },
+    $unset: { lockUntil: 1 }
+  });
+};
 
 // Method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {

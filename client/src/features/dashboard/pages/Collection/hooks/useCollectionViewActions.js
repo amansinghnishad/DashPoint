@@ -22,12 +22,15 @@ export default function useCollectionViewActions({
     isRemoving: false,
   });
 
+  const [voiceNoteOpen, setVoiceNoteOpen] = useState(false);
+  const [exportImportOpen, setExportImportOpen] = useState(false);
+
   const openPicker = useCallback((toolId) => {
     setPickerState({ open: true, tool: toolId });
   }, []);
 
   const createPlannerAndAdd = useCallback(
-    async (widgetType) => {
+    async (widgetType, customTitle = null, customData = null) => {
       const type = String(widgetType || "").trim();
       if (!type) return;
 
@@ -37,8 +40,8 @@ export default function useCollectionViewActions({
 
         const createRes = await plannerWidgetsAPI.create({
           widgetType: type,
-          title: getPlannerWidgetLabel(type),
-          data: getDefaultPlannerWidgetData(type),
+          title: customTitle || getPlannerWidgetLabel(type),
+          data: customData || getDefaultPlannerWidgetData(type),
         });
         if (!createRes?.success) {
           throw new Error(createRes?.message || "Failed to create planner widget");
@@ -67,6 +70,58 @@ export default function useCollectionViewActions({
       }
     },
     [collectionId, reload, toast],
+  );
+
+  const saveVoiceAsNote = useCallback(
+    async (noteText) => {
+      if (!noteText) return;
+      await createPlannerAndAdd("notes", "Voice Note", { note: noteText });
+    },
+    [createPlannerAndAdd],
+  );
+
+  const saveVoiceAsTodoList = useCallback(
+    async (items) => {
+      if (!items || !items.length) return;
+      await createPlannerAndAdd("todo-list", "Voice Tasks", { items });
+    },
+    [createPlannerAndAdd],
+  );
+
+  const importDataToCollection = useCallback(
+    async (importData) => {
+      if (!importData) return;
+
+      if (importData.type === "markdown") {
+        if (importData.notes) {
+          await createPlannerAndAdd("notes", importData.title || "Imported Notes", {
+            note: importData.notes,
+          });
+        }
+        if (importData.tasks?.length) {
+          await createPlannerAndAdd("todo-list", `${importData.title || "Imported"} Tasks`, {
+            items: importData.tasks,
+          });
+        }
+        toast.success("Markdown data imported successfully.");
+        return;
+      }
+
+      if (importData.type === "json") {
+        const importedItems = importData.items || [];
+        for (const item of importedItems) {
+          if (item.itemType === "planner" && item.data?.widgetType) {
+            await createPlannerAndAdd(
+              item.data.widgetType,
+              item.data.title,
+              item.data.data,
+            );
+          }
+        }
+        toast.success("JSON backup imported successfully.");
+      }
+    },
+    [createPlannerAndAdd, toast],
   );
 
   const confirmRemove = useCallback(async () => {
@@ -105,6 +160,10 @@ export default function useCollectionViewActions({
     (toolId) => {
       setActiveTool(toolId);
       if (toolId === "planner") return;
+      if (toolId === "voice") {
+        setVoiceNoteOpen(true);
+        return;
+      }
       if (toolId === "file" || toolId === "document") {
         setDocumentSummaryOpen(true);
         return;
@@ -152,11 +211,18 @@ export default function useCollectionViewActions({
     pickerState,
     isSummarizingDocument,
     documentSummaryOpen,
+    voiceNoteOpen,
+    exportImportOpen,
     deleteState,
     setPickerState,
     setDeleteState,
     setDocumentSummaryOpen,
+    setVoiceNoteOpen,
+    setExportImportOpen,
     createPlannerAndAdd,
+    saveVoiceAsNote,
+    saveVoiceAsTodoList,
+    importDataToCollection,
     confirmRemove,
     handleSelectTool,
     summarizeUploadedPdf,

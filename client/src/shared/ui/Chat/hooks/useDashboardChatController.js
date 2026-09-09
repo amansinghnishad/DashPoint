@@ -6,7 +6,7 @@ import useApiRequest from "../../../../shared/hooks/useApiRequest";
 import { getCollectionPickerOptions } from "../../../../shared/lib/collections/collectionsResponse";
 import { DASHPOINT_COLLECTIONS_CHANGED_EVENT } from "../../../../shared/lib/dashboardEvents";
 import { DEFAULT_TOP_K, MODEL_OPTIONS_BY_PROVIDER, isOpenAiModel } from "../chatBar.constants";
-import { getStreamStepSize, sanitizeMessageForSubmit } from "../chatBar.utils";
+import { sanitizeMessageForSubmit } from "../chatBar.utils";
 
 const FALLBACK_DONE_RESPONSE = "Done.";
 const FALLBACK_ERROR_RESPONSE = "Unable to complete chat request.";
@@ -22,16 +22,22 @@ export default function useDashboardChatController() {
   const [selectedCollectionIds, setSelectedCollectionIds] = useState([]);
   const [collectionPickerOpen, setCollectionPickerOpen] = useState(false);
 
+  // Sessions state
+  const [sessions, setSessions] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+
   const {
     loading: collectionsLoading,
     error: collectionsError,
     run: runCollectionsRequest,
   } = useApiRequest();
 
-  const streamFrameRef = useRef(null);
   const messageCounterRef = useRef(1);
   const inputRef = useRef(null);
   const scrollAnchorRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const modelOptions = useMemo(
     () => MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto,
@@ -61,7 +67,7 @@ export default function useDashboardChatController() {
 
   const nextMessageId = useCallback(() => {
     messageCounterRef.current += 1;
-    return `chat-${messageCounterRef.current}`;
+    return `chat-${Date.now()}-${messageCounterRef.current}`;
   }, []);
 
   const scrollToBottom = useCallback((behavior = "auto") => {
@@ -86,56 +92,81 @@ export default function useDashboardChatController() {
     );
   }, []);
 
-  const stopStreamingAnimation = useCallback(() => {
-    if (!streamFrameRef.current) return;
-    cancelAnimationFrame(streamFrameRef.current);
-    streamFrameRef.current = null;
+  const loadSessions = useCallback(async () => {
+    try {
+      setSessionsLoading(true);
+      const res = await chatApi.getSessions();
+      if (res?.success) {
+        setSessions(res.data || []);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setSessionsLoading(false);
+    }
   }, []);
 
-  const streamAssistantText = useCallback(
-    (messageId, fullText, meta) =>
-      new Promise((resolve) => {
-        const finalText = String(fullText || "").trim() || FALLBACK_DONE_RESPONSE;
-
-        stopStreamingAnimation();
-
-        if (finalText.length <= 140) {
-          updateMessage(messageId, {
-            role: "assistant",
-            content: finalText,
+  const selectSession = useCallback(
+    async (sessionId) => {
+      if (!sessionId) return;
+      try {
+        setActiveSessionId(sessionId);
+        const res = await chatApi.getSessionMessages(sessionId);
+        if (res?.success) {
+          const session = res.data?.session;
+          const rawMessages = res.data?.messages || [];
+          const formatted = rawMessages.map((m) => ({
+            id: String(m._id || m.id || nextMessageId()),
+            role: m.role,
+            content: m.content,
             status: "done",
-            meta,
-          });
-          resolve();
-          return;
+            meta: m.metadata || null,
+          }));
+          setMessages(formatted);
+          if (session?.provider) setProvider(session.provider);
+          if (session?.model) setModel(session.model);
         }
+      } catch {
+        setMessages([]);
+      }
+    },
+    [nextMessageId],
+  );
 
-        const stepSize = getStreamStepSize(finalText.length);
-        let cursor = 0;
+  const createNewSession = useCallback(() => {
+    setActiveSessionId(null);
+    setMessages([]);
+    setMessage("");
+    inputRef.current?.focus();
+  }, []);
 
-        const step = () => {
-          cursor = Math.min(finalText.length, cursor + stepSize);
-          const isComplete = cursor >= finalText.length;
+  const renameSession = useCallback(
+    async (sessionId, newTitle) => {
+      if (!sessionId || !newTitle) return;
+      try {
+        await chatApi.updateSession(sessionId, { title: newTitle });
+        await loadSessions();
+      } catch {
+        // Ignore
+      }
+    },
+    [loadSessions],
+  );
 
-          updateMessage(messageId, {
-            role: "assistant",
-            content: finalText.slice(0, cursor),
-            status: isComplete ? "done" : "streaming",
-            meta,
-          });
-
-          if (isComplete) {
-            streamFrameRef.current = null;
-            resolve();
-            return;
-          }
-
-          streamFrameRef.current = requestAnimationFrame(step);
-        };
-
-        streamFrameRef.current = requestAnimationFrame(step);
-      }),
-    [stopStreamingAnimation, updateMessage],
+  const deleteSession = useCallback(
+    async (sessionId) => {
+      if (!sessionId) return;
+      try {
+        await chatApi.deleteSession(sessionId);
+        await loadSessions();
+        if (activeSessionId === sessionId) {
+          createNewSession();
+        }
+      } catch {
+        // Ignore
+      }
+    },
+    [activeSessionId, createNewSession, loadSessions],
   );
 
   const toggleCollection = useCallback((collectionId) => {
@@ -198,59 +229,121 @@ export default function useDashboardChatController() {
       setMessage("");
       setIsSending(true);
 
-      try {
-        const response = await chatApi.sendMessage({
-          message: sanitizedMessage,
-          provider,
-          model,
-          topK: DEFAULT_TOP_K,
-          collectionIds: selectedCollectionIds,
-        });
-
-        const payload = response?.data || {};
-        const finalText = String(payload?.response || "").trim() || FALLBACK_DONE_RESPONSE;
-        const collectionChanged = Boolean(payload?.mutations?.collectionChanged);
-
-        if (collectionChanged) {
-          window.dispatchEvent(
-            new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
-              detail: payload?.mutations || {},
-            }),
-          );
-          loadCollections();
+      let currentSessionId = activeSessionId;
+      if (!currentSessionId) {
+        try {
+          const createRes = await chatApi.createSession({
+            title:
+              sanitizedMessage.length > 40
+                ? `${sanitizedMessage.slice(0, 40).trim()}...`
+                : sanitizedMessage,
+            provider,
+            model,
+          });
+          if (createRes?.success && createRes.data?._id) {
+            currentSessionId = String(createRes.data._id);
+            setActiveSessionId(currentSessionId);
+          }
+        } catch {
+          // Continue without blocking chat
         }
+      }
 
-        await streamAssistantText(assistantMessageId, finalText, {
-          provider: payload?.provider,
-          model: payload?.model,
-          routing: payload?.routing,
-          mutations: payload?.mutations,
-          retrieval: payload?.retrieval,
+      let accumulatedText = "";
+      let responseMeta = null;
+
+      try {
+        abortControllerRef.current = new AbortController();
+
+        await chatApi.streamChat({
+          payload: {
+            message: sanitizedMessage,
+            sessionId: currentSessionId,
+            provider,
+            model,
+            topK: DEFAULT_TOP_K,
+            collectionIds: selectedCollectionIds,
+          },
+          signal: abortControllerRef.current.signal,
+          onMetadata: (metadata) => {
+            responseMeta = metadata;
+            updateMessage(assistantMessageId, {
+              meta: metadata,
+              status: "streaming",
+            });
+          },
+          onDelta: (chunk) => {
+            accumulatedText += chunk;
+            updateMessage(assistantMessageId, {
+              content: accumulatedText,
+              status: "streaming",
+              meta: responseMeta,
+            });
+          },
+          onDone: (donePayload) => {
+            const finalText = donePayload.response || accumulatedText || FALLBACK_DONE_RESPONSE;
+            const collectionChanged = Boolean(donePayload?.mutations?.collectionChanged);
+
+            if (collectionChanged) {
+              window.dispatchEvent(
+                new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
+                  detail: donePayload?.mutations || {},
+                }),
+              );
+              loadCollections();
+            }
+
+            updateMessage(assistantMessageId, {
+              content: finalText,
+              status: "done",
+              meta: {
+                provider: donePayload.provider,
+                model: donePayload.model,
+                routing: donePayload.routing,
+                mutations: donePayload.mutations,
+                retrieval: donePayload.retrieval,
+              },
+            });
+
+            loadSessions();
+          },
+          onError: (err) => {
+            const errorText = err?.message || FALLBACK_ERROR_RESPONSE;
+            updateMessage(assistantMessageId, {
+              role: "error",
+              content: errorText,
+              status: "done",
+              meta: null,
+            });
+          },
         });
       } catch (error) {
-        const errorText =
-          error?.response?.data?.message || error?.message || FALLBACK_ERROR_RESPONSE;
+        if (error?.name !== "AbortError") {
+          const errorText =
+            error?.response?.data?.message || error?.message || FALLBACK_ERROR_RESPONSE;
 
-        updateMessage(assistantMessageId, {
-          role: "error",
-          content: errorText,
-          status: "done",
-          meta: null,
-        });
+          updateMessage(assistantMessageId, {
+            role: "error",
+            content: errorText,
+            status: "done",
+            meta: null,
+          });
+        }
       } finally {
         setIsSending(false);
       }
     },
     [
+      activeSessionId,
       isSending,
       loadCollections,
+      loadSessions,
       message,
       model,
       nextMessageId,
       openAiComingSoon,
       provider,
       selectedCollectionIds,
-      streamAssistantText,
       updateMessage,
     ],
   );
@@ -285,15 +378,14 @@ export default function useDashboardChatController() {
 
   useEffect(() => {
     loadCollections();
-  }, [loadCollections]);
+    loadSessions();
+  }, [loadCollections, loadSessions]);
 
   useEffect(() => {
     setSelectedCollectionIds((current) =>
       current.filter((id) => collections.some((collection) => collection.id === id)),
     );
   }, [collections]);
-
-  useEffect(() => stopStreamingAnimation, [stopStreamingAnimation]);
 
   return {
     provider,
@@ -311,6 +403,15 @@ export default function useDashboardChatController() {
     setSelectedCollectionIds,
     collectionPickerOpen,
     setCollectionPickerOpen,
+    sessions,
+    activeSessionId,
+    historyDrawerOpen,
+    setHistoryDrawerOpen,
+    sessionsLoading,
+    selectSession,
+    createNewSession,
+    renameSession,
+    deleteSession,
     modelOptions,
     openAiComingSoon,
     selectedCollectionsLabel,

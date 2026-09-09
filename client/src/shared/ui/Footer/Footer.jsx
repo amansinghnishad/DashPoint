@@ -1,23 +1,36 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
 import InteractiveLines from "../../../features/landing/components/InteractiveLines";
 
 export default function Footer({ embedded = false }) {
-  const headingText = embedded ? "text-white" : "text-ink";
-  const bodyText = embedded ? "text-white/60" : "text-muted";
-  const softText = embedded ? "text-white/40" : "text-muted-soft";
-  const hoverText = embedded ? "hover:text-white" : "hover:text-ink";
-  const borderStyle = embedded ? "border-white/10" : "border-hairline/60";
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document === "undefined") return true;
+    return document.documentElement.dataset.theme !== "light";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => setIsDark(root.dataset.theme !== "light"));
+    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const headingText = "text-ink";
+  const bodyText = "text-muted";
+  const softText = "text-muted-soft";
+  const hoverText = "hover:text-ink";
+  const borderStyle = "border-hairline/60";
 
   return (
     <footer className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
-      embedded ? "bg-transparent" : "bg-neutral-950 text-white border-t border-white/10"
+      embedded ? "bg-transparent" : "bg-canvas text-ink border-t border-hairline/60"
     }`}>
       {!embedded && (
         <InteractiveLines
-          backgroundColor="#0c0a09"
-          lineColor="#f99149"
+          backgroundColor={isDark ? "#0c0a09" : "#f5f5f5"}
+          lineColor={isDark ? "#f99149" : "#d97745"}
           lineWidth={1.5}
           minLines={25}
           maxLines={65}

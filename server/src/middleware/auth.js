@@ -1,10 +1,10 @@
 const User = require('../models/User');
-const { verifyToken, extractTokenFromHeader } = require('../utils/jwt');
+const { verifyToken, extractAccessToken } = require('../utils/jwt');
 
 // authenticateToken middleware
 const auth = async (req, res, next) => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token = extractAccessToken(req);
 
     if (!token) {
       return res.status(401).json({
@@ -20,6 +20,13 @@ const auth = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'User not found or inactive'
+      });
+    }
+
+    if (user.isLocked()) {
+      return res.status(423).json({
+        success: false,
+        message: 'Account is temporarily locked due to excessive failed attempts. Please try again later.'
       });
     }
 

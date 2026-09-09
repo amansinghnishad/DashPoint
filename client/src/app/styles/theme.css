@@ -131,9 +131,9 @@
 
   /* Chat */
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
-  --dp-chat-bubble-user: rgb(255 255 255);
-  --dp-chat-bubble-user-fg: rgb(0 0 0);
-  --dp-chat-bubble-assistant: rgb(35 35 35);
+  --dp-chat-bubble-user: #292524;
+  --dp-chat-bubble-user-fg: #ffffff;
+  --dp-chat-bubble-assistant: #231f1d;
   --dp-chat-bubble-assistant-fg: rgb(255 255 255);
   --dp-chat-bubble-error: rgb(239 68 68 / 0.2);
   --dp-chat-bubble-error-fg: rgb(255 200 200);
@@ -198,6 +198,19 @@
   background-color: var(--dp-chat-bubble-error);
   color: var(--dp-chat-bubble-error-fg);
   border: 1px solid var(--dp-danger-border);
+}
+
+.dp-chat-active {
+  background:
+    radial-gradient(700px 280px at 50% 0%, color-mix(in srgb, #f4c5a8 8%, transparent), transparent 72%),
+    radial-gradient(500px 260px at 90% 35%, color-mix(in srgb, #c8b8e0 6%, transparent), transparent 76%);
+  border-radius: 2rem;
+}
+
+:root[data-theme="light"] .dp-chat-active {
+  background:
+    radial-gradient(700px 280px at 50% 0%, rgba(244, 197, 168, 0.16), transparent 72%),
+    radial-gradient(500px 260px at 90% 35%, rgba(200, 184, 224, 0.12), transparent 76%);
 }
 
 .dp-markdown > * + * {

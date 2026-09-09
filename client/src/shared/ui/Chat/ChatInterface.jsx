@@ -1,7 +1,10 @@
-import { useRef, useState, useEffect, useMemo } from "react";
-import { Paperclip, Globe, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Globe, History, Mic, MicOff, Paperclip, Plus, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import ChatHistoryDrawer from "./components/ChatHistoryDrawer";
 import ChatMessageBubble from "./components/ChatMessageBubble";
 import useDashboardChatController from "./hooks/useDashboardChatController";
+import useVoiceRecognition from "../../hooks/useVoiceRecognition";
 
 export default function ChatInterface({
   showEmptyStateDetails = false,
@@ -23,6 +26,15 @@ export default function ChatInterface({
     setSelectedCollectionIds,
     collectionPickerOpen,
     setCollectionPickerOpen,
+    sessions,
+    activeSessionId,
+    historyDrawerOpen,
+    setHistoryDrawerOpen,
+    sessionsLoading,
+    selectSession,
+    createNewSession,
+    renameSession,
+    deleteSession,
     openAiComingSoon,
     sanitizedDraftMessage,
     inputRef,
@@ -31,6 +43,40 @@ export default function ChatInterface({
     toggleCollection,
     openAiComingSoonMessage,
   } = useDashboardChatController();
+
+  const {
+    isListening,
+    transcript: voiceTranscript,
+    interimTranscript,
+    isSupported: voiceSupported,
+    startListening,
+    stopListening,
+    resetTranscript,
+  } = useVoiceRecognition();
+
+  // Sync voice transcript into message input
+  useEffect(() => {
+    if (!isListening) return;
+    const combined = (voiceTranscript + (interimTranscript ? ` ${interimTranscript}` : "")).trim();
+    if (combined) {
+      setMessage(combined);
+    }
+  }, [interimTranscript, isListening, setMessage, voiceTranscript]);
+
+  const handleToggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      resetTranscript();
+      startListening();
+      inputRef.current?.focus();
+    }
+  };
+
+  const activeSession = useMemo(
+    () => sessions.find((s) => s._id === activeSessionId) || null,
+    [activeSessionId, sessions],
+  );
 
   const chatRootRef = useRef(null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
@@ -66,10 +112,10 @@ export default function ChatInterface({
   return (
     <div
       ref={chatRootRef}
-      className={`w-full flex flex-col ${
+      className={`w-full flex flex-col ${showFullPageChatLayout ? "dp-chat-active" : ""} ${
         !isFloating
           ? showFullPageChatLayout
-            ? "relative min-h-[78vh] justify-between py-2"
+            ? "relative min-h-[78vh] justify-start py-6"
             : "relative min-h-[78vh] justify-center items-center"
           : "justify-end"
       }`}
@@ -98,28 +144,67 @@ export default function ChatInterface({
 
       {/* Focus Page Active Chat Mode Header */}
       {showFullPageChatLayout ? (
-        <div className="w-full max-w-[720px] mx-auto px-4 mb-6 select-none z-10 animate-fade-in">
-          <div className="text-[12px] text-muted-soft tracking-wider mb-2 flex items-center gap-1.5 font-bold uppercase">
-            <span>Dashboard</span>
-            <span className="opacity-40 font-normal">&gt;</span>
-            <span className="text-ink">AI Chat</span>
+        <div className="w-full max-w-[720px] mx-auto px-4 mb-6 select-none z-10">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-waldenburg-light text-4xl text-ink tracking-tight truncate">
+              {activeSession?.title || "AI Chat"}
+            </h2>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={createNewSession}
+                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
+                title="Start new conversation"
+              >
+                <Plus size={13} />
+                <span className="hidden sm:inline">New Chat</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setHistoryDrawerOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
+                title="View chat history"
+              >
+                <History size={13} />
+                <span>History</span>
+                {sessions.length > 0 ? (
+                  <span className="bg-primary text-canvas text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                    {sessions.length}
+                  </span>
+                ) : null}
+              </button>
+            </div>
           </div>
-          <h2 className="font-waldenburg-light text-4xl text-ink tracking-tight mb-2">
-            AI Chat
-          </h2>
-          <p className="text-muted text-xs leading-relaxed max-w-2xl">
-            Engage with DashPoint's intelligence layer through natural dialogue. Synthesize research, generate summaries, and explore your collections with voice-AI precision.
-          </p>
+
         </div>
       ) : null}
 
       {/* Workspace Indicator and Title for Focus Page Empty State */}
       {showEmptyStateDetails && isEmptyState && (
         <div className="text-center flex flex-col items-center w-full select-none max-w-[720px] px-4">
-          <div className="text-[12px] text-muted-soft tracking-wider mb-6 flex items-center gap-1.5 font-medium justify-center select-none">
-            <span className="opacity-70">{mockTime}</span>
-            <span className="opacity-30">/</span>
-            <span className="opacity-70">Active Workspace: Intelligence</span>
+          <div className="w-full flex items-center justify-between mb-4">
+            <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium">
+              <span className="opacity-70">{mockTime}</span>
+              <span className="opacity-30">/</span>
+              <span className="opacity-70">Active Workspace: Intelligence</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setHistoryDrawerOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3.5 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
+              title="View conversation history"
+            >
+              <History size={13} />
+              <span>History</span>
+              {sessions.length > 0 ? (
+                <span className="bg-primary text-canvas text-[10px] font-bold px-1.5 rounded-full">
+                  {sessions.length}
+                </span>
+              ) : null}
+            </button>
           </div>
 
           <h2 className="font-waldenburg-light text-5xl md:text-[56px] text-ink leading-[1.1] tracking-tight mb-10">
@@ -135,7 +220,7 @@ export default function ChatInterface({
         {hasMessages && (
           showFullPageChatLayout ? (
             /* Focus Page Active History: Rendered directly on the canvas without card container */
-            <div className="space-y-5 mb-8 w-full max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
+            <div className="space-y-4 mb-6 w-full max-h-[54vh] overflow-y-auto pr-1 scrollbar-thin">
               {messages.map((entry) => (
                 <ChatMessageBubble key={entry.id} entry={entry} />
               ))}
@@ -265,11 +350,24 @@ export default function ChatInterface({
                 <Globe size={15} />
               </button>
 
+              {voiceSupported && (
+                <button
+                  type="button"
+                  onClick={handleToggleVoice}
+                  className={`p-1 shrink-0 transition-colors ${
+                    isListening ? "text-rose-500 animate-pulse" : "text-muted hover:text-ink"
+                  }`}
+                  title={isListening ? "Stop voice dictation" : "Voice dictation"}
+                >
+                  {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+                </button>
+              )}
+
               <textarea
                 ref={inputRef}
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
-                placeholder={placeholder}
+                placeholder={isListening ? "Listening... speak clearly" : placeholder}
                 className="flex-1 bg-transparent text-sm text-ink placeholder-muted-soft outline-none border-none resize-none pt-2.5 min-h-[40px] max-h-[120px]"
                 aria-label="Chat prompt"
                 rows={1}
@@ -307,7 +405,7 @@ export default function ChatInterface({
                   ref={inputRef}
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
-                  placeholder={placeholder}
+                  placeholder={isListening ? "Listening... speak clearly" : placeholder}
                   className="w-full resize-none bg-transparent text-[15px] text-ink placeholder-muted-soft outline-none border-none pt-1.5 min-h-[44px]"
                   aria-label="Chat prompt"
                   rows={1}
@@ -319,6 +417,22 @@ export default function ChatInterface({
                     }
                   }}
                 />
+
+                {/* Voice button in standard prompt */}
+                {voiceSupported && (
+                  <button
+                    type="button"
+                    onClick={handleToggleVoice}
+                    className={`mt-1.5 p-1.5 rounded-full transition-colors shrink-0 ${
+                      isListening
+                        ? "bg-rose-100 text-rose-500 animate-pulse"
+                        : "text-muted hover:text-ink hover:bg-canvas-soft"
+                    }`}
+                    title={isListening ? "Stop voice dictation" : "Voice dictation"}
+                  >
+                    {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
+                )}
 
                 {/* Submit Pill button */}
                 <button
@@ -406,6 +520,18 @@ export default function ChatInterface({
           </div>
         </div>
       ) : null}
+
+      <ChatHistoryDrawer
+        open={historyDrawerOpen}
+        onClose={() => setHistoryDrawerOpen(false)}
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={selectSession}
+        onNewChat={createNewSession}
+        onRenameSession={renameSession}
+        onDeleteSession={deleteSession}
+        loading={sessionsLoading}
+      />
     </div>
   );
 }
