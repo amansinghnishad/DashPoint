@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 import { ArrowRight, Globe, History, Mic, MicOff, Paperclip, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ChatHistoryDrawer from "./components/ChatHistoryDrawer";
-=======
-import { Paperclip, Globe, ArrowRight, Sparkles } from "lucide-react";
-import { useRef, useState, useEffect, useMemo } from "react";
-
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 import ChatMessageBubble from "./components/ChatMessageBubble";
 import useDashboardChatController from "./hooks/useDashboardChatController";
 import useVoiceRecognition from "../../hooks/useVoiceRecognition";
@@ -184,15 +178,6 @@ export default function ChatInterface({
               </button>
             </div>
           </div>
-<<<<<<< HEAD
-
-=======
-          <h2 className="font-waldenburg-light text-4xl text-ink tracking-tight mb-2">AI Chat</h2>
-          <p className="text-muted text-xs leading-relaxed max-w-2xl">
-            Engage with DashPoint's intelligence layer through natural dialogue. Synthesize
-            research, generate summaries, and explore your collections with voice-AI precision.
-          </p>
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
         </div>
       ) : null}
 

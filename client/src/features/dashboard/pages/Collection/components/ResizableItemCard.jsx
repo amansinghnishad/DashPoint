@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   FileText,
   Image,
@@ -8,9 +7,6 @@ import {
   Move,
   Youtube,
 } from "lucide-react";
-=======
-import { FileText, Image, Trash2, Edit2, LayoutGrid, Move, Youtube } from "lucide-react";
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 import { useEffect, useState } from "react";
 
 import PlannerWidgetBody from "./plannerWidgets/PlannerWidgetBody";

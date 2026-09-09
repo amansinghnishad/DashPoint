@@ -24,17 +24,9 @@ export default function Footer({ embedded = false }) {
   const borderStyle = "border-hairline/60";
 
   return (
-<<<<<<< HEAD
     <footer className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
       embedded ? "bg-transparent" : "bg-canvas text-ink border-t border-hairline/60"
     }`}>
-=======
-    <footer
-      className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
-        embedded ? "bg-transparent" : "bg-neutral-950 text-white border-t border-white/10"
-      }`}
-    >
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
       {!embedded && (
         <InteractiveLines
           backgroundColor={isDark ? "#0c0a09" : "#f5f5f5"}

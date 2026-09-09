@@ -39,27 +39,6 @@ export default function CollectionsHomeView({
 }) {
   return (
     <section className="w-full max-w-[1024px] mx-auto py-4 relative">
-<<<<<<< HEAD
-=======
-      {/* Breadcrumbs matching the screenshot */}
-      <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium mb-3 select-none">
-        <span className="opacity-70">Dashboard</span>
-        <span className="opacity-30">&gt;</span>
-        <span className="opacity-70 font-semibold text-ink">Collections</span>
-      </div>
-
-      {/* Main serif Heading & Subtitle */}
-      <div className="mb-10 min-w-0">
-        <h2 className="font-waldenburg-light text-5xl text-ink leading-tight mb-4 select-none">
-          Collections
-        </h2>
-        <p className="text-body text-[15px] leading-relaxed max-w-[640px] select-none">
-          {headerSubtitle ||
-            "Organize your intelligence layer into refined clusters. Manage projects, research journals, and media libraries with precise editorial control."}
-        </p>
-      </div>
-
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
       {/* Create Collection Modal */}
       <Modal
         open={isCreateOpen}

@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 
-<<<<<<< HEAD
 import {
   IconClose,
   IconDownload,
@@ -9,9 +8,6 @@ import {
   Sun,
   Moon,
 } from "@/shared/ui/icons/icons";
-=======
-import { IconClose, IconDownload, LogOut, Settings, Sun, Moon } from "@/shared/ui/icons/icons";
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 
 const getSidebarDisplayName = (user) => {
   const username = String(user?.username || "").trim();

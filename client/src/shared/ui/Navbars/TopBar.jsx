@@ -28,13 +28,9 @@ export default function TopBar() {
   return (
     <nav
       className={`fixed top-0 w-full z-50 flex justify-between items-center transition-all duration-500 px-xl md:px-xxl ${
-<<<<<<< HEAD
         isScrolled
           ? "bg-canvas/85 backdrop-blur-xl h-16 border-b border-hairline/80 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
           : "h-20"
-=======
-        isScrolled ? "bg-canvas/80 backdrop-blur-lg h-16 border-b border-hairline" : "h-20"
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
       }`}
     >
       <div className="flex items-center gap-xl">

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useRef, useState } from "react";
-=======
-import { useState, useRef } from "react";
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
@@ -168,22 +164,10 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 {/* Center Play Button Overlay */}
-<<<<<<< HEAD
                 <div className={`absolute flex flex-col items-center gap-1.5 sm:gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
                   <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
                     {/* Play Icon */}
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-neutral-900 fill-current translate-x-0.5" viewBox="0 0 24 24">
-=======
-                <div
-                  className={`absolute flex flex-col items-center gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
-                    {/* Play Icon */}
-                    <svg
-                      className="w-6 h-6 text-neutral-900 fill-current translate-x-0.5"
-                      viewBox="0 0 24 24"
-                    >
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
@@ -198,23 +182,8 @@ export default function LandingPage() {
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 bg-ink text-canvas px-3 py-1 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg border border-neutral-800/20 hover:bg-neutral-900 transition-all z-10 flex items-center gap-1 sm:gap-2 group-hover:scale-105 duration-300"
                 >
                   <span>Get Started</span>
-<<<<<<< HEAD
                   <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 text-canvas transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-=======
-                  <svg
-                    className="w-3.5 h-3.5 text-canvas transition-transform group-hover:translate-x-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                    />
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </svg>
                 </Link>
               </div>
@@ -251,12 +220,7 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">AI Chat Assistant</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-<<<<<<< HEAD
                     Conversational RAG with real-time SSE token streaming, memory context, and multi-tier model routing. Try clicking the prompt suggestions in the live demo.
-=======
-                    Conversational RAG (Retrieval-Augmented Generation) with direct tool-calling
-                    capabilities to interact with your data in real-time.
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -284,12 +248,7 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">Smart Calendar</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-<<<<<<< HEAD
                     AI-assisted scheduling with smart interval merging and Google Calendar bidirectional sync. Click timetable chips to mark tasks complete.
-=======
-                    AI-assisted scheduling and planning that understands your context, availability,
-                    and energy levels automatically.
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -311,12 +270,7 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">Unified Canvas</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
-<<<<<<< HEAD
                     Combine interactive todo lists, audio dictation waveforms, and video transcript insights in one focused workspace.
-=======
-                    Access YouTube videos, research files, and meeting notes in one unified,
-                    intelligent interface designed for pure focus.
->>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
