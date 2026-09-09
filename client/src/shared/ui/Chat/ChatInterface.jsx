@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import { ArrowRight, Globe, History, Mic, MicOff, Paperclip, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import ChatHistoryDrawer from "./components/ChatHistoryDrawer";
+=======
+import { Paperclip, Globe, ArrowRight, Sparkles } from "lucide-react";
+import { useRef, useState, useEffect, useMemo } from "react";
+
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 import ChatMessageBubble from "./components/ChatMessageBubble";
 import useDashboardChatController from "./hooks/useDashboardChatController";
 import useVoiceRecognition from "../../hooks/useVoiceRecognition";
@@ -136,7 +142,8 @@ export default function ChatInterface({
           <div
             className="absolute inset-0 opacity-40"
             style={{
-              background: "radial-gradient(circle at 50% 20%, rgba(200, 184, 224, 0.15) 0%, transparent 60%)",
+              background:
+                "radial-gradient(circle at 50% 20%, rgba(200, 184, 224, 0.15) 0%, transparent 60%)",
             }}
           />
         </div>
@@ -177,7 +184,15 @@ export default function ChatInterface({
               </button>
             </div>
           </div>
+<<<<<<< HEAD
 
+=======
+          <h2 className="font-waldenburg-light text-4xl text-ink tracking-tight mb-2">AI Chat</h2>
+          <p className="text-muted text-xs leading-relaxed max-w-2xl">
+            Engage with DashPoint's intelligence layer through natural dialogue. Synthesize
+            research, generate summaries, and explore your collections with voice-AI precision.
+          </p>
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
         </div>
       ) : null}
 
@@ -214,11 +229,14 @@ export default function ChatInterface({
         </div>
       )}
 
-      <div className={!isFloating ? "relative w-full max-w-[720px] mx-auto px-4 z-10 flex flex-col" : "w-full"}>
-        
+      <div
+        className={
+          !isFloating ? "relative w-full max-w-[720px] mx-auto px-4 z-10 flex flex-col" : "w-full"
+        }
+      >
         {/* Render Chat History */}
-        {hasMessages && (
-          showFullPageChatLayout ? (
+        {hasMessages &&
+          (showFullPageChatLayout ? (
             /* Focus Page Active History: Rendered directly on the canvas without card container */
             <div className="space-y-4 mb-6 w-full max-h-[54vh] overflow-y-auto pr-1 scrollbar-thin">
               {messages.map((entry) => (
@@ -238,8 +256,7 @@ export default function ChatInterface({
                 <div ref={scrollAnchorRef} />
               </div>
             </div>
-          )
-        )}
+          ))}
 
         {/* Input container wrapper */}
         <div className="relative w-full">
@@ -251,11 +268,17 @@ export default function ChatInterface({
               </div>
               <div className="max-h-[200px] overflow-y-auto space-y-0.5">
                 {collectionsLoading ? (
-                  <div className="px-3 py-2 text-xs text-muted font-medium">Loading collections...</div>
+                  <div className="px-3 py-2 text-xs text-muted font-medium">
+                    Loading collections...
+                  </div>
                 ) : collectionsError ? (
-                  <div className="px-3 py-2 text-xs text-semantic-error font-semibold">{collectionsError}</div>
+                  <div className="px-3 py-2 text-xs text-semantic-error font-semibold">
+                    {collectionsError}
+                  </div>
                 ) : !collections.length ? (
-                  <div className="px-3 py-2 text-xs text-muted font-medium">No collections found</div>
+                  <div className="px-3 py-2 text-xs text-muted font-medium">
+                    No collections found
+                  </div>
                 ) : (
                   collections.map((c) => {
                     const selected = selectedCollectionIds.includes(c.id);
@@ -267,7 +290,9 @@ export default function ChatInterface({
                         className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left text-xs font-semibold text-ink hover:bg-canvas-soft transition-colors"
                       >
                         <span className="truncate flex-1 pr-1">{c.name}</span>
-                        {selected && <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
+                        {selected && (
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                        )}
                       </button>
                     );
                   })
@@ -297,9 +322,17 @@ export default function ChatInterface({
                 Select Model Provider
               </div>
               {[
-                { value: "auto", label: "Auto Router (recommended)", desc: "Dynamically routes prompts to fastest engine" },
-                { value: "gemini", label: "Google Gemini", desc: "Optimized for large context reasoning" },
-                { value: "openai", label: "OpenAI GPT", desc: "Best for coding & rapid responses" }
+                {
+                  value: "auto",
+                  label: "Auto Router (recommended)",
+                  desc: "Dynamically routes prompts to fastest engine",
+                },
+                {
+                  value: "gemini",
+                  label: "Google Gemini",
+                  desc: "Optimized for large context reasoning",
+                },
+                { value: "openai", label: "OpenAI GPT", desc: "Best for coding & rapid responses" },
               ].map((opt) => {
                 const isActive = opt.value === provider;
                 return (
@@ -314,7 +347,9 @@ export default function ChatInterface({
                   >
                     <div className="min-w-0 flex-1">
                       <span className="block font-bold">{opt.label}</span>
-                      <span className="block text-[9px] text-muted-soft mt-0.5 leading-snug">{opt.desc}</span>
+                      <span className="block text-[9px] text-muted-soft mt-0.5 leading-snug">
+                        {opt.desc}
+                      </span>
                     </div>
                     {isActive && <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
                   </button>
@@ -384,7 +419,7 @@ export default function ChatInterface({
                 <span className="text-[11px] text-muted-soft font-medium hidden sm:inline">
                   Tip: Press <span className="font-bold">CMD + Enter</span>
                 </span>
-                
+
                 <button
                   type="submit"
                   disabled={isSending || !sanitizedDraftMessage || openAiComingSoon}
@@ -479,9 +514,13 @@ export default function ChatInterface({
 
                 <div className="flex items-center gap-1 text-muted-soft select-none font-medium">
                   <span>Tip: Press</span>
-                  <kbd className="border border-hairline bg-canvas px-1 rounded text-[10px] font-mono">⌘</kbd>
+                  <kbd className="border border-hairline bg-canvas px-1 rounded text-[10px] font-mono">
+                    ⌘
+                  </kbd>
                   <span>+</span>
-                  <kbd className="border border-hairline bg-canvas px-1 rounded text-[10px] font-mono">Enter</kbd>
+                  <kbd className="border border-hairline bg-canvas px-1 rounded text-[10px] font-mono">
+                    Enter
+                  </kbd>
                 </div>
               </div>
             </div>
@@ -513,11 +552,12 @@ export default function ChatInterface({
       {showEmptyStateDetails && isEmptyState ? (
         <div className="absolute bottom-4 left-0 right-0 hidden md:flex justify-between items-center w-full px-8 py-6 select-none opacity-60 z-0">
           <div className="text-xs text-muted-soft tracking-wider font-medium font-waldenburg-light">
-            DashPoint <span className="text-[10px] font-sans font-semibold tracking-[0.2em] ml-1.5 opacity-60">INTELLIGENCE</span>
+            DashPoint{" "}
+            <span className="text-[10px] font-sans font-semibold tracking-[0.2em] ml-1.5 opacity-60">
+              INTELLIGENCE
+            </span>
           </div>
-          <div className="text-[11px] text-muted-soft font-mono">
-            v2.4.0-release.edtn
-          </div>
+          <div className="text-[11px] text-muted-soft font-mono">v2.4.0-release.edtn</div>
         </div>
       ) : null}
 

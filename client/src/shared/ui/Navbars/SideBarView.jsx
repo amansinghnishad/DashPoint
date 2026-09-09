@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 
+<<<<<<< HEAD
 import {
   IconClose,
   IconDownload,
@@ -8,6 +9,9 @@ import {
   Sun,
   Moon,
 } from "@/shared/ui/icons/icons";
+=======
+import { IconClose, IconDownload, LogOut, Settings, Sun, Moon } from "@/shared/ui/icons/icons";
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 
 const getSidebarDisplayName = (user) => {
   const username = String(user?.username || "").trim();
@@ -71,7 +75,9 @@ export default function SideBarView({
         <div className="flex flex-col h-full py-4">
           {/* Top Logo Icon */}
           <div className="px-4 mb-8 flex items-center justify-center relative">
-            <div className={`flex items-center w-full ${isExpanded ? "justify-between" : "justify-center"}`}>
+            <div
+              className={`flex items-center w-full ${isExpanded ? "justify-between" : "justify-center"}`}
+            >
               {isExpanded ? (
                 <Link
                   to="/"
@@ -86,10 +92,12 @@ export default function SideBarView({
                   className="w-10 h-10 rounded-xl bg-[#0c0a09] flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
                   onClick={onClose}
                 >
-                  <span className="font-waldenburg-light text-lg font-bold text-[#ffffff] tracking-tighter select-none">DP</span>
+                  <span className="font-waldenburg-light text-lg font-bold text-[#ffffff] tracking-tighter select-none">
+                    DP
+                  </span>
                 </Link>
               )}
-              
+
               {isOpen ? (
                 <button
                   type="button"
@@ -108,7 +116,7 @@ export default function SideBarView({
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-              
+
               const btnClass = isActive
                 ? "bg-ink text-canvas shadow-sm font-semibold"
                 : "text-muted hover:text-ink hover:bg-canvas-soft";
@@ -165,7 +173,9 @@ export default function SideBarView({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm truncate text-ink">{displayName}</p>
-                  <p className="text-xs truncate text-muted-soft">{user?.email || "user@example.com"}</p>
+                  <p className="text-xs truncate text-muted-soft">
+                    {user?.email || "user@example.com"}
+                  </p>
                 </div>
               </div>
             ) : (
@@ -182,13 +192,17 @@ export default function SideBarView({
             )}
 
             {/* Actions Stack */}
-            <div className={`flex ${isExpanded ? "flex-row gap-1.5" : "flex-col gap-2 items-center"}`}>
+            <div
+              className={`flex ${isExpanded ? "flex-row gap-1.5" : "flex-col gap-2 items-center"}`}
+            >
               {/* Theme Toggle Button */}
               <button
                 type="button"
                 onClick={toggleTheme}
                 className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
-                  isExpanded ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60" : "w-10 h-10"
+                  isExpanded
+                    ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60"
+                    : "w-10 h-10"
                 }`}
                 title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
@@ -204,7 +218,9 @@ export default function SideBarView({
                   onClose?.();
                 }}
                 className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
-                  isExpanded ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60" : "w-10 h-10"
+                  isExpanded
+                    ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60"
+                    : "w-10 h-10"
                 }`}
                 title="Settings"
               >
@@ -217,7 +233,9 @@ export default function SideBarView({
                 type="button"
                 onClick={logoutUser}
                 className={`flex items-center justify-center rounded-xl text-semantic-error hover:bg-semantic-error/10 transition-all duration-200 ${
-                  isExpanded ? "py-2 px-2 gap-1.5 text-xs font-semibold border border-semantic-error/20" : "w-10 h-10"
+                  isExpanded
+                    ? "py-2 px-2 gap-1.5 text-xs font-semibold border border-semantic-error/20"
+                    : "w-10 h-10"
                 }`}
                 title="Logout"
               >

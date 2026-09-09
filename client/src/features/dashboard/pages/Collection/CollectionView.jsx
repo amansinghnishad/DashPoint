@@ -194,7 +194,9 @@ export default function CollectionView({ collectionId, onBack }) {
               </button>
 
               <div className="min-w-0">
-                <p className="font-waldenburg-light text-lg font-bold text-ink leading-tight truncate">{title}</p>
+                <p className="font-waldenburg-light text-lg font-bold text-ink leading-tight truncate">
+                  {title}
+                </p>
                 <p className="text-muted text-xs font-semibold mt-0.5">
                   {loading ? "Loading..." : `${items.length} item${items.length === 1 ? "" : "s"}`}
                 </p>
@@ -280,6 +282,7 @@ export default function CollectionView({ collectionId, onBack }) {
             >
               {!loading && items.length > 0
                 ? items
+<<<<<<< HEAD
                   .map((it) => ({ key: getItemKey(it), item: it }))
                   .filter((x) => x.key)
                   .map(({ key, item }) => (
@@ -302,6 +305,26 @@ export default function CollectionView({ collectionId, onBack }) {
                       onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
                     />
                   ))
+=======
+                    .map((it) => ({ key: getItemKey(it), item: it }))
+                    .filter((x) => x.key)
+                    .map(({ key, item }) => (
+                      <ResizableItemCard
+                        key={key}
+                        item={item}
+                        containerRef={canvasSurfaceRef}
+                        viewportScale={viewportScale}
+                        layout={layoutsByItemKey[key]}
+                        onLayoutChange={(nextLayout) =>
+                          setLayoutsByItemKey((prev) => ({
+                            ...prev,
+                            [key]: nextLayout,
+                          }))
+                        }
+                        onDelete={() => setDeleteState((prev) => ({ ...prev, item }))}
+                      />
+                    ))
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                 : null}
             </div>
 

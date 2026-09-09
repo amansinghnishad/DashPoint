@@ -28,9 +28,7 @@ const fileService = {
   },
 
   addWebLink(payload) {
-    return getResponseData(
-      apiClient.post("/files/link", payload)
-    );
+    return getResponseData(apiClient.post("/files/link", payload));
   },
 
   getFileById(fileId) {

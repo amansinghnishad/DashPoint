@@ -124,7 +124,10 @@ export default function ContentInsightReviewModal({
             <p className="text-ink mb-2.5 text-sm font-semibold select-none">Key points</p>
             <ul className="space-y-2">
               {insight.keyPoints.map((point) => (
-                <li key={point} className="border border-hairline bg-surface-card rounded-xl px-4 py-2.5 text-sm text-ink leading-relaxed">
+                <li
+                  key={point}
+                  className="border border-hairline bg-surface-card rounded-xl px-4 py-2.5 text-sm text-ink leading-relaxed"
+                >
                   {point}
                 </li>
               ))}
@@ -166,7 +169,9 @@ export default function ContentInsightReviewModal({
                       className="mt-1 h-4 w-4 shrink-0"
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="text-ink block text-sm font-semibold leading-snug">{task.text}</span>
+                      <span className="text-ink block text-sm font-semibold leading-snug">
+                        {task.text}
+                      </span>
                       <span className="text-muted mt-1.5 flex flex-wrap items-center gap-2 text-xs font-medium">
                         <span className="inline-flex items-center gap-1">
                           <CheckSquare size={13} />
@@ -218,7 +223,9 @@ export default function ContentInsightReviewModal({
           </section>
         ) : null}
 
-        {insight.warning ? <p className="text-muted text-xs leading-normal select-none">{insight.warning}</p> : null}
+        {insight.warning ? (
+          <p className="text-muted text-xs leading-normal select-none">{insight.warning}</p>
+        ) : null}
       </div>
     </Modal>
   );

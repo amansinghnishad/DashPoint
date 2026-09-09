@@ -32,7 +32,9 @@ export default function PlannerNotesCard({ widget }) {
         placeholder="Write notes..."
         className="bg-canvas border border-hairline text-ink w-full flex-1 resize-none rounded-xl px-3 py-2 text-sm outline-none placeholder:text-muted/65"
       />
-      <div className="text-muted text-[10px] font-bold uppercase tracking-wider shrink-0 pl-1">Autosaved</div>
+      <div className="text-muted text-[10px] font-bold uppercase tracking-wider shrink-0 pl-1">
+        Autosaved
+      </div>
     </div>
   );
 }

@@ -160,12 +160,27 @@ export default function DashboardPage() {
       case "calendar":
         return <CalendarPage />;
       case "youtube":
-        return <YoutubePage triggerRef={createCollectionTriggerRef} searchTriggerRef={searchTriggerRef} />;
+        return (
+          <YoutubePage
+            triggerRef={createCollectionTriggerRef}
+            searchTriggerRef={searchTriggerRef}
+          />
+        );
       case "files":
-        return <FileManagerPage triggerRef={createCollectionTriggerRef} searchTriggerRef={searchTriggerRef} />;
+        return (
+          <FileManagerPage
+            triggerRef={createCollectionTriggerRef}
+            searchTriggerRef={searchTriggerRef}
+          />
+        );
       case "collections":
       default:
-        return <CollectionsHome onOpenCollection={onOpenCollection} triggerRef={createCollectionTriggerRef} />;
+        return (
+          <CollectionsHome
+            onOpenCollection={onOpenCollection}
+            triggerRef={createCollectionTriggerRef}
+          />
+        );
     }
   }, [onOpenCollection, uiState.activeTab, createCollectionTriggerRef, searchTriggerRef]);
 
@@ -208,13 +223,19 @@ export default function DashboardPage() {
                   <IconMenu size={16} className="text-ink" />
                 </button>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-soft font-semibold uppercase tracking-[0.06em]">Dashboard</p>
-                  <h1 className="text-xl font-bold text-ink tracking-tight mt-0.5">{currentSectionLabel}</h1>
+                  <p className="text-xs text-muted-soft font-semibold uppercase tracking-[0.06em]">
+                    Dashboard
+                  </p>
+                  <h1 className="text-xl font-bold text-ink tracking-tight mt-0.5">
+                    {currentSectionLabel}
+                  </h1>
                 </div>
               </div>
 
               <div className="flex min-w-0 items-center gap-4">
-                {(uiState.activeTab === "collections" || uiState.activeTab === "youtube" || uiState.activeTab === "files") ? (
+                {uiState.activeTab === "collections" ||
+                uiState.activeTab === "youtube" ||
+                uiState.activeTab === "files" ? (
                   <>
                     <div className="hidden sm:block">
                       {uiState.activeTab === "collections" ? (
@@ -232,7 +253,11 @@ export default function DashboardPage() {
                               setYtSearch(e.target.value);
                               searchTriggerRef.current?.(e.target.value);
                             }}
-                            placeholder={uiState.activeTab === "youtube" ? "Search YouTube..." : "Search files..."}
+                            placeholder={
+                              uiState.activeTab === "youtube"
+                                ? "Search YouTube..."
+                                : "Search files..."
+                            }
                             className="min-w-0 flex-1 bg-transparent text-[13px] outline-none text-ink placeholder:text-muted-soft"
                           />
                         </div>
@@ -241,7 +266,10 @@ export default function DashboardPage() {
 
                     {/* Clock time and Action button matching the screenshot */}
                     <div className="flex items-center gap-4">
-                      <Clock showSeconds={true} className="border-none bg-transparent shadow-none p-0 text-sm font-medium tabular-nums text-muted-soft hidden md:block" />
+                      <Clock
+                        showSeconds={true}
+                        className="border-none bg-transparent shadow-none p-0 text-sm font-medium tabular-nums text-muted-soft hidden md:block"
+                      />
                       <button
                         type="button"
                         onClick={() => createCollectionTriggerRef.current?.()}
@@ -271,7 +299,9 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: true })}
+                        onClick={() =>
+                          dispatchUi({ type: "SET_NOTIFICATIONS_OPEN", payload: true })
+                        }
                         className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-canvas-soft transition-colors relative"
                         aria-label="Notifications"
                       >
@@ -346,8 +376,11 @@ export default function DashboardPage() {
           <div className="border border-hairline bg-surface-card rounded-2xl p-4">
             <p className="text-ink text-sm font-semibold">Fast navigation</p>
             <p className="text-muted mt-1 text-sm">
-              Press <kbd className="border border-hairline rounded-md px-1.5 py-0.5 bg-canvas-soft">?</kbd> any time on
-              the dashboard to review app shortcuts.
+              Press{" "}
+              <kbd className="border border-hairline rounded-md px-1.5 py-0.5 bg-canvas-soft">
+                ?
+              </kbd>{" "}
+              any time on the dashboard to review app shortcuts.
             </p>
           </div>
           <div className="border border-hairline bg-surface-card rounded-2xl p-4">

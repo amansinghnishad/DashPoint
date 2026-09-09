@@ -86,7 +86,9 @@ export default function PlannerTodoListCard({ widget }) {
                         />
                       ) : (
                         <div className="min-w-0 flex-1 ml-1.5">
-                          <div className={`text-ink truncate text-sm font-semibold ${it.done ? "line-through opacity-50" : ""}`}>
+                          <div
+                            className={`text-ink truncate text-sm font-semibold ${it.done ? "line-through opacity-50" : ""}`}
+                          >
                             {(it.text || "").trim() || "(Untitled)"}
                           </div>
                           <div className="text-muted-soft text-[10px] font-bold uppercase tracking-wider mt-0.5">

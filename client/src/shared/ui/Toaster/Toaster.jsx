@@ -33,7 +33,7 @@ export default function Toaster() {
     if (!toasts.length) return;
 
     const timers = toasts.map((t) =>
-      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000)
+      window.setTimeout(() => removeToast(t.id), t.duration ?? 4000),
     );
 
     return () => timers.forEach((id) => window.clearTimeout(id));

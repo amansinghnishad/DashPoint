@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useRef, useState } from "react";
+=======
+import { useState, useRef } from "react";
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
 import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
@@ -21,7 +25,7 @@ export default function LandingPage() {
     const p1 = videoRef1.current?.play();
     const p2 = videoRef2.current?.play();
     const p3 = videoRef3.current?.play();
-    Promise.all([p1, p2, p3]).catch(() => { });
+    Promise.all([p1, p2, p3]).catch(() => {});
   };
 
   const handleMouseLeave = () => {
@@ -54,7 +58,8 @@ export default function LandingPage() {
             <div
               className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1100px] h-[900px] rounded-full"
               style={{
-                background: "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
+                background:
+                  "linear-gradient(to bottom, rgba(254, 215, 170, 0.9), rgba(253, 186, 116, 0.4), transparent)",
                 filter: "blur(90px)",
                 WebkitFilter: "blur(90px)",
               }}
@@ -63,7 +68,8 @@ export default function LandingPage() {
             <div
               className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[850px] h-[850px] rounded-full"
               style={{
-                background: "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
+                background:
+                  "radial-gradient(circle, rgba(249, 145, 73, 0.25) 0%, rgba(253, 186, 116, 0.1) 50%, transparent 80%)",
                 filter: "blur(120px)",
                 WebkitFilter: "blur(120px)",
               }}
@@ -72,7 +78,8 @@ export default function LandingPage() {
             <div
               className="absolute inset-0"
               style={{
-                background: "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
+                background:
+                  "radial-gradient(circle at center, transparent 30%, var(--dp-bg, #f5f5f5) 95%)",
               }}
             />
             <KineticGrid
@@ -161,10 +168,22 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
 
                 {/* Center Play Button Overlay */}
+<<<<<<< HEAD
                 <div className={`absolute flex flex-col items-center gap-1.5 sm:gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}>
                   <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
                     {/* Play Icon */}
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-neutral-900 fill-current translate-x-0.5" viewBox="0 0 24 24">
+=======
+                <div
+                  className={`absolute flex flex-col items-center gap-3 transition-all duration-500 ${isPlaying ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"}`}
+                >
+                  <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-md shadow-lg flex items-center justify-center border border-white/40 transition-transform duration-300 group-hover:scale-110">
+                    {/* Play Icon */}
+                    <svg
+                      className="w-6 h-6 text-neutral-900 fill-current translate-x-0.5"
+                      viewBox="0 0 24 24"
+                    >
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
@@ -179,8 +198,23 @@ export default function LandingPage() {
                   className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:bottom-6 md:right-6 bg-ink text-canvas px-3 py-1 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg border border-neutral-800/20 hover:bg-neutral-900 transition-all z-10 flex items-center gap-1 sm:gap-2 group-hover:scale-105 duration-300"
                 >
                   <span>Get Started</span>
+<<<<<<< HEAD
                   <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 text-canvas transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+=======
+                  <svg
+                    className="w-3.5 h-3.5 text-canvas transition-transform group-hover:translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                    />
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </svg>
                 </Link>
               </div>
@@ -217,7 +251,12 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">AI Chat Assistant</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
+<<<<<<< HEAD
                     Conversational RAG with real-time SSE token streaming, memory context, and multi-tier model routing. Try clicking the prompt suggestions in the live demo.
+=======
+                    Conversational RAG (Retrieval-Augmented Generation) with direct tool-calling
+                    capabilities to interact with your data in real-time.
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -245,7 +284,12 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">Smart Calendar</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
+<<<<<<< HEAD
                     AI-assisted scheduling with smart interval merging and Google Calendar bidirectional sync. Click timetable chips to mark tasks complete.
+=======
+                    AI-assisted scheduling and planning that understands your context, availability,
+                    and energy levels automatically.
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -267,7 +311,12 @@ export default function LandingPage() {
                     <h3 className="font-waldenburg-light text-3xl">Unified Canvas</h3>
                   </div>
                   <p className="text-base text-on-surface-variant leading-relaxed mb-8">
+<<<<<<< HEAD
                     Combine interactive todo lists, audio dictation waveforms, and video transcript insights in one focused workspace.
+=======
+                    Access YouTube videos, research files, and meeting notes in one unified,
+                    intelligent interface designed for pure focus.
+>>>>>>> cf88124a26c6d999d7cc19fe6ca10b9a2e307dfd
                   </p>
                   <Link
                     to={APP_ROUTES.REGISTER}
@@ -294,7 +343,8 @@ export default function LandingPage() {
               <span className="font-waldenburg-light text-7xl text-ink/20 opacity-40">99</span>
             </div>
             <p className="font-waldenburg-light text-3xl md:text-5xl leading-tight text-ink italic mb-10">
-              "The future of work isn't just about speed; it's about the precision of your articulation."
+              "The future of work isn't just about speed; it's about the precision of your
+              articulation."
             </p>
             <p className="text-[12px] font-semibold tracking-[0.2em] text-on-surface-variant uppercase">
               — DASHPOINT MANIFESTO
@@ -308,9 +358,12 @@ export default function LandingPage() {
             <div className="bg-neutral-900 border border-neutral-800 text-white p-12 md:p-24 rounded-[40px] relative overflow-hidden group shadow-xl">
               <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <h2 className="font-waldenburg-light text-4xl mb-6 text-white">Engineered for Convenience</h2>
+                  <h2 className="font-waldenburg-light text-4xl mb-6 text-white">
+                    Engineered for Convenience
+                  </h2>
                   <p className="text-neutral-300 text-lg leading-relaxed">
-                    Automate the routine, organize the chaos, and execute without hesitation. Experience a platform built to keep you in deep focus, anywhere, anytime.
+                    Automate the routine, organize the chaos, and execute without hesitation.
+                    Experience a platform built to keep you in deep focus, anywhere, anytime.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-8 lg:justify-end">
@@ -341,7 +394,8 @@ export default function LandingPage() {
               Ready to streamline?
             </h2>
             <p className="text-lg text-on-surface-variant mb-16 max-w-[576px] mx-auto">
-              Join the next generation of productive teams who articulate their vision through DashPoint.
+              Join the next generation of productive teams who articulate their vision through
+              DashPoint.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-8">
               <Link
