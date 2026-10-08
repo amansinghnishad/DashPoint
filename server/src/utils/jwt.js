@@ -74,15 +74,10 @@ const extractTokenFromHeader = (authHeader) => {
   return parts[1];
 };
 
-// Extract access token from header or cookie
+// Access tokens stay in memory on the client and travel in the Authorization header.
 const extractAccessToken = (req) => {
   const headerToken = extractTokenFromHeader(req.headers?.authorization);
   if (headerToken) return headerToken;
-
-  if (req.cookies && req.cookies[COOKIE_ACCESS_NAME]) {
-    return req.cookies[COOKIE_ACCESS_NAME];
-  }
-
   return null;
 };
 
@@ -114,11 +109,9 @@ const getCookieOptions = (maxAgeMs) => {
   };
 };
 
-const setAuthCookies = (res, { accessToken, refreshToken }) => {
-  if (accessToken) {
-    res.cookie(COOKIE_ACCESS_NAME, accessToken, getCookieOptions(15 * 60 * 1000)); // 15 minutes
-  }
-
+const setAuthCookies = (res, { refreshToken }) => {
+  // Access tokens are returned in the response and kept in client memory.
+  // Only the refresh token is stored in an HttpOnly cookie.
   if (refreshToken) {
     res.cookie(COOKIE_REFRESH_NAME, refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days
   }

@@ -1,6 +1,36 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { domainToASCII } = require('url');
+
+const isValidEmail = (value) => {
+  if (typeof value !== 'string' || value.length > 254) return false;
+  const atIndex = value.indexOf('@');
+  if (atIndex < 1 || atIndex !== value.lastIndexOf('@')) return false;
+
+  const localPart = value.slice(0, atIndex);
+  const domain = domainToASCII(value.slice(atIndex + 1));
+  if (!localPart || localPart.length > 64 || !domain || !domain.includes('.')) return false;
+  if (/\s/.test(value)) return false;
+
+  return domain.split('.').every((label) => {
+    if (
+      label.length === 0 ||
+      label.length > 63 ||
+      label[0] === '-' ||
+      label[label.length - 1] === '-'
+    ) {
+      return false;
+    }
+    for (const character of label) {
+      const code = character.charCodeAt(0);
+      const isLowercaseLetter = code >= 97 && code <= 122;
+      const isDigit = code >= 48 && code <= 57;
+      if (!isLowercaseLetter && !isDigit && character !== '-') return false;
+    }
+    return true;
+  });
+};
 
 const userSchema = new mongoose.Schema({
   authProvider: {
@@ -10,7 +40,7 @@ const userSchema = new mongoose.Schema({
   },
   googleId: {
     type: String,
-    default: null
+    default: undefined
   },
   username: {
     type: String,
@@ -25,7 +55,10 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Email is required'],
     lowercase: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+    validate: {
+      validator: isValidEmail,
+      message: 'Please provide a valid email'
+    }
   },
   password: {
     type: String,
@@ -277,7 +310,14 @@ const userSchema = new mongoose.Schema({
 // Index definitions - using explicit index() calls for better control
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+userSchema.index(
+  { googleId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { googleId: { $type: 'string' } },
+    name: 'googleId_string_unique'
+  }
+);
 userSchema.index({ createdAt: -1 });
 
 // Virtual for full name

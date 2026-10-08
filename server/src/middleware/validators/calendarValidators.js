@@ -22,10 +22,10 @@ const scheduleValidation = [
     .withMessage('conflictStrategy must be one of: auto, split, shorten, next-window'),
   body('minSessionMinutes').optional().isInt({ min: 5, max: 240 }),
   body('maxSplitParts').optional().isInt({ min: 1, max: 24 }),
-  body('allowLightPractice').optional().isBoolean(),
+  body('allowLightPractice').optional().isBoolean().toBoolean(),
   body('searchDays').optional().isInt({ min: 0, max: 60 }),
   body('calendarId').optional().isString().isLength({ max: 256 }),
-  body('createEvents').optional().isBoolean(),
+  body('createEvents').optional().isBoolean().toBoolean(),
   body('dashpointType').optional().isString().isLength({ max: 50 }),
   body('dashpointColor').optional().isString().isLength({ max: 30 })
 ];

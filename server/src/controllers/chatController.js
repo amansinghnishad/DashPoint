@@ -1,4 +1,5 @@
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 
 const { runChat } = require('../services/chatService');
 const { saveChatTurn } = require('../services/chatHistoryService');
@@ -178,8 +179,15 @@ exports.approveActionItems = async (req, res, next) => {
 
     const userId = req.user._id;
     const { approvedItems, collectionId, title } = req.body;
+    if (!mongoose.isObjectIdOrHexString(collectionId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'collectionId must be a valid MongoDB id'
+      });
+    }
+    const normalizedCollectionId = new mongoose.Types.ObjectId(collectionId);
 
-    const collection = await Collection.findOne({ _id: collectionId, userId });
+    const collection = await Collection.findOne({ _id: normalizedCollectionId, userId });
     if (!collection) {
       return res.status(404).json({
         success: false,

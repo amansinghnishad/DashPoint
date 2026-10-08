@@ -88,9 +88,12 @@ const saveChatTurn = async ({
 };
 
 const getRecentSessionMessages = async ({ userId, sessionId, limit = 12 }) => {
-  if (!sessionId || !mongoose.isValidObjectId(sessionId)) return [];
+  if (!mongoose.isObjectIdOrHexString(sessionId)) return [];
+  const normalizedSessionId = new mongoose.Types.ObjectId(sessionId);
 
-  const session = await ChatSession.findOne({ _id: sessionId, userId }).select('_id').lean();
+  const session = await ChatSession.findOne({ _id: normalizedSessionId, userId })
+    .select('_id')
+    .lean();
   if (!session) return [];
 
   return ChatMessage.find({ sessionId: session._id, userId })

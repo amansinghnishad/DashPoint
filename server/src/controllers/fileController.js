@@ -1,4 +1,5 @@
 const File = require('../models/File');
+const ContentInsight = require('../models/ContentInsight');
 const Collection = require('../models/Collection');
 const PlannerWidget = require('../models/PlannerWidget');
 const path = require('path');
@@ -6,6 +7,7 @@ const fsSync = require('fs');
 const fs = require('fs').promises;
 const axios = require('axios');
 const { cloudinary, uploadBuffer, destroyAsset } = require('../utils/cloudinary');
+const { getUploadLimits } = require('../middleware/upload');
 const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
 const {
   summarizePdfBuffer,
@@ -19,26 +21,27 @@ const {
 // Get all files for a user
 const getFiles = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      search = '',
-      category = '',
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      starred = false
-    } = req.query;
+    const requestedPage = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const search = String(req.query.search || '').trim().slice(0, 100);
+    const category = String(req.query.category || '').toLowerCase();
+    const allowedSortFields = new Set(['createdAt', 'originalName', 'size', 'mimetype']);
+    const requestedSort = String(req.query.sortBy || 'createdAt');
+    const sortBy = allowedSortFields.has(requestedSort) ? requestedSort : 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 'asc' : 'desc';
+    const starred = req.query.starred === 'true';
 
     const query = { userId: req.user.id };
 
     // Add search filter
     if (search) {
-      query.originalName = { $regex: search, $options: 'i' };
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.originalName = { $regex: escapedSearch, $options: 'i' };
     }
 
     // Add category filter
     if (category) {
-      switch (category.toLowerCase()) {
+      switch (category) {
         case 'image':
           query.mimetype = { $regex: '^image/', $options: 'i' };
           break;
@@ -61,20 +64,22 @@ const getFiles = async (req, res) => {
     }
 
     // Add starred filter
-    if (starred === 'true') {
+    if (starred) {
       query.isStarred = true;
     }
 
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
+    const total = await File.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+    const page = Math.min(requestedPage, Math.max(totalPages, 1));
+
     const files = await File.find(query)
       .sort(sortOptions)
-      .limit(limit * 1)
+      .limit(limit)
       .skip((page - 1) * limit)
       .lean();
-
-    const total = await File.countDocuments(query);
 
     // Add formatted size and category to each file
     const filesWithMeta = files.map(file => ({
@@ -86,7 +91,7 @@ const getFiles = async (req, res) => {
       data: filesWithMeta,
       pagination: {
         current: parseInt(page),
-        total: Math.ceil(total / limit),
+        total: totalPages,
         count: total
       }
     });
@@ -98,72 +103,136 @@ const getFiles = async (req, res) => {
 
 // Upload files
 const uploadFiles = async (req, res) => {
+  const uploadedFiles = [];
+  const failures = [];
+  const insights = [];
+
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
+    const { maxTotalSize } = getUploadLimits();
+    const totalUploadSize = req.files.reduce((total, file) => total + (file.size || 0), 0);
+    if (totalUploadSize > maxTotalSize) {
+      return res.status(413).json({
+        error: `Combined upload size exceeds the ${Math.floor(maxTotalSize / (1024 * 1024))}MB limit.`
+      });
+    }
+
     const { tags, description } = req.body;
 
-    const uploadedFiles = [];
-    const insights = [];
-
     for (const file of req.files) {
-      if (!file.buffer) {
-        return res.status(400).json({ error: 'Upload is misconfigured (missing file buffer).' });
-      }
+      let uploadedAsset = null;
+      let savedFile = null;
+      const insightCountBeforeFile = insights.length;
 
-      const baseFolder = process.env.CLOUDINARY_FOLDER || 'dashpoint';
-      const folder = `${baseFolder}/users/${req.user.id}`;
-
-      const isPdf = file.mimetype === 'application/pdf' || (file.originalname || '').toLowerCase().endsWith('.pdf');
-      const resourceType = isPdf ? 'raw' : 'image';
-
-      const uploadResult = await uploadBuffer(file.buffer, {
-        folder,
-        resourceType,
-        tags: ['dashpoint', `user:${req.user.id}`]
-      });
-
-      const newFile = new File({
-        filename: uploadResult.public_id,
-        originalName: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        path: null,
-        url: uploadResult.secure_url,
-        storageProvider: 'cloudinary',
-        cloudinaryPublicId: uploadResult.public_id,
-        cloudinaryResourceType: uploadResult.resource_type,
-        cloudinaryAssetId: uploadResult.asset_id || null,
-        userId: req.user.id,
-        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-        description: description || ''
-      });
-
-      await newFile.save();
       try {
-        const insight = await createInsightForUploadedFile({
-          userId: req.user.id,
-          file: newFile,
-          buffer: file.buffer
-        });
-        if (insight) {
-          insights.push(serializeInsight(insight));
+        if (!file.buffer) {
+          throw new Error('Upload is misconfigured (missing file buffer).');
         }
-      } catch (insightError) {
-        console.warn('Automatic file insight extraction failed:', insightError.message);
+
+        const baseFolder = process.env.CLOUDINARY_FOLDER || 'dashpoint';
+        const folder = `${baseFolder}/users/${req.user.id}`;
+        const isPdf =
+          file.mimetype === 'application/pdf' ||
+          (file.originalname || '').toLowerCase().endsWith('.pdf');
+        const resourceType = isPdf ? 'raw' : 'image';
+
+        const uploadResult = await uploadBuffer(file.buffer, {
+          folder,
+          resourceType,
+          tags: ['dashpoint', `user:${req.user.id}`]
+        });
+        uploadedAsset = {
+          publicId: uploadResult.public_id,
+          resourceType: uploadResult.resource_type || resourceType
+        };
+
+        const newFile = new File({
+          filename: uploadResult.public_id,
+          originalName: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          path: null,
+          url: uploadResult.secure_url,
+          storageProvider: 'cloudinary',
+          cloudinaryPublicId: uploadResult.public_id,
+          cloudinaryResourceType: uploadResult.resource_type,
+          cloudinaryAssetId: uploadResult.asset_id || null,
+          userId: req.user.id,
+          tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+          description: description || ''
+        });
+
+        savedFile = newFile;
+        await newFile.save();
+        try {
+          const insight = await createInsightForUploadedFile({
+            userId: req.user.id,
+            file: newFile,
+            buffer: file.buffer
+          });
+          if (insight) {
+            insights.push(serializeInsight(insight));
+          }
+        } catch (insightError) {
+          console.warn('Automatic file insight extraction failed:', insightError.message);
+        }
+        uploadedFiles.push({
+          ...newFile.toObject(),
+          formattedSize: newFile.getFormattedSize(),
+          category: getFileCategory(newFile.mimetype)
+        });
+      } catch (error) {
+        insights.splice(insightCountBeforeFile);
+        if (savedFile?._id) {
+          const cleanupResults = await Promise.allSettled([
+            File.deleteOne({ _id: savedFile._id, userId: req.user.id }),
+            ContentInsight.deleteMany({
+              userId: req.user.id,
+              sourceType: 'file',
+              sourceId: String(savedFile._id)
+            })
+          ]);
+          cleanupResults
+            .filter((result) => result.status === 'rejected')
+            .forEach((result) => console.warn('Upload database cleanup failed:', result.reason?.message));
+        }
+        if (uploadedAsset) {
+          try {
+            await destroyAsset(uploadedAsset.publicId, uploadedAsset.resourceType);
+          } catch (cleanupError) {
+            console.warn('Cloudinary upload cleanup failed:', cleanupError.message);
+          }
+        }
+        failures.push({
+          fileName: file.originalname,
+          message: `Failed to upload ${file.originalname || 'file'}.`
+        });
+        console.error(`Upload failed for ${file.originalname || 'file'}:`, error);
       }
-      uploadedFiles.push({
-        ...newFile.toObject(),
-        formattedSize: newFile.getFormattedSize(),
-        category: getFileCategory(newFile.mimetype)
+    }
+
+    if (!uploadedFiles.length) {
+      return res.status(500).json({
+        success: false,
+        message: 'No files could be uploaded.',
+        data: [],
+        failures
       });
-    } res.status(201).json({
+    }
+
+    const partialFailure = failures.length > 0;
+    return res.status(partialFailure ? 207 : 201).json({
       success: true,
-      message: `${uploadedFiles.length} file(s) uploaded successfully`,
+      partialFailure,
+      message: partialFailure
+        ? `${uploadedFiles.length} file(s) uploaded; ${failures.length} failed.`
+        : `${uploadedFiles.length} file(s) uploaded successfully`,
       data: uploadedFiles,
-      insights
+      insights,
+      failures
     });
   } catch (error) {
     console.error('Error uploading files:', error);
@@ -178,7 +247,7 @@ const uploadFiles = async (req, res) => {
       return res.status(status).json({ error: error.message || 'Cloudinary upload failed' });
     }
 
-    res.status(500).json({ error: error?.message || 'Failed to upload files' });
+    return res.status(500).json({ error: error?.message || 'Failed to upload files' });
   }
 };
 
@@ -479,16 +548,16 @@ const previewFile = async (req, res) => {
 
     res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
     res.setHeader('Content-Type', file.mimetype || 'application/octet-stream');
-    if (typeof file.size === 'number' && file.size > 0) {
-      res.setHeader('Content-Length', String(file.size));
-    }
-
     // Stream from local disk for legacy local records.
     if (file.path) {
       try {
         await fs.access(file.path);
       } catch (error) {
         return res.status(404).json({ error: 'File not found on disk' });
+      }
+
+      if (typeof file.size === 'number' && file.size > 0) {
+        res.setHeader('Content-Length', String(file.size));
       }
 
       const stream = fsSync.createReadStream(path.resolve(file.path));
@@ -504,12 +573,19 @@ const previewFile = async (req, res) => {
       return;
     }
 
-    // Stream from Cloudinary/remote URL.
-    if (file.url) {
+    // Proxy only Cloudinary assets. Web links are rendered directly by the
+    // client; proxying arbitrary user-provided URLs would create an SSRF path.
+    if (file.storageProvider === 'cloudinary' && file.url) {
       try {
-        const upstream = await axios.get(file.url, {
+        const remoteUrl = new URL(file.url);
+        if (remoteUrl.protocol !== 'https:' || remoteUrl.hostname !== 'res.cloudinary.com') {
+          return res.status(400).json({ error: 'Unsupported remote preview URL' });
+        }
+
+        const upstream = await axios.get(remoteUrl.toString(), {
           responseType: 'stream',
-          timeout: 60000
+          timeout: 60000,
+          maxRedirects: 0
         });
 
         upstream.data.on('error', (streamError) => {
@@ -527,6 +603,12 @@ const previewFile = async (req, res) => {
         console.error('Error fetching preview file from remote URL:', error);
         return res.status(502).json({ error: 'Failed to fetch file content for preview' });
       }
+    }
+
+    if (file.url && file.mimetype === 'text/html') {
+      return res.status(400).json({
+        error: 'Web links must be opened directly and cannot be proxied through the API'
+      });
     }
 
     return res.status(404).json({ error: 'File has no storage path or URL' });

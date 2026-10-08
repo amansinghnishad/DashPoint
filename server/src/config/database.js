@@ -17,18 +17,9 @@ const connectDatabase = async () => {
       console.log('MongoDB disconnected');
     });
 
-    // Handle process termination
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed due to app termination');
-      process.exit(0);
-    });
-
   } catch (error) {
     console.error('Database connection failed:', error.message);
-    if (process.env.NODE_ENV !== 'test') {
-      process.exit(1);
-    }
+    throw error;
   }
 };
 

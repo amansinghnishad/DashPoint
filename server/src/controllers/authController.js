@@ -31,14 +31,29 @@ const splitName = (fullName) => {
 };
 
 const normalizeUsernameBase = (value) => {
-  const base = String(value || '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '');
+  const source = String(value || '').slice(0, 200).trim().toLowerCase();
+  let normalized = '';
+  let previousWasUnderscore = false;
 
-  return base || 'user';
+  for (const character of source) {
+    const code = character.charCodeAt(0);
+    const isAsciiLetter = code >= 97 && code <= 122;
+    const isDigit = code >= 48 && code <= 57;
+
+    if (isAsciiLetter || isDigit) {
+      normalized += character;
+      previousWasUnderscore = false;
+    } else if (!previousWasUnderscore) {
+      normalized += '_';
+      previousWasUnderscore = true;
+    }
+  }
+
+  let start = 0;
+  let end = normalized.length;
+  while (start < end && normalized[start] === '_') start += 1;
+  while (end > start && normalized[end - 1] === '_') end -= 1;
+  return normalized.slice(start, end) || 'user';
 };
 
 const generateUniqueUsername = async (preferredBase, email) => {
@@ -205,7 +220,21 @@ exports.googleAuth = async (req, res, next) => {
       });
     }
 
-    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    // A stable Google subject can authenticate an already-linked account even
+    // if Google no longer marks its email as verified. Email-based linking and
+    // account creation require a verified email to prevent account takeover.
+    let user = await User.findOne({ googleId });
+    if (!user && emailVerified) {
+      user = await User.findOne({ email });
+    }
+
+    if (!user && !emailVerified) {
+      return res.status(401).json({
+        success: false,
+        message: 'A verified Google email is required to create or link an account'
+      });
+    }
+
     let isNewUser = false;
 
     if (!user) {
@@ -460,6 +489,13 @@ exports.updateProfile = async (req, res, next) => {
 
     const userId = req.user._id;
     const { firstName, lastName, username } = req.body;
+
+    if (username !== undefined && typeof username !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Username must be a string'
+      });
+    }
 
     // Check if username is already taken by another user
     if (username) {

@@ -5,11 +5,13 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
 const { connectRedis, disconnectRedis } = require('./config/redis');
 const errorHandler = require('./middleware/errorHandler');
+const createCsrfProtection = require('./middleware/csrfProtection');
 const { assertJwtConfiguration } = require('./utils/jwt');
 
 // Import routes
@@ -33,12 +35,6 @@ if (!process.env.NODE_ENV) {
 
 assertJwtConfiguration();
 
-// Connect to MongoDB and Redis in non-test environments
-if (process.env.NODE_ENV !== 'test') {
-  connectDB();
-  connectRedis();
-}
-
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 30 * 60 * 1000,
@@ -57,33 +53,35 @@ app.use(helmet({
 app.use(limiter);
 
 // CORS configuration
+const configuredClientOrigins = String(process.env.CLIENT_URL || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
+  .map((value) => {
+    try {
+      return new URL(value).origin;
+    } catch {
+      return value;
+    }
+  });
+
+const developmentOrigins = process.env.NODE_ENV === 'development'
+  ? [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000'
+    ]
+  : [];
+
+const allowedOrigins = new Set([...configuredClientOrigins, ...developmentOrigins]);
+
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-      process.env.CLIENT_URL,
-      // Allow all Vercel deployments for this project
-      /^https:\/\/dash-point-.*\.vercel\.app$/,
-      /^https:\/\/dashpoint-.*\.vercel\.app$/
-    ].filter(Boolean);
-
-    // Check if origin matches any allowed origin (string or regex)
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
-        return allowedOrigin === origin;
-      } else if (allowedOrigin instanceof RegExp) {
-        return allowedOrigin.test(origin);
-      }
-      return false;
-    });
-
-    if (isAllowed) {
+    if (allowedOrigins.has(origin)) {
       callback(null, true);
     } else {
       if (process.env.NODE_ENV === 'development') {
@@ -107,17 +105,20 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(createCsrfProtection({ allowedOrigins }));
 
 // Serve static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? 'OK' : 'DEGRADED',
     message: 'Dashboard API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
+    dependencies: { database: databaseReady ? 'connected' : 'disconnected' }
   });
 });
 
@@ -169,23 +170,50 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 let server = null;
-if (process.env.NODE_ENV !== 'test') {
+const startServer = async () => {
+  await connectDB();
+  await connectRedis();
   server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
     console.log(`Dashboard API available at http://localhost:${PORT}`);
     console.log(`Health check at http://localhost:${PORT}/health`);
   });
+};
+
+if (process.env.NODE_ENV !== 'test') {
+  startServer().catch((error) => {
+    console.error('Server startup failed:', error.message);
+    process.exitCode = 1;
+  });
 }
 
+let isShuttingDown = false;
 const shutdown = (signal) => {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
   console.log(`${signal} received. Shutting down gracefully...`);
 
-  if (server) {
-    server.close(async () => {
-      await disconnectRedis();
-      console.log('Process terminated');
-    });
-  }
+  (async () => {
+    try {
+      if (server) {
+        await new Promise((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve()))
+        );
+      }
+
+      const results = await Promise.allSettled([mongoose.disconnect(), disconnectRedis()]);
+      const failed = results.find((result) => result.status === 'rejected');
+      if (failed) {
+        console.error('One or more services failed to close cleanly:', failed.reason);
+        process.exitCode = 1;
+      } else {
+        console.log('Process terminated');
+      }
+    } catch (error) {
+      console.error('HTTP server failed to close cleanly:', error);
+      process.exitCode = 1;
+    }
+  })();
 };
 
 // Graceful shutdown

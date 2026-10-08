@@ -1,4 +1,5 @@
 const Collection = require('../models/Collection');
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const PlannerWidget = require('../models/PlannerWidget');
 const { attachEmbeddingToPlannerWidget } = require('../services/embeddingsService');
@@ -7,29 +8,58 @@ const {
   buildSummaryNoteTitle
 } = require('../services/documentSummarizationService');
 
+const parseObjectId = (value) =>
+  mongoose.isObjectIdOrHexString(value) ? new mongoose.Types.ObjectId(value) : null;
+
+const invalidCollectionId = (res) =>
+  res.status(404).json({ success: false, message: 'Collection not found' });
+
 // Get all collections for user
 exports.getCollections = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const { page = 1, limit = 20, search } = req.query;
+    const requestedPage = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const search = typeof req.query.search === 'string'
+      ? req.query.search.trim().slice(0, 100)
+      : '';
 
     const query = { userId };
 
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
-      ];
+      // Treat search text as a literal substring rather than compiling user input
+      // into a regular expression. The length cap above also bounds query work.
+      const searchTerm = { $toLower: { $literal: search } };
+      const containsSearch = (field) => ({
+        $gte: [{ $indexOfCP: [{ $toLower: field }, searchTerm] }, 0]
+      });
+
+      query.$expr = {
+        $or: [
+          containsSearch('$name'),
+          containsSearch('$description'),
+          {
+            $anyElementTrue: {
+              $map: {
+                input: '$tags',
+                as: 'tag',
+                in: containsSearch('$$tag')
+              }
+            }
+          }
+        ]
+      };
     }
+
+    const total = await Collection.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+    const page = Math.min(requestedPage, Math.max(totalPages, 1));
 
     const collections = await Collection.find(query)
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
+      .limit(limit)
       .skip((page - 1) * limit)
       .lean();
-
-    const total = await Collection.countDocuments(query);
 
     res.status(200).json({
       success: true,
@@ -37,7 +67,7 @@ exports.getCollections = async (req, res, next) => {
         collections,
         pagination: {
           current: page,
-          pages: Math.ceil(total / limit),
+          pages: totalPages,
           total
         }
       }
@@ -52,8 +82,10 @@ exports.getCollection = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { id } = req.params;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
 
     if (!collection) {
       return res.status(404).json({
@@ -76,8 +108,10 @@ exports.getCollectionWithItems = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { id } = req.params;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
     if (!collection) {
       return res.status(404).json({
         success: false,
@@ -198,9 +232,11 @@ exports.updateCollection = async (req, res, next) => {
 
     const userId = req.user._id;
     const { id } = req.params;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
     const { name, description, color, icon, tags, isPrivate, layouts } = req.body;
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
 
     if (!collection) {
       return res.status(404).json({
@@ -214,7 +250,7 @@ exports.updateCollection = async (req, res, next) => {
       const existingCollection = await Collection.findOne({
         userId,
         name,
-        _id: { $ne: id }
+        _id: { $ne: collectionId }
       });
       if (existingCollection) {
         return res.status(409).json({
@@ -250,8 +286,10 @@ exports.deleteCollection = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { id } = req.params;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
-    const collection = await Collection.findOneAndDelete({ _id: id, userId });
+    const collection = await Collection.findOneAndDelete({ _id: collectionId, userId });
 
     if (!collection) {
       return res.status(404).json({
@@ -284,8 +322,13 @@ exports.addItemToCollection = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
     const { itemType, itemId } = req.body;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
+    if (typeof itemId !== 'string' || !itemId.trim()) {
+      return res.status(400).json({ success: false, message: 'Item ID is required' });
+    }
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
 
     if (!collection) {
       return res.status(404).json({
@@ -311,8 +354,10 @@ exports.removeItemFromCollection = async (req, res, next) => {
   try {
     const userId = req.user._id;
     const { id, itemType, itemId } = req.params;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
 
     if (!collection) {
       return res.status(404).json({
@@ -369,8 +414,10 @@ exports.addPlannerWidgetToCollection = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
     const { widgetType, title, data } = req.body;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
     if (!collection) {
       return res.status(404).json({
         success: false,
@@ -417,6 +464,8 @@ exports.summarizeDocumentToCollectionNote = async (req, res, next) => {
     const userId = req.user._id;
     const { id } = req.params;
     const file = req.file;
+    const collectionId = parseObjectId(id);
+    if (!collectionId) return invalidCollectionId(res);
 
     if (!file?.buffer) {
       return res.status(400).json({
@@ -437,7 +486,7 @@ exports.summarizeDocumentToCollectionNote = async (req, res, next) => {
       });
     }
 
-    const collection = await Collection.findOne({ _id: id, userId });
+    const collection = await Collection.findOne({ _id: collectionId, userId });
     if (!collection) {
       return res.status(404).json({
         success: false,

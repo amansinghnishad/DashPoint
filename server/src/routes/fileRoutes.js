@@ -24,7 +24,7 @@ router.get('/', getFiles);
 
 router.post('/link', createLink);
 
-router.post('/upload', upload.array('files', 10), handleMulterError, uploadFiles);
+router.post('/upload', upload.array('files', 5), handleMulterError, uploadFiles);
 
 router.get('/:id/download', downloadFile);
 router.get('/:id/preview', previewFile);
