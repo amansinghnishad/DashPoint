@@ -1,0 +1,11 @@
+# Root-level secrets and local configuration
+/.env
+/.env.*
+!.env.example
+
+# Generated files and dependency installs
+/node_modules/
+/dist/
+/coverage/
+*.log
+.DS_Store
