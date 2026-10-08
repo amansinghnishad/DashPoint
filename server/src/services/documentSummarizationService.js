@@ -4,7 +4,7 @@ const pdfParse = require('pdf-parse');
 
 const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const DOCUMENT_SUMMARY_MODEL =
-  process.env.GEMINI_DOCUMENT_SUMMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  process.env.GEMINI_DOCUMENT_SUMMARY_MODEL || process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const DEFAULT_MAX_SOURCE_CHARS = 45000;
 const MIN_SOURCE_CHARS = 40;
 const MAX_NOTE_TITLE_LENGTH = 100;

@@ -5,7 +5,7 @@ const CHAT_PROVIDERS = Object.freeze({
 });
 
 const OPENAI_DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
-const GEMINI_DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+const GEMINI_DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const MODEL_TIERS = Object.freeze({
   FAST: 'fast',
   BALANCED: 'balanced',
@@ -20,11 +20,11 @@ const MODEL_BY_PROVIDER_AND_TIER = Object.freeze({
     [MODEL_TIERS.STRONG]: process.env.OPENAI_STRONG_MODEL || process.env.OPENAI_MODEL || 'gpt-4.1'
   },
   [CHAT_PROVIDERS.GEMINI]: {
-    [MODEL_TIERS.FAST]: process.env.GEMINI_FAST_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    [MODEL_TIERS.FAST]: process.env.GEMINI_FAST_MODEL || process.env.GEMINI_MODEL || 'gemini-3.8-flash',
     [MODEL_TIERS.BALANCED]:
-      process.env.GEMINI_BALANCED_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+      process.env.GEMINI_BALANCED_MODEL || process.env.GEMINI_MODEL || 'gemini-3.8-flash',
     [MODEL_TIERS.STRONG]:
-      process.env.GEMINI_STRONG_MODEL || process.env.GEMINI_MODEL || 'gemini-1.5-pro'
+      process.env.GEMINI_STRONG_MODEL || process.env.GEMINI_MODEL || 'gemini-3.8-flash'
   }
 });
 

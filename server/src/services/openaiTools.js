@@ -322,7 +322,9 @@ const tools = functionDefinitions.map((tool) => ({
   type: 'function',
   name: tool.name,
   description: tool.description,
-  strict: true,
+  // Keep tool arguments flexible because several nested fields are optional.
+  // OpenAI strict mode requires every property to be listed as required.
+  strict: false,
   parameters: tool.parameters
 }));
 

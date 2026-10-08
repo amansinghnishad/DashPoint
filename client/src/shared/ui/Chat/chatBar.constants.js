@@ -13,7 +13,7 @@ export const MODEL_OPTIONS_BY_PROVIDER = {
   auto: [
     { value: "auto", label: "Auto" },
     { value: "gpt-4.1-mini", label: "gpt-4.1-mini" },
-    { value: "gemini-2.5-flash", label: "gemini-2.5-flash" },
+    { value: "gemini-3.8-flash", label: "gemini-3.8-flash" },
   ],
   openai: [
     { value: "auto", label: "Auto" },
@@ -23,7 +23,7 @@ export const MODEL_OPTIONS_BY_PROVIDER = {
   ],
   gemini: [
     { value: "auto", label: "Auto" },
-    { value: "gemini-2.5-flash", label: "gemini-2.5-flash" },
+    { value: "gemini-3.8-flash", label: "gemini-3.8-flash" },
     { value: "gemini-1.5-pro", label: "gemini-1.5-pro" },
   ],
 };

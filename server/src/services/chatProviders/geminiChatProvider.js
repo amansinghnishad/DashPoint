@@ -54,13 +54,23 @@ const extractFunctionCalls = (parts = []) =>
     .map((part) => part?.functionCall)
     .filter((call) => call && typeof call.name === 'string' && call.name.trim());
 
-const createRequestPayload = ({ systemPrompt, contents, enableTools = true }) => {
+const createRequestPayload = ({ model, systemPrompt, contents, enableTools = true }) => {
   const payload = {
     systemInstruction: {
       parts: [{ text: systemPrompt }]
     },
     contents
   };
+
+  // Gemini 3.x exposes thinking as an explicit level. Keep chat responsive
+  // while still allowing tool calls to complete.
+  if (/^gemini-3\./i.test(String(model || '').trim())) {
+    payload.generationConfig = {
+      thinkingConfig: {
+        thinkingLevel: process.env.GEMINI_THINKING_LEVEL || 'low'
+      }
+    };
+  }
 
   if (enableTools && Array.isArray(geminiFunctionDeclarations) && geminiFunctionDeclarations.length) {
     payload.tools = [
@@ -114,7 +124,7 @@ const requestGemini = async ({ model, payload, apiKey }) => {
   try {
     const response = await axios.post(buildEndpoint(model), payload, {
       params: { key: apiKey },
-      timeout: 45000
+      timeout: 20000
     });
 
     return response.data;
@@ -144,6 +154,7 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
 
     try {
       const payload = createRequestPayload({
+        model,
         systemPrompt,
         contents: conversation,
         enableTools: toolsEnabled

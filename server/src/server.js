@@ -33,6 +33,10 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'production';
 }
 
+// Render and other reverse proxies forward the client IP in X-Forwarded-For.
+// Trust the first proxy so express-rate-limit can identify clients correctly.
+app.set('trust proxy', 1);
+
 assertJwtConfiguration();
 
 // Rate limiting
