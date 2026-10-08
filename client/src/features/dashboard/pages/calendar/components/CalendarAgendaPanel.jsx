@@ -1,13 +1,4 @@
-import { CalendarClock, Clock } from "@/shared/ui/icons/icons";
-
-import { formatEventTimeLabel, getEventChipClass } from "../utils/eventUtils";
-
-const formatSelectedDay = (value) =>
-  value.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+import { formatEventTimeLabel } from "../utils/eventUtils";
 
 const getTypeLabel = (type) => {
   if (type === "todo") return "To-do";
@@ -15,92 +6,48 @@ const getTypeLabel = (type) => {
   return "Event";
 };
 
-export default function CalendarAgendaPanel({
-  connected,
-  selectedDate,
-  selectedDayEvents,
-  onOpenCreate,
-}) {
+const getTimelineColor = (event) => {
+  switch (event?.dashpointColor) {
+    case "success": return "bg-emerald-500";
+    case "warning": return "bg-amber-500";
+    case "danger": return "bg-rose-500";
+    default: return "bg-blue-500";
+  }
+};
+
+export default function CalendarAgendaPanel({ selectedDayEvents = [] }) {
   const events = Array.isArray(selectedDayEvents) ? selectedDayEvents : [];
+  if (!events.length) return null;
 
   return (
-    <aside className="bg-surface-card border border-hairline rounded-2xl p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3 border-b border-hairline/60 pb-3 select-none">
-        <div className="min-w-0">
-          <p className="font-waldenburg-light text-lg font-bold text-ink leading-tight">Agenda</p>
-          <p className="text-muted text-xs font-medium mt-1 truncate">
-            {formatSelectedDay(selectedDate)}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onOpenCreate}
-          className="bg-primary hover:bg-primary-active text-canvas rounded-full px-4 py-1.5 text-xs font-semibold transition-all h-8 flex items-center justify-center shadow-sm"
-        >
-          Add
-        </button>
+    <section className="mt-5" aria-label="Events for the selected date">
+      <div className="mb-1 flex items-center justify-between border-b border-hairline pb-2.5">
+        <h2 className="text-xs font-semibold text-ink">Schedule</h2>
+        <span className="text-[10px] text-muted">{events.length} {events.length === 1 ? "event" : "events"}</span>
       </div>
-
-      <div className="mt-4">
-        {!connected ? (
-          <div className="border border-hairline bg-canvas-soft/40 rounded-xl p-4 text-center">
-            <CalendarClock size={20} className="mx-auto text-muted-soft mb-2" />
-            <p className="text-ink text-sm font-semibold">Google Calendar disconnected</p>
-            <p className="text-muted mt-1 text-xs leading-normal">
-              Connect your calendar to view and schedule events from this panel.
-            </p>
-          </div>
-        ) : !events.length ? (
-          <div className="border border-hairline bg-canvas-soft/40 rounded-xl p-6 text-center">
-            <CalendarClock size={20} className="mx-auto text-muted-soft mb-2" />
-            <p className="text-ink text-sm font-semibold">No events scheduled</p>
-            <p className="text-muted mt-1 text-xs leading-normal">
-              This day is clear. Add an event or focus block.
-            </p>
-          </div>
-        ) : (
-          <div className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
-            {events.map((event) => {
-              const timeLabel = formatEventTimeLabel(event);
-              const typeLabel = getTypeLabel(event?.dashpointType);
-
-              return (
-                <div
-                  key={event.id}
-                  className={
-                    "border border-hairline/60 bg-canvas-soft/40 rounded-xl p-3.5 transition-colors " +
-                    "duration-200 ease-out hover:bg-canvas-soft " +
-                    getEventChipClass(event)
-                  }
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-ink text-sm font-bold truncate">
-                      {event?.summary || "(No title)"}
-                    </p>
-                    <span className="text-muted text-[10px] font-bold uppercase tracking-wider bg-canvas px-2 py-0.5 rounded-full">
-                      {typeLabel}
-                    </span>
-                  </div>
-
-                  <div className="mt-2.5 flex items-center gap-1.5 select-none">
-                    <Clock size={13} className="text-muted" />
-                    <p className="text-muted-soft text-xs font-semibold">
-                      {timeLabel || "All day"}
-                    </p>
-                  </div>
-
-                  {event?.description ? (
-                    <p className="text-muted mt-2 line-clamp-2 text-xs leading-normal">
-                      {event.description}
-                    </p>
-                  ) : null}
+      <div className="divide-y divide-hairline/60">
+        {events.map((event, index) => {
+          const timeLabel = formatEventTimeLabel(event);
+          return (
+            <article key={event.id} className="grid grid-cols-[62px_12px_minmax(0,1fr)] gap-3 py-3 sm:grid-cols-[76px_12px_minmax(0,1fr)] sm:gap-4">
+              <div className="pt-1 text-right">
+                <p className="text-[10px] font-semibold tabular-nums text-ink sm:text-xs">{timeLabel || "All day"}</p>
+              </div>
+              <div className="relative flex justify-center" aria-hidden="true">
+                <span className={`mt-1.5 h-2 w-2 rounded-full ring-4 ring-canvas ${getTimelineColor(event)}`} />
+                {index < events.length - 1 ? <span className="absolute bottom-[-14px] top-4 w-px bg-hairline/70" /> : null}
+              </div>
+              <div className="min-w-0 rounded-xl border border-hairline/70 bg-surface-card px-3.5 py-3 transition-colors hover:bg-canvas-soft/50">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="min-w-0 truncate text-xs font-semibold text-ink sm:text-sm">{event?.summary || "Untitled event"}</h3>
+                  <span className="shrink-0 rounded-full border border-hairline bg-canvas-soft px-2 py-0.5 text-[9px] font-semibold text-muted">{getTypeLabel(event?.dashpointType)}</span>
                 </div>
-              );
-            })}
-          </div>
-        )}
+                {event?.description ? <p className="mt-1.5 line-clamp-2 text-[10px] leading-relaxed text-muted sm:text-xs">{event.description}</p> : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
-    </aside>
+    </section>
   );
 }

@@ -25,4 +25,12 @@ export const authAPI = {
   googleAuth(credential) {
     return getResponseData(apiClient.post("/auth/google", { credential }));
   },
+
+  updateProfile(profile) {
+    return getResponseData(apiClient.put("/auth/profile", profile));
+  },
+
+  changePassword(passwords) {
+    return getResponseData(apiClient.put("/auth/password", passwords));
+  },
 };

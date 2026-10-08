@@ -36,7 +36,7 @@ jobs:
           API_HEALTH_URL: ${{ vars.API_HEALTH_URL }}
         run: |
           set -euo pipefail
-          for path in / /manifest.webmanifest /sw.js /icon-192.svg /icon-512.svg; do
+          for path in / /login /register /dashboard /manifest.webmanifest /sw.js /icon-192.svg /icon-512.svg; do
             curl --fail --silent --show-error --location --max-time 20 "$PRODUCTION_URL$path" > /dev/null
           done
           if [ -n "${API_HEALTH_URL:-}" ]; then curl --fail --silent --show-error --location --max-time 20 "$API_HEALTH_URL" > /dev/null; fi

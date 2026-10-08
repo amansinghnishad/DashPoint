@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef } from "react";
 
 import { ArrowLeft } from "@/shared/ui/icons/icons";
 
+import CollectionCanvasAmbient from "./components/CollectionCanvasAmbient";
 import CollectionPickerModal from "./components/CollectionPickerModal";
 import DocumentSummaryModal from "./components/DocumentSummaryModal";
 import { isPdfFile } from "./components/documentSummaryUtils";
@@ -224,8 +225,10 @@ export default function CollectionView({ collectionId, onBack }) {
         <div className="flex-1 overflow-hidden">
           <div
             ref={canvasSurfaceRef}
-            className="relative bg-canvas w-full h-full overflow-hidden touch-none"
+            className="dp-collection-canvas relative w-full h-full overflow-hidden touch-none"
           >
+            <CollectionCanvasAmbient />
+
             <BottomBar
               activeTool={activeTool}
               onSelectTool={handleSelectTool}
@@ -275,7 +278,7 @@ export default function CollectionView({ collectionId, onBack }) {
 
             <div
               ref={worldRef}
-              className="absolute inset-0 origin-top-left"
+              className="absolute inset-0 z-10 origin-top-left"
               style={{
                 transform: `translate(${viewportOffset.x}px, ${viewportOffset.y}px) scale(${viewportScale})`,
               }}
@@ -308,13 +311,13 @@ export default function CollectionView({ collectionId, onBack }) {
             </div>
 
             {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 z-10 flex items-center justify-center">
                 <div className="bg-surface-card border border-hairline rounded-2xl px-6 py-4 shadow-md">
                   <p className="text-ink text-sm font-semibold">Loading collection...</p>
                 </div>
               </div>
             ) : items.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center select-none">
+              <div className="absolute inset-0 z-10 flex items-center justify-center select-none">
                 <div className="text-center px-6">
                   <FolderOpen size={40} className="mx-auto text-muted-soft" />
                   <p className="mt-4 text-ink font-bold text-base">Empty canvas</p>

@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { createElement } from "react";
 
+import DashboardPageHeader from "../../../../shared/ui/DashboardPageHeader";
 import Modal from "../../../../shared/ui/modals/Modal";
 
 export default function CollectionsHomeView({
@@ -38,7 +39,12 @@ export default function CollectionsHomeView({
   getCollectionId,
 }) {
   return (
-    <section className="w-full max-w-[1024px] mx-auto py-4 relative">
+    <section className="relative mx-auto w-full max-w-6xl py-4">
+      <DashboardPageHeader
+        title="Home"
+        description="Keep your collections, files, and plans organized in one place."
+      />
+
       {/* Create Collection Modal */}
       <Modal
         open={isCreateOpen}
@@ -54,7 +60,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={() => setIsCreateOpen(false)}
               disabled={isCreating}
-              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -62,7 +68,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={createCollection}
               disabled={isCreating}
-              className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="dp-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               {isCreating ? "Creating..." : "Create"}
             </button>
@@ -114,7 +120,7 @@ export default function CollectionsHomeView({
                 setEditingCollection(null);
               }}
               disabled={isSavingEdit}
-              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -122,7 +128,7 @@ export default function CollectionsHomeView({
               type="button"
               onClick={saveEdit}
               disabled={isSavingEdit}
-              className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="dp-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               {isSavingEdit ? "Saving..." : "Save"}
             </button>
@@ -178,7 +184,7 @@ export default function CollectionsHomeView({
                 setDeletingCollection(null);
               }}
               disabled={isDeleting}
-              className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
+              className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-colors disabled:opacity-60"
             >
               Cancel
             </button>
@@ -227,7 +233,7 @@ export default function CollectionsHomeView({
               className="border-2 border-dashed border-hairline bg-canvas/30 hover:bg-canvas-soft rounded-2xl flex flex-col items-center justify-center h-[230px] transition-colors cursor-pointer"
               title="Create collection"
             >
-              <div className="w-10 h-10 rounded-full bg-white border border-hairline flex items-center justify-center text-muted mb-3 shadow-sm">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-muted shadow-sm">
                 <Plus size={20} />
               </div>
               <span className="text-sm font-semibold text-muted">New Collection</span>

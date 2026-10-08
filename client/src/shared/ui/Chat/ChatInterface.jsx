@@ -1,10 +1,40 @@
-import { ArrowRight, Globe, History, Mic, MicOff, Paperclip, Plus, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, Globe, Mic, MicOff, Paperclip, Plus, Sparkles, Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatHistoryDrawer from "./components/ChatHistoryDrawer";
 import ChatMessageBubble from "./components/ChatMessageBubble";
 import useDashboardChatController from "./hooks/useDashboardChatController";
 import useVoiceRecognition from "../../hooks/useVoiceRecognition";
+import ChatUploadToCollectionModal from "./components/ChatUploadToCollectionModal";
+import ChatPixelAmbient from "./ChatPixelAmbient";
+
+function SelectedContextChips({ collections, selectedIds, onRemove }) {
+  if (!selectedIds.length) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-b border-hairline/70 px-4 py-3">
+      <span className="mr-1 text-[11px] font-medium text-muted-soft">Using</span>
+      {selectedIds.map((id) => {
+        const collection = collections.find((item) => item.id === id);
+        if (!collection) return null;
+        return (
+          <span key={id} className="inline-flex max-w-full items-center gap-1 rounded-lg border border-hairline bg-canvas px-2.5 py-1 text-xs font-medium text-ink">
+            <span className="max-w-48 truncate">{collection.name}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(id)}
+              aria-label={`Remove ${collection.name} context`}
+              title={`Remove ${collection.name}`}
+              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted transition hover:bg-canvas-soft hover:text-ink"
+            >
+              <X size={12} />
+            </button>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ChatInterface({
   showEmptyStateDetails = false,
@@ -23,6 +53,7 @@ export default function ChatInterface({
     collectionsLoading,
     collectionsError,
     selectedCollectionIds,
+    selectedCollectionsLabel,
     setSelectedCollectionIds,
     collectionPickerOpen,
     setCollectionPickerOpen,
@@ -48,6 +79,7 @@ export default function ChatInterface({
     isListening,
     transcript: voiceTranscript,
     interimTranscript,
+    error: voiceError,
     isSupported: voiceSupported,
     startListening,
     stopListening,
@@ -73,15 +105,17 @@ export default function ChatInterface({
     }
   };
 
-  const activeSession = useMemo(
-    () => sessions.find((s) => s._id === activeSessionId) || null,
-    [activeSessionId, sessions],
-  );
-
   const chatRootRef = useRef(null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const hasMessages = messages.length > 0;
   const isEmptyState = !hasMessages;
+
+  useEffect(() => {
+    const openHistory = () => setHistoryDrawerOpen(true);
+    window.addEventListener("dashpoint:open-chat-history", openHistory);
+    return () => window.removeEventListener("dashpoint:open-chat-history", openHistory);
+  }, [setHistoryDrawerOpen]);
 
   const handleSuggestionClick = (text) => {
     setMessage(text);
@@ -100,23 +134,21 @@ export default function ChatInterface({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [setCollectionPickerOpen]);
 
-  // Mock time matching the design layout
-  const mockTime = useMemo(() => {
-    const d = new Date();
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }, []);
-
   // Determine if we show the active "AI Chat" full page layout
   const showFullPageChatLayout = showEmptyStateDetails && hasMessages;
+  const providerLabel = provider === "gemini" ? "Google Gemini" : provider === "openai" ? "OpenAI" : "Auto";
+  const selectedModelLabel = model === "auto"
+    ? provider === "auto" ? "Auto" : `${providerLabel} · Auto`
+    : `${providerLabel === "Auto" ? "" : `${providerLabel} · `}${model}`;
 
   return (
     <div
       ref={chatRootRef}
-      className={`w-full flex flex-col ${showFullPageChatLayout ? "dp-chat-active" : ""} ${
+      className={`flex w-full flex-col ${showFullPageChatLayout ? "dp-chat-active" : ""} ${
         !isFloating
           ? showFullPageChatLayout
-            ? "relative min-h-[78vh] justify-start py-6"
-            : "relative min-h-[78vh] justify-center items-center"
+            ? "relative min-h-0 flex-1 justify-start"
+            : "relative min-h-0 flex-1 justify-center items-center"
           : "justify-end"
       }`}
       onKeyDownCapture={(event) => {
@@ -143,70 +175,26 @@ export default function ChatInterface({
         </div>
       )}
 
+      {showEmptyStateDetails && <ChatPixelAmbient variant="assistant" />}
+
       {/* Focus Page Active Chat Mode Header */}
       {showFullPageChatLayout ? (
-        <div className="w-full max-w-[720px] mx-auto px-4 mb-6 select-none z-10">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="font-waldenburg-light text-4xl text-ink tracking-tight truncate">
-              {activeSession?.title || "AI Chat"}
-            </h2>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={createNewSession}
-                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
-                title="Start new conversation"
-              >
-                <Plus size={13} />
-                <span className="hidden sm:inline">New Chat</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setHistoryDrawerOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
-                title="View chat history"
-              >
-                <History size={13} />
-                <span>History</span>
-                {sessions.length > 0 ? (
-                  <span className="bg-primary text-canvas text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                    {sessions.length}
-                  </span>
-                ) : null}
-              </button>
-            </div>
-          </div>
+          <div className="relative z-10 flex w-full justify-end px-4 py-3">
+          <button
+            type="button"
+            onClick={createNewSession}
+            className="dp-btn-secondary inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold transition-colors"
+            title="Start new conversation"
+          >
+            <Plus size={14} />
+            <span>New chat</span>
+          </button>
         </div>
       ) : null}
 
       {/* Workspace Indicator and Title for Focus Page Empty State */}
       {showEmptyStateDetails && isEmptyState && (
         <div className="text-center flex flex-col items-center w-full select-none max-w-[720px] px-4">
-          <div className="w-full flex items-center justify-between mb-4">
-            <div className="text-[12px] text-muted-soft tracking-wider flex items-center gap-1.5 font-medium">
-              <span className="opacity-70">{mockTime}</span>
-              <span className="opacity-30">/</span>
-              <span className="opacity-70">Active Workspace: Intelligence</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setHistoryDrawerOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card hover:bg-canvas-soft px-3.5 py-1.5 text-xs font-semibold text-ink transition-colors shadow-sm cursor-pointer"
-              title="View conversation history"
-            >
-              <History size={13} />
-              <span>History</span>
-              {sessions.length > 0 ? (
-                <span className="bg-primary text-canvas text-[10px] font-bold px-1.5 rounded-full">
-                  {sessions.length}
-                </span>
-              ) : null}
-            </button>
-          </div>
-
           <h2 className="font-waldenburg-light text-5xl md:text-[56px] text-ink leading-[1.1] tracking-tight mb-10">
             What is the <br />
             <span className="italic block mt-1">focus today?</span>
@@ -216,18 +204,24 @@ export default function ChatInterface({
 
       <div
         className={
-          !isFloating ? "relative w-full max-w-[720px] mx-auto px-4 z-10 flex flex-col" : "w-full"
+          !isFloating
+            ? showFullPageChatLayout
+              ? "relative z-10 flex min-h-0 w-full flex-1 flex-col"
+              : "relative z-10 flex w-full max-w-[720px] flex-col px-4"
+            : "relative z-10 w-full"
         }
       >
         {/* Render Chat History */}
         {hasMessages &&
           (showFullPageChatLayout ? (
             /* Focus Page Active History: Rendered directly on the canvas without card container */
-            <div className="space-y-4 mb-6 w-full max-h-[54vh] overflow-y-auto pr-1 scrollbar-thin">
-              {messages.map((entry) => (
-                <ChatMessageBubble key={entry.id} entry={entry} />
-              ))}
-              <div ref={scrollAnchorRef} />
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 scrollbar-thin">
+              <div className="mx-auto w-full max-w-5xl space-y-5 py-2">
+                {messages.map((entry) => (
+                  <ChatMessageBubble key={entry.id} entry={entry} />
+                ))}
+                <div ref={scrollAnchorRef} />
+              </div>
             </div>
           ) : (
             /* Floating drawer active history: Wrapped inside card container */
@@ -244,12 +238,12 @@ export default function ChatInterface({
           ))}
 
         {/* Input container wrapper */}
-        <div className="relative w-full">
+        <div className={`relative w-full ${showFullPageChatLayout ? "mt-auto shrink-0 px-4 pb-5 pt-3" : ""}`}>
           {/* Add Context (Collections) Popover Dropdown */}
           {collectionPickerOpen && (
-            <div className="absolute bottom-[56px] left-4 z-50 w-[260px] bg-surface-card border border-hairline rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.12)] p-1 animate-fade-in flex flex-col select-none">
+            <div className={`absolute ${showFullPageChatLayout ? "bottom-[calc(100%+0.5rem)] left-4" : "bottom-[56px] left-4"} z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-hairline bg-surface-card p-1 shadow-[0_12px_32px_rgba(0,0,0,0.12)] animate-fade-in flex flex-col select-none`}>
               <div className="px-3 py-2 text-[10px] font-bold text-muted-soft uppercase tracking-wider border-b border-hairline/60 mb-1">
-                Select Context Sources
+                Add workspace context
               </div>
               <div className="max-h-[200px] overflow-y-auto space-y-0.5">
                 {collectionsLoading ? (
@@ -271,7 +265,10 @@ export default function ChatInterface({
                       <button
                         key={c.id}
                         type="button"
-                        onClick={() => toggleCollection(c.id)}
+                        onClick={() => {
+                          toggleCollection(c.id);
+                          setCollectionPickerOpen(false);
+                        }}
                         className="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left text-xs font-semibold text-ink hover:bg-canvas-soft transition-colors"
                       >
                         <span className="truncate flex-1 pr-1">{c.name}</span>
@@ -302,9 +299,9 @@ export default function ChatInterface({
 
           {/* Model Selection Popover Dropdown */}
           {modelPickerOpen && (
-            <div className="absolute bottom-[56px] left-[110px] z-50 w-[245px] bg-surface-card border border-hairline rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.12)] p-1 animate-fade-in flex flex-col select-none">
+            <div className={`absolute ${showFullPageChatLayout ? "bottom-[calc(100%+0.5rem)] left-16" : "bottom-[56px] left-[110px]"} z-50 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-hairline bg-surface-card p-1 shadow-[0_12px_32px_rgba(0,0,0,0.12)] animate-fade-in flex flex-col select-none`}>
               <div className="px-3 py-2 text-[10px] font-bold text-muted-soft uppercase tracking-wider border-b border-hairline/60 mb-1">
-                Select Model Provider
+                Choose a model
               </div>
               {[
                 {
@@ -345,78 +342,69 @@ export default function ChatInterface({
 
           {/* Prompt card/capsule input rendering */}
           {showFullPageChatLayout ? (
-            /* Focus Page Active Capsule Pill Input */
+            /* Full-page conversation composer */
             <form
               onSubmit={handleSubmit}
-              className="w-full bg-surface-card border border-hairline rounded-full pl-6 pr-2 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.02)] transition-shadow hover:shadow-[0_4px_28px_rgba(0,0,0,0.04)] flex items-center gap-3 relative"
+              className="mx-auto w-full max-w-5xl rounded-2xl border border-hairline bg-surface-card shadow-lg transition-shadow focus-within:shadow-xl"
             >
-              {/* Context Selector inside Capsule */}
-              <button
-                type="button"
-                onClick={() => setCollectionPickerOpen(!collectionPickerOpen)}
-                className="text-muted hover:text-ink transition-colors p-1 shrink-0"
-                title="Add context"
-              >
-                <Paperclip size={15} />
-              </button>
-
-              {/* Model Selector inside Capsule */}
-              <button
-                type="button"
-                onClick={() => setModelPickerOpen(!modelPickerOpen)}
-                className="text-muted hover:text-ink transition-colors p-1 shrink-0 mr-1"
-                title={`Browse (${model})`}
-              >
-                <Globe size={15} />
-              </button>
-
-              {voiceSupported && (
-                <button
-                  type="button"
-                  onClick={handleToggleVoice}
-                  className={`p-1 shrink-0 transition-colors ${
-                    isListening ? "text-rose-500 animate-pulse" : "text-muted hover:text-ink"
-                  }`}
-                  title={isListening ? "Stop voice dictation" : "Voice dictation"}
-                >
-                  {isListening ? <MicOff size={15} /> : <Mic size={15} />}
-                </button>
-              )}
-
+              <SelectedContextChips
+                collections={collections}
+                selectedIds={selectedCollectionIds}
+                onRemove={(id) => toggleCollection(id)}
+              />
               <textarea
                 ref={inputRef}
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder={isListening ? "Listening... speak clearly" : placeholder}
-                className="flex-1 bg-transparent text-sm text-ink placeholder-muted-soft outline-none border-none resize-none pt-2.5 min-h-[40px] max-h-[120px]"
+                className="block min-h-[5rem] max-h-48 w-full resize-y bg-transparent px-5 py-4 text-sm leading-relaxed text-ink placeholder-muted-soft outline-none"
                 aria-label="Chat prompt"
                 rows={1}
                 disabled={isSending}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
+                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                     event.preventDefault();
                     handleSubmit(event);
                   }
                 }}
               />
 
-              <div className="flex items-center gap-4 shrink-0 select-none">
-                <span className="text-[11px] text-muted-soft font-medium hidden sm:inline">
-                  Tip: Press <span className="font-bold">CMD + Enter</span>
-                </span>
-
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline/70 px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-1">
+                  <button type="button" onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(false); setUploadModalOpen(true); }} className="inline-flex h-9 items-center gap-2 rounded-xl px-2.5 text-xs font-medium text-muted transition-colors hover:bg-canvas-soft hover:text-ink" title="Upload files directly to a collection" aria-label="Upload files directly to a collection">
+                    <Upload size={16} /><span className="hidden sm:inline">Upload</span>
+                  </button>
+                  <button type="button" onClick={() => { setModelPickerOpen(false); setCollectionPickerOpen(!collectionPickerOpen); }} className="inline-flex h-9 items-center gap-2 rounded-xl px-2.5 text-xs font-medium text-muted transition-colors hover:bg-canvas-soft hover:text-ink" title={selectedCollectionsLabel || "Add workspace context"} aria-label={selectedCollectionsLabel || "Add workspace context"} aria-expanded={collectionPickerOpen}>
+                    <Paperclip size={16} /><span className="hidden sm:inline">{selectedCollectionIds.length ? `${selectedCollectionIds.length} selected` : "Add context"}</span>
+                  </button>
+                  <button type="button" onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(!modelPickerOpen); }} className="inline-flex h-9 items-center gap-2 rounded-xl px-2.5 text-xs font-medium text-muted transition-colors hover:bg-canvas-soft hover:text-ink" title={`Choose model · ${selectedModelLabel}`} aria-label={`Choose model · ${selectedModelLabel}`} aria-expanded={modelPickerOpen}>
+                    <Globe size={16} /><span className="hidden sm:inline">Model · {selectedModelLabel}</span>
+                  </button>
+                  {voiceSupported && <button type="button" onClick={handleToggleVoice} className={`inline-flex h-9 items-center gap-2 rounded-xl px-2.5 text-xs font-medium transition-colors hover:bg-canvas-soft ${isListening ? "text-rose-500" : "text-muted hover:text-ink"}`} title={isListening ? "Stop voice dictation" : "Voice dictation"} aria-label={isListening ? "Stop voice dictation" : "Voice dictation"} aria-pressed={isListening}>{isListening ? <MicOff size={16} /> : <Mic size={16} />}<span className="hidden sm:inline">{isListening ? "Listening" : "Voice"}</span></button>}
+                </div>
+                <div className="ml-auto flex items-center gap-3">
+                  {voiceError && <span role="status" className="max-w-48 truncate text-[11px] text-semantic-error">{voiceError}</span>}
+                  <span className="hidden select-none text-[11px] font-medium text-muted-soft sm:inline">Press <kbd className="rounded border border-hairline bg-canvas px-1 font-mono">⌘</kbd> + <kbd className="rounded border border-hairline bg-canvas px-1 font-mono">Enter</kbd></span>
                 <button
                   type="submit"
                   disabled={isSending || !sanitizedDraftMessage || openAiComingSoon}
-                  className="bg-ink hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-xs font-bold transition-all flex items-center gap-1.5 h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-canvas transition-colors hover:bg-primary-active disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Send message"
+                  title="Send message"
                 >
-                  Focus
+                  <ArrowUp size={18} />
                 </button>
+              </div>
               </div>
             </form>
           ) : (
             /* Focus Page Empty State or Floating Assistant Drawer: Standard prompt card layout */
             <div className="bg-surface-card border border-hairline rounded-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+              <SelectedContextChips
+                collections={collections}
+                selectedIds={selectedCollectionIds}
+                onRemove={(id) => toggleCollection(id)}
+              />
               <form onSubmit={handleSubmit} className="flex items-start gap-3">
                 <div className="mt-2 text-muted-soft shrink-0">
                   <Sparkles size={18} />
@@ -431,7 +419,7 @@ export default function ChatInterface({
                   rows={1}
                   disabled={isSending}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
+                    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
                       event.preventDefault();
                       handleSubmit(event);
                     }
@@ -458,11 +446,11 @@ export default function ChatInterface({
                 <button
                   type="submit"
                   disabled={isSending || !sanitizedDraftMessage || openAiComingSoon}
-                  className="bg-ink hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-all flex items-center gap-1.5 h-9 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Focus"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-canvas transition-colors hover:bg-primary-active disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Send message"
+                  title="Send message"
                 >
-                  <span>Focus</span>
-                  <ArrowRight size={14} />
+                  <ArrowUp size={18} />
                 </button>
               </form>
 
@@ -480,8 +468,20 @@ export default function ChatInterface({
                 <div className="flex items-center gap-4">
                   <button
                     type="button"
-                    onClick={() => setCollectionPickerOpen(!collectionPickerOpen)}
+                    onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(false); setUploadModalOpen(true); }}
                     className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    aria-label="Upload files directly to a collection"
+                    title="Upload files directly to a collection"
+                  >
+                    <Upload size={14} className="opacity-70" />
+                    <span>Upload</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setModelPickerOpen(false); setCollectionPickerOpen(!collectionPickerOpen); }}
+                    className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    aria-label={selectedCollectionsLabel || "Add context"}
+                    aria-expanded={collectionPickerOpen}
                   >
                     <Paperclip size={14} className="opacity-70" />
                     <span>Add context</span>
@@ -489,11 +489,13 @@ export default function ChatInterface({
 
                   <button
                     type="button"
-                    onClick={() => setModelPickerOpen(!modelPickerOpen)}
+                    onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(!modelPickerOpen); }}
                     className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    aria-label={`Choose model · ${selectedModelLabel}`}
+                    aria-expanded={modelPickerOpen}
                   >
                     <Globe size={14} className="opacity-70" />
-                    <span>Browse ({model})</span>
+                    <span>Model · {selectedModelLabel}</span>
                   </button>
                 </div>
 
@@ -533,19 +535,6 @@ export default function ChatInterface({
         ) : null}
       </div>
 
-      {/* Decorative branding elements absolutely positioned at bottom */}
-      {showEmptyStateDetails && isEmptyState ? (
-        <div className="absolute bottom-4 left-0 right-0 hidden md:flex justify-between items-center w-full px-8 py-6 select-none opacity-60 z-0">
-          <div className="text-xs text-muted-soft tracking-wider font-medium font-waldenburg-light">
-            DashPoint{" "}
-            <span className="text-[10px] font-sans font-semibold tracking-[0.2em] ml-1.5 opacity-60">
-              INTELLIGENCE
-            </span>
-          </div>
-          <div className="text-[11px] text-muted-soft font-mono">v2.4.0-release.edtn</div>
-        </div>
-      ) : null}
-
       <ChatHistoryDrawer
         open={historyDrawerOpen}
         onClose={() => setHistoryDrawerOpen(false)}
@@ -556,6 +545,11 @@ export default function ChatInterface({
         onRenameSession={renameSession}
         onDeleteSession={deleteSession}
         loading={sessionsLoading}
+      />
+      <ChatUploadToCollectionModal
+        open={uploadModalOpen}
+        collections={collections}
+        onClose={() => setUploadModalOpen(false)}
       />
     </div>
   );

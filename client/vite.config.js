@@ -41,12 +41,18 @@ export default defineConfig({
     buildInfoPlugin,
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["icon-192.svg", "icon-512.svg"],
+      includeAssets: [
+        "icon-192.svg",
+        "icon-512.svg",
+        "icon-192.png",
+        "icon-512.png",
+        "icon-512-maskable.png",
+      ],
       manifest: {
         name: "DashPoint - Personal Productivity Dashboard",
         short_name: "DashPoint",
         description:
-          "Your all-in-one personal productivity dashboard with planner widgets, weather, and content tools",
+          "A personal productivity dashboard for planning, tasks, notes, and saved content",
         theme_color: "#8B5CF6",
         background_color: "#ffffff",
         id: "/",
@@ -62,18 +68,36 @@ export default defineConfig({
             src: "icon-192.svg",
             sizes: "192x192",
             type: "image/svg+xml",
-            purpose: "any maskable",
+            purpose: "any",
           },
           {
             src: "icon-512.svg",
             sizes: "512x512",
             type: "image/svg+xml",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "icon-512-maskable.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },
       devOptions: {
-        enabled: false,
+        enabled: true,
       },
       workbox: {
         cacheId: `dashpoint-${appVersion}`,

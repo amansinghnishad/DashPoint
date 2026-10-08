@@ -25,17 +25,34 @@ if (manifest.id !== "/" || manifest.lang !== "en" || manifest.dir !== "ltr") {
   fail("manifest is missing id, lang, or dir");
 }
 if (!Array.isArray(manifest.icons) || manifest.icons.length < 2) fail("manifest has too few icons");
+const requiredPngIcons = new Set(["192x192:any", "512x512:any", "512x512:maskable"]);
 for (const icon of manifest.icons || []) {
   const iconPath = resolve(dist, icon.src.replace(/^\//, ""));
   if (!existsSync(iconPath)) fail(`manifest icon does not exist: ${icon.src}`);
   if (!/^\d+x\d+$/.test(icon.sizes)) fail(`invalid icon size: ${icon.sizes}`);
   const [width, height] = icon.sizes.split("x").map(Number);
-  const svg = readFileSync(iconPath, "utf8");
-  if (!svg.includes(`width="${width}"`) || !svg.includes(`height="${height}"`)) {
-    fail(`${icon.src} is not a ${width}x${height} square asset`);
+  if (icon.type === "image/png") {
+    const png = readFileSync(iconPath);
+    if (
+      png.toString("hex", 0, 8) !== "89504e470d0a1a0a" ||
+      png.readUInt32BE(16) !== width ||
+      png.readUInt32BE(20) !== height
+    ) {
+      fail(`${icon.src} is not a ${width}x${height} PNG asset`);
+    }
+    const kind = icon.purpose?.includes("maskable") ? "maskable" : "any";
+    requiredPngIcons.delete(`${icon.sizes}:${kind}`);
+  } else if (icon.type === "image/svg+xml") {
+    const svg = readFileSync(iconPath, "utf8");
+    if (!svg.includes(`width="${width}"`) || !svg.includes(`height="${height}"`)) {
+      fail(`${icon.src} is not a ${width}x${height} square asset`);
+    }
+  } else {
+    fail(`${icon.src} has an unsupported icon type: ${icon.type}`);
   }
-  if (!icon.purpose?.includes("maskable")) fail(`${icon.src} is not maskable`);
 }
+if (requiredPngIcons.size)
+  fail(`manifest is missing compatible PNG icon(s): ${[...requiredPngIcons].join(", ")}`);
 
 const sw = existsSync(resolve(dist, "sw.js")) ? readFileSync(resolve(dist, "sw.js"), "utf8") : "";
 if (!sw.includes("workbox")) fail("service worker does not contain Workbox runtime");

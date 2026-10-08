@@ -20,15 +20,15 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { FILE_MANAGER_ACCEPT } from "./fileManager/fileManager.helpers";
 import FileSummarizeToCollectionModal from "./fileManager/FileSummarizeToCollectionModal";
 import { useFileManager } from "./fileManager/useFileManager";
+import DashboardPageHeader from "../../../shared/ui/DashboardPageHeader";
 import { useToast } from "../../../hooks/useToast";
 import fileService from "../../../services/modules/fileService";
-import Clock from "../../../shared/ui/Clock/Clock";
 import AddToCollectionModal from "../../../shared/ui/modals/AddToCollectionModal";
 import ContentInsightReviewModal from "../../../shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 import Modal from "../../../shared/ui/modals/Modal";
 
-export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
+export default function FileManagerPage({ searchTriggerRef }) {
   const toast = useToast();
   const {
     state: {
@@ -38,6 +38,7 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
       selectedId,
       textPreview,
       isBusy,
+      pagination,
       addToCollectionItem,
       deleteItem,
       isDeleting,
@@ -53,6 +54,7 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
       downloadSelectedFile,
       setInsightQueue,
       addWebLink,
+      loadMoreFiles,
     },
   } = useFileManager();
 
@@ -75,19 +77,6 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
   const closeActiveInsight = () => {
     setInsightQueue((current) => current.slice(1));
   };
-
-  // Bind the header upload button trigger to open the unified modal
-  useEffect(() => {
-    if (triggerRef) {
-      triggerRef.current = () => {
-        setAddTab("file");
-        setAddModalOpen(true);
-      };
-    }
-    return () => {
-      if (triggerRef) triggerRef.current = null;
-    };
-  }, [triggerRef]);
 
   // Bind the header search bar filter
   useEffect(() => {
@@ -209,7 +198,13 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
 
   const handleDownload = async (it) => {
     if (it.mime === "text/html") {
-      window.open(it.remoteUrl, "_blank");
+      try {
+        const url = new URL(it.remoteUrl);
+        if (!["http:", "https:"].includes(url.protocol)) throw new Error("Invalid web link");
+        window.open(url.toString(), "_blank", "noopener,noreferrer");
+      } catch {
+        toast.error("Invalid web link");
+      }
       return;
     }
     try {
@@ -237,7 +232,27 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
         accept={FILE_MANAGER_ACCEPT}
       />
 
-      <div className="w-full max-w-[1024px] mx-auto py-4 relative">
+      <div className="relative mx-auto w-full max-w-6xl py-4">
+        {!selectedId ? (
+          <DashboardPageHeader
+            title="Files"
+            description="Manage uploaded documents and saved web links."
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setAddTab("file");
+                  setAddModalOpen(true);
+                }}
+                className="dp-btn-primary inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold"
+              >
+                <Plus size={14} />
+                Add document
+              </button>
+            }
+          />
+        ) : null}
+
         {/* Full-width Preview/Viewer Mode */}
         {selectedId && selected ? (
           <div className="w-full">
@@ -262,7 +277,7 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 <button
                   type="button"
                   onClick={downloadSelectedFile}
-                  className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-xs font-bold transition-all h-9 flex items-center justify-center gap-1.5 shadow-sm shrink-0"
+                  className="dp-btn-primary rounded-full px-5 py-2 text-xs font-bold transition-all h-9 flex items-center justify-center gap-1.5 shadow-sm shrink-0"
                 >
                   {selected.mime === "text/html" ? <Globe size={14} /> : <Download size={14} />}
                   <span>{selected.mime === "text/html" ? "Open Website" : "Download"}</span>
@@ -341,11 +356,11 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
 
             {/* Document Table */}
             {!filteredItems.length ? (
-              <div className="border border-hairline bg-surface-card rounded-2xl p-8 text-center select-none">
+              <div className="px-4 py-14 text-center select-none">
                 <FolderOpen size={40} className="mx-auto text-muted-soft" />
                 <p className="mt-4 text-ink font-bold text-base">No files uploaded yet</p>
                 <p className="mt-1 text-muted text-sm">
-                  Click "+ Add Document" in the header to ingest your documents or paste web links.
+                  Use Add document to ingest your documents or paste web links.
                 </p>
               </div>
             ) : (
@@ -445,6 +460,18 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 </table>
               </div>
             )}
+            {pagination.current < pagination.total && (
+              <div className="flex justify-center border-t border-hairline px-4 py-4">
+                <button
+                  type="button"
+                  onClick={loadMoreFiles}
+                  disabled={isBusy}
+                  className="rounded-full border border-hairline px-4 py-2 text-sm font-semibold text-ink hover:bg-canvas-soft disabled:opacity-50"
+                >
+                  {isBusy ? "Loading…" : `Load more files (${items.length} of ${pagination.count})`}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -497,7 +524,7 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-xs font-bold transition-colors"
+                  className="dp-btn-secondary rounded-full px-5 py-2 text-xs font-bold transition-colors"
                 >
                   Cancel
                 </button>
@@ -563,14 +590,14 @@ export default function FileManagerPage({ triggerRef, searchTriggerRef }) {
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-xs font-bold transition-colors"
+                  className="dp-btn-secondary rounded-full px-5 py-2 text-xs font-bold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingLink || !linkUrl.trim()}
-                  className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-xs font-bold transition-colors flex items-center gap-1.5"
+                  className="dp-btn-primary rounded-full px-5 py-2 text-xs font-bold transition-colors flex items-center gap-1.5"
                 >
                   {isSubmittingLink && <Loader2 size={13} className="animate-spin" />}
                   <span>Save Link</span>

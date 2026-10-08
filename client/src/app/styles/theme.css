@@ -31,7 +31,6 @@
   --dp-surface-muted: #fafafa;
   --dp-nav-scrolled-bg: rgba(245, 245, 245, 0.7);
   --dp-nav-panel-bg: rgba(255, 255, 255, 0.9);
-  --dp-glow-opacity: 0.15;
   --dp-placeholder: #a8a29e;
 
   /* Semantic CTAs in light mode */
@@ -44,8 +43,6 @@
   --dp-btn-hero-fg: #ffffff;
   --dp-btn-hero-bg-hover: #0c0a09;
   --dp-btn-hero-fg-hover: #ffffff;
-  --dp-hero-fg: #0c0a09;
-  --dp-hero-muted: rgba(12, 10, 9, 0.8);
 
   /* Sidebar primitives */
   --dp-sidebar-bg: #f5f5f5;
@@ -61,7 +58,6 @@
   --dp-danger-border: rgba(220, 38, 38, 0.15);
   --dp-danger-fg: #dc2626;
 
-  --dp-resize-handle-bg: rgba(12, 10, 9, 0.1);
 
   /* Chat UI */
   --dp-chat-fade-bg: rgba(255, 255, 255, 0.92);
@@ -73,9 +69,6 @@
   --dp-chat-bubble-error-fg: #dc2626;
   --dp-chat-avatar-bg: rgba(12, 10, 9, 0.06);
 
-  --dp-showcase-gradient:
-    radial-gradient(1000px 500px at 50% -250px, rgba(167, 229, 211, 0.15), transparent 60%),
-    radial-gradient(800px 400px at 80% 20%, rgba(200, 184, 224, 0.1), transparent 60%);
 }
 
 /* Defaults for dark mode */
@@ -94,7 +87,6 @@
   --dp-surface-muted: #292524;
   --dp-nav-scrolled-bg: rgba(12, 10, 9, 0.7);
   --dp-nav-panel-bg: rgba(28, 25, 23, 0.95);
-  --dp-glow-opacity: 0.3;
   --dp-placeholder: #777169;
 
   /* Buttons */
@@ -107,8 +99,6 @@
   --dp-btn-hero-fg: rgb(0 0 0);
   --dp-btn-hero-bg-hover: rgb(220 220 220);
   --dp-btn-hero-fg-hover: rgb(0 0 0);
-  --dp-hero-fg: rgb(255 255 255);
-  --dp-hero-muted: rgb(255 255 255 / 0.82);
 
   /* Sidebar */
   --dp-sidebar-bg: rgb(15 15 15 / 0.96);
@@ -127,7 +117,6 @@
   --dp-danger-border: rgb(239 68 68 / 0.25);
   --dp-danger-fg: rgb(255 180 180);
 
-  --dp-resize-handle-bg: rgb(40 40 40);
 
   /* Chat */
   --dp-chat-fade-bg: color-mix(in srgb, var(--dp-surface) 92%, transparent);
@@ -207,6 +196,88 @@
   border-radius: 2rem;
 }
 
+.dp-collection-canvas {
+  background:
+    radial-gradient(color-mix(in srgb, var(--dp-fg, #fff) 7%, transparent) 0.7px, transparent 0.8px) 0 0 / 34px 34px,
+    radial-gradient(ellipse 72% 58% at 50% -8%, rgba(249, 145, 73, 0.14), transparent 74%),
+    radial-gradient(ellipse 42% 48% at 88% 82%, rgba(166, 146, 230, 0.1), transparent 76%),
+    radial-gradient(ellipse 44% 42% at 7% 78%, rgba(244, 197, 168, 0.07), transparent 76%),
+    var(--dp-bg, #0c0a09);
+}
+
+:root[data-theme="light"] .dp-collection-canvas {
+  background:
+    radial-gradient(color-mix(in srgb, var(--dp-fg, #0c0a09) 5%, transparent) 0.7px, transparent 0.8px) 0 0 / 34px 34px,
+    radial-gradient(ellipse 72% 58% at 50% -8%, rgba(249, 145, 73, 0.2), transparent 74%),
+    radial-gradient(ellipse 42% 48% at 88% 82%, rgba(166, 146, 230, 0.13), transparent 76%),
+    radial-gradient(ellipse 44% 42% at 7% 78%, rgba(244, 197, 168, 0.12), transparent 76%),
+    var(--dp-bg, #f5f5f5);
+}
+
+.dp-collection-ambient {
+  opacity: 0.32;
+}
+
+.dp-chat-pixel-ambient {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: min(38vh, 320px);
+  opacity: 0.27;
+}
+
+.dp-chat-pixel-motion {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: dp-chat-pixel-breathe 12s ease-in-out infinite alternate;
+}
+
+@keyframes dp-chat-pixel-breathe {
+  from {
+    opacity: 0.72;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+:root[data-theme="light"] .dp-chat-pixel-ambient {
+  opacity: 0.2;
+}
+
+.dp-chat-pixel-ambient--floating {
+  opacity: 0.1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-chat-pixel-motion {
+    animation: none;
+  }
+}
+
+.dp-collection-arc-motion {
+  animation: dp-collection-arc-float 18s ease-in-out infinite alternate;
+}
+
+@keyframes dp-collection-arc-float {
+  from {
+    transform: translateY(4px);
+    opacity: 0.78;
+  }
+  to {
+    transform: translateY(-7px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-collection-arc-motion {
+    animation: none;
+  }
+}
+
 :root[data-theme="light"] .dp-chat-active {
   background:
     radial-gradient(700px 280px at 50% 0%, rgba(244, 197, 168, 0.16), transparent 72%),
@@ -268,63 +339,7 @@ body {
   background-color: rgb(245 158 11 / 0.25); /* amber-500-ish, subtle */
 }
 
-/*
-  Light-mode remapping for the existing Tailwind utility classes.
-  This lets most components keep their current dark-theme classnames,
-  while rendering correctly in light mode.
-*/
-:root[data-theme="light"] .bg-slate-950 {
-  background-color: var(--dp-bg) !important;
-}
-
-:root[data-theme="light"] .bg-slate-950\/40 {
-  background-color: var(--dp-nav-scrolled-bg) !important;
-}
-
-:root[data-theme="light"] .bg-slate-950\/60 {
-  background-color: var(--dp-nav-panel-bg) !important;
-}
-
-:root[data-theme="light"] .bg-slate-950\/80 {
-  background-color: rgb(255 255 255 / 0.92) !important;
-}
-
-:root[data-theme="light"] .bg-slate-950\/95 {
-  background-color: rgb(255 255 255 / 0.96) !important;
-}
-
-:root[data-theme="light"] .text-white {
-  color: var(--dp-fg) !important;
-}
-
-:root[data-theme="light"] .text-white\/90 {
-  color: var(--dp-fg-soft) !important;
-}
-
-:root[data-theme="light"] .text-white\/70 {
-  color: var(--dp-muted) !important;
-}
-
-:root[data-theme="light"] .text-white\/60 {
-  color: var(--dp-subtle) !important;
-}
-
-:root[data-theme="light"] .border-white\/10,
-:root[data-theme="light"] .border-white\/15,
-:root[data-theme="light"] .border-white\/20 {
-  border-color: var(--dp-border) !important;
-}
-
-:root[data-theme="light"] .bg-white\/5,
-:root[data-theme="light"] .bg-white\/10,
-:root[data-theme="light"] .bg-white\/15,
-:root[data-theme="light"] .bg-white\/20 {
-  background-color: var(--dp-surface-muted) !important;
-}
-
-:root[data-theme="light"] .placeholder-white\/40::placeholder {
-  color: var(--dp-placeholder) !important;
-}
+/* Components use Tailwind utilities backed by the theme variables above. */
 
 /* Semantic button helpers (use these instead of hard-coded bg/text combos) */
 .dp-btn-primary {
@@ -344,10 +359,6 @@ body {
 
 .dp-btn-secondary:hover {
   background-color: var(--dp-surface);
-}
-
-.dp-resize-handle-bg {
-  background-color: var(--dp-resize-handle-bg);
 }
 
 /* Small icon buttons that should inherit text color (e.g. inside selected rows) */
@@ -443,14 +454,6 @@ body {
   color: rgb(255 255 255) !important;
 }
 
-.dp-hero-text {
-  color: var(--dp-hero-fg);
-}
-
-.dp-hero-muted {
-  color: var(--dp-hero-muted);
-}
-
 .dp-text-subtle {
   color: var(--dp-subtle);
 }
@@ -513,55 +516,4 @@ body {
 
 .dp-danger:hover {
   background-color: var(--dp-danger-bg-hover);
-}
-
-/* Glow backdrop intensity */
-:root[data-theme="light"] .dp-glow {
-  opacity: var(--dp-glow-opacity);
-}
-
-:root[data-theme="dark"] .dp-glow,
-:root:not([data-theme]) .dp-glow {
-  opacity: var(--dp-glow-opacity);
-}
-/* -------------------------------- */
-/* HERO VISUAL FILTER CONTROL */
-/* -------------------------------- */
-
-/* Default (dark mode) - black & white cinematic */
-:root:not([data-theme="light"]) .dp-hero-visual img,
-:root:not([data-theme="light"]) .dp-hero-visual video {
-  filter: grayscale(1) contrast(1.05) brightness(0.85);
-}
-
-/* Light mode - normal colorful */
-:root[data-theme="light"] .dp-hero-visual img,
-:root[data-theme="light"] .dp-hero-visual video {
-  filter: none;
-}
-.dp-showcase-bg {
-  position: relative;
-  isolation: isolate; /* ensures gradient sits behind content cleanly */
-}
-
-.dp-showcase-bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--dp-showcase-gradient);
-  pointer-events: none;
-  z-index: -1; /* stay behind content */
-}
-
-.dp-hero-accent {
-  color: var(--dp-toast-info);
-}
-
-.dp-hero-vignette {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--dp-bg) 18%, transparent) 0%,
-    transparent 50%,
-    color-mix(in srgb, var(--dp-bg) 70%, transparent) 100%
-  );
 }

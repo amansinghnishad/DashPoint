@@ -5,12 +5,14 @@ import {
   MoreVertical,
   Trash2,
   FolderPlus,
+  Plus,
   Star,
   Lock,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { useToast } from "@/hooks/useToast";
+import DashboardPageHeader from "../../../../../shared/ui/DashboardPageHeader";
 import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
 import ContentInsightReviewModal from "@/shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
@@ -98,7 +100,7 @@ export default function YoutubePageContent({
 
   return (
     <>
-      <div className="w-full max-w-[1024px] mx-auto py-4 relative">
+      <div className="relative mx-auto w-full max-w-6xl py-4">
         {/* Full-width video viewer state */}
         {selectedId && selected ? (
           <div className="w-full">
@@ -119,9 +121,25 @@ export default function YoutubePageContent({
         ) : (
           /* Grid list view */
           <div>
-            <div className="flex items-center justify-between gap-3 mb-6 text-xs text-muted-soft select-none">
+            <DashboardPageHeader
+              title="YouTube"
+              description="Find videos and keep useful ones in your workspace."
+              action={
+                !uiState.isAdding ? (
+                  <button
+                    type="button"
+                    onClick={() => dispatchUi({ type: "SET_ADDING", payload: true })}
+                    className="dp-btn-primary inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold"
+                  >
+                    <Plus size={14} />
+                    Add video
+                  </button>
+                ) : null
+              }
+            />
+            <div className="mb-6 flex items-center justify-between gap-3 text-xs text-muted-soft select-none">
               <span>{filteredVideos.length} {filteredVideos.length === 1 ? "video" : "videos"}</span>
-              <span className="hidden sm:inline">Your saved library</span>
+              <span className="hidden sm:inline">Saved library</span>
             </div>
 
             {/* Add Video Inline Input Form */}
@@ -143,7 +161,7 @@ export default function YoutubePageContent({
                     <button
                       type="button"
                       onClick={addVideo}
-                      className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
+                      className="dp-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
                       disabled={uiState.isLoading}
                     >
                       {uiState.isLoading ? "Saving..." : "Add"}
@@ -151,7 +169,7 @@ export default function YoutubePageContent({
                     <button
                       type="button"
                       onClick={() => dispatchUi({ type: "RESET_ADD_FORM" })}
-                      className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
+                      className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
                       disabled={uiState.isLoading}
                     >
                       Cancel
@@ -170,7 +188,7 @@ export default function YoutubePageContent({
                 <p className="text-body mt-1 text-sm">{searchState.error}</p>
               </div>
             ) : !filteredVideos.length ? (
-              <div className="border border-hairline bg-surface-card rounded-2xl p-8 text-center">
+              <div className="px-4 py-14 text-center">
                 <p className="text-ink font-semibold">No saved videos yet</p>
                 <p className="text-body mt-1 text-sm">
                   Click "+ Add Video" above to search YouTube or paste a URL to build your library.
@@ -283,7 +301,7 @@ export default function YoutubePageContent({
                     ) : (
                       <button
                         onClick={() => saveVideoById(it.videoId, it.url, { clearSearch: true })}
-                        className="bg-primary hover:bg-primary-active text-canvas rounded-full px-4 py-1.5 text-xs font-semibold mt-3 flex items-center gap-1.5 transition-all w-fit shadow-sm"
+                        className="dp-btn-primary rounded-full px-4 py-1.5 text-xs font-semibold mt-3 flex items-center gap-1.5 transition-all w-fit shadow-sm"
                       >
                         <BookmarkPlus size={14} />
                         <span>Save to Library</span>
@@ -321,7 +339,7 @@ export default function YoutubePageContent({
                       <div className="flex items-center gap-4 mt-6">
                         <button
                           onClick={() => setSelectedId(featuredVideo.id)}
-                          className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2.5 text-xs font-bold transition-all h-9 flex items-center justify-center shadow-sm shrink-0"
+                          className="dp-btn-primary rounded-full px-5 py-2.5 text-xs font-bold transition-all h-9 flex items-center justify-center shadow-sm shrink-0"
                         >
                           Watch Full Briefing
                         </button>

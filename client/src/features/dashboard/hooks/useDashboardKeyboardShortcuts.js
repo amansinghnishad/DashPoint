@@ -37,7 +37,7 @@ export const DASHBOARD_SHORTCUT_GROUPS = [
     title: "Navigation",
     items: [
       { keys: ["G", "H"], description: "Go to Home" },
-      { keys: ["G", "D"], description: "Go to Focus" },
+      { keys: ["G", "D"], description: "Go to Assistant" },
       { keys: ["G", "C"], description: "Go to Calendar" },
       { keys: ["G", "Y"], description: "Go to YouTube" },
       { keys: ["G", "F"], description: "Go to File Manager" },

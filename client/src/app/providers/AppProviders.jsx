@@ -1,6 +1,7 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { AuthProvider } from "../../context/AuthContext";
+import { PWAInstallProvider } from "../../context/pwa/PWAInstallContext.jsx";
 import { ToastProvider } from "../../context/ToastContext";
 import { GOOGLE_CLIENT_ID } from "../../shared/config/appConfig";
 
@@ -13,7 +14,9 @@ export default function AppProviders({ children }) {
 
   return (
     <ToastProvider>
-      <AuthProvider>{appTree}</AuthProvider>
+      <AuthProvider>
+        <PWAInstallProvider>{appTree}</PWAInstallProvider>
+      </AuthProvider>
     </ToastProvider>
   );
 }

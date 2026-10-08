@@ -77,44 +77,40 @@ export default function ChatAssistantShowcase() {
     <UserCursor
       name="Alex / Lead"
       color="#F99149"
-      className="p-3 sm:p-5 bg-surface-card/90 border border-hairline/80 backdrop-blur-xl shadow-2xl rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:border-amber-500/30"
+      className="rounded-[26px] border border-hairline/80 bg-surface-card p-2 shadow-[0_24px_70px_rgba(22,18,14,0.12)] transition-shadow duration-500 hover:shadow-[0_28px_80px_rgba(22,18,14,0.16)]"
     >
-      <div className="flex flex-col h-[380px] sm:h-[420px] w-full text-left">
-        {/* Chat Window Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-hairline/60 select-none">
-          <div className="flex items-center gap-2.5">
-            <div className="h-6 w-6 bg-ink text-canvas rounded-lg flex items-center justify-center text-[10px] font-black tracking-tight">
-              DP
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-ink">DashPoint Intelligence</h4>
-              <p className="text-[10px] text-muted">Retrieval-Augmented Chat Engine</p>
+      <div className="relative flex h-[380px] w-full flex-col overflow-hidden rounded-[20px] bg-canvas text-left sm:h-[420px]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(249,145,73,0.12),transparent_42%)]" />
+        <div className="relative flex items-center justify-between border-b border-hairline/70 px-4 py-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-[10px] font-black tracking-tight text-canvas shadow-sm">DP</div>
+            <div className="min-w-0">
+              <h4 className="truncate text-xs font-bold text-ink">DashPoint Intelligence</h4>
+              <p className="mt-0.5 truncate text-[10px] text-muted">Workspace assistant <span className="mx-1.5 text-muted-soft">·</span> Gemini 2.5 Flash</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live SSE
+          <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold text-emerald-700 dark:text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Ready
           </div>
         </div>
 
-        {/* Message Stream Area */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1 text-xs dp-chat-scroll">
+        <div className="relative flex-1 space-y-3 overflow-y-auto px-4 py-4 pr-3 text-xs dp-chat-scroll sm:px-5">
           <AnimatePresence initial={false}>
             {messages.map((m) => (
               <motion.div
                 key={m.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex w-full ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {m.role === "user" ? (
-                  <div className="dp-chat-bubble-user max-w-[85%] rounded-xl px-3.5 py-2 shadow-sm font-medium">
+                  <div className="dp-chat-bubble-user max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 font-medium shadow-sm">
                     {m.content}
                   </div>
                 ) : (
-                  <div className="dp-chat-bubble-assistant max-w-[90%] rounded-2xl p-3.5 shadow-sm space-y-2">
+                  <div className="dp-chat-bubble-assistant max-w-[94%] rounded-2xl rounded-tl-md border border-hairline/70 p-3.5 shadow-[0_5px_18px_rgba(30,24,18,0.045)] space-y-2">
                     <div className="flex items-center gap-2 select-none">
-                      <div className="h-5 w-5 bg-ink text-canvas rounded flex items-center justify-center text-[9px] font-black tracking-tight shrink-0">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 to-orange-600 text-[8px] font-black tracking-tight text-white">
                         DP
                       </div>
                       <span className="text-xs font-bold text-[color:var(--dp-chat-bubble-assistant-fg)]">
@@ -132,19 +128,11 @@ export default function ChatAssistantShowcase() {
                         {m.streaming && <span className="ml-1 inline-block h-3.5 w-1.5 animate-pulse bg-amber-500 align-middle" />}
                       </div>
                     )}
-                    {m.meta && (
-                      <div className="flex items-center gap-1.5 pt-1 select-none flex-wrap">
-                        <span className="rounded-full bg-canvas border border-hairline px-2 py-0.5 text-[9px] font-bold text-muted uppercase">
-                          {m.meta.provider}/{m.meta.model}
+                    {m.meta && m.meta.retrieval.hitCount > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1 select-none">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-canvas-soft px-2 py-1 text-[9px] font-medium text-muted">
+                          <span className="h-1 w-1 rounded-full bg-amber-500" /> {m.meta.retrieval.hitCount} workspace sources
                         </span>
-                        <span className="rounded-full bg-canvas border border-hairline px-2 py-0.5 text-[9px] font-bold text-amber-500 uppercase">
-                          {m.meta.routing.tier}
-                        </span>
-                        {m.meta.retrieval.hitCount > 0 && (
-                          <span className="rounded-full bg-canvas border border-hairline px-2 py-0.5 text-[9px] font-bold text-muted uppercase">
-                            {m.meta.retrieval.hitCount} context
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -153,44 +141,43 @@ export default function ChatAssistantShowcase() {
             ))}
           </AnimatePresence>
 
-          {isTyping ? <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">Live response stream…</div> : null}
+          {isTyping ? <div className="flex items-center gap-2 pl-1 text-[10px] font-medium text-muted"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />Writing a response…</div> : null}
         </div>
 
-        {/* Prompt Suggestions */}
-        <div className="flex items-center gap-1.5 pb-2 overflow-x-auto select-none no-scrollbar">
+        <div className="relative flex items-center gap-2 overflow-x-auto px-4 pb-2.5 select-none no-scrollbar sm:px-5">
           {SAMPLE_CONVERSATIONS.map((s, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleSend(s.prompt)}
-              className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-canvas-soft hover:bg-ink hover:text-canvas border border-hairline transition-colors whitespace-nowrap shrink-0"
+              className="shrink-0 rounded-full border border-hairline bg-surface-card px-3 py-1.5 text-[9px] font-medium text-muted shadow-sm transition-colors hover:border-amber-500/40 hover:text-ink whitespace-nowrap"
             >
-              ✦ {s.prompt}
+              {s.prompt}
             </button>
           ))}
         </div>
 
-        {/* Input Bar */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-center gap-2 pt-2 border-t border-hairline/60"
+          className="relative mx-3 mb-3 flex items-center gap-2 rounded-2xl border border-hairline bg-surface-card px-3 py-2 shadow-sm sm:mx-4 sm:mb-4"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask DashPoint assistant..."
-            className="flex-1 bg-canvas-soft border border-hairline/80 rounded-xl px-3 py-1.5 text-xs text-ink placeholder:text-muted focus:outline-none focus:border-amber-500/50"
+            className="min-w-0 flex-1 bg-transparent px-1 py-1.5 text-xs text-ink placeholder:text-muted focus:outline-none"
           />
           <button
             type="submit"
             disabled={isTyping || !input.trim()}
-            className="dp-btn-primary px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+            className="dp-btn-primary inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Send message"
           >
-            Send
+            <span aria-hidden="true">↑</span>
           </button>
         </form>
       </div>

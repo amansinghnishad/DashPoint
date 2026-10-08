@@ -10,9 +10,7 @@ export const usePWAUpdates = () => {
     }
   };
 
-  const [showUpdatePrompt, setShowUpdatePrompt] = useState(() => {
-    return !wasDismissed();
-  });
+  const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
   const [registrationError, setRegistrationError] = useState(null);
 
   const {
@@ -30,9 +28,7 @@ export const usePWAUpdates = () => {
   });
 
   useEffect(() => {
-    if (needRefresh && !wasDismissed()) {
-      setShowUpdatePrompt(true);
-    }
+    setShowUpdatePrompt(Boolean(needRefresh) && !wasDismissed());
   }, [needRefresh]);
 
   const updateApp = () => {

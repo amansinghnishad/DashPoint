@@ -28,6 +28,15 @@ const getSidebarDisplayName = (user) => {
   return "User";
 };
 
+const getSidebarInitials = (user) =>
+  getSidebarDisplayName(user)
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "DP";
+
 export default function SideBarView({
   isOpen,
   onClose,
@@ -38,6 +47,7 @@ export default function SideBarView({
   setActiveTab,
   onInstallClick,
   user,
+  onAccountOpen,
   onSettingsOpen,
   isDark,
   toggleTheme,
@@ -45,6 +55,7 @@ export default function SideBarView({
   isInstalled,
 }) {
   const displayName = getSidebarDisplayName(user);
+  const initials = getSidebarInitials(user);
 
   return (
     <>
@@ -154,56 +165,44 @@ export default function SideBarView({
             ) : null}
           </nav>
 
-          {/* Bottom Profile & Actions */}
-          <div className="px-3 border-t border-hairline/60 pt-4 space-y-3">
-            {/* User Profile Card */}
-            {isExpanded ? (
-              <div className="flex items-center gap-3 p-2 rounded-xl bg-canvas-soft border border-hairline/40">
-                <div className="relative shrink-0">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
-                    alt={displayName}
-                    className="w-10 h-10 rounded-full object-cover border border-hairline"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-green-500" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm truncate text-ink">{displayName}</p>
-                  <p className="text-xs truncate text-muted-soft">
-                    {user?.email || "user@example.com"}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-center">
-                <div className="relative shrink-0">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80"
-                    alt={displayName}
-                    className="w-10 h-10 rounded-full object-cover border border-hairline"
-                  />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white bg-green-500" />
-                </div>
-              </div>
-            )}
+          {/* Account and preferences */}
+          <div className="border-t border-hairline/60 px-3 pt-4">
+            <div className={`flex items-center ${isExpanded ? "flex-row justify-center gap-1.5" : "flex-col items-center gap-2"}`}>
+              {/* Account Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  onAccountOpen?.();
+                  onClose?.();
+                }}
+                className="group inline-flex h-10 w-10 items-center justify-start overflow-hidden whitespace-nowrap rounded-xl border border-hairline/60 px-2.5 text-muted transition-[width,background-color,color] duration-300 ease-out hover:w-28 hover:bg-canvas-soft hover:text-ink focus-visible:w-28 focus-visible:bg-canvas-soft focus-visible:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                title="Account"
+                aria-label={`Account for ${displayName}`}
+              >
+                <span className="relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                  {initials}
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt=""
+                      className="absolute inset-0 h-full w-full rounded-full object-cover"
+                      onError={(event) => event.currentTarget.remove()}
+                    />
+                  ) : null}
+                </span>
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">Account</span>
+              </button>
 
-            {/* Actions Stack */}
-            <div
-              className={`flex ${isExpanded ? "flex-row gap-1.5" : "flex-col gap-2 items-center"}`}
-            >
               {/* Theme Toggle Button */}
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
-                  isExpanded
-                    ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60"
-                    : "w-10 h-10"
-                }`}
+                className={`group inline-flex h-10 w-10 items-center justify-start overflow-hidden whitespace-nowrap rounded-xl border border-hairline/60 px-3 text-muted transition-[width,background-color,color] duration-300 ease-out hover:bg-canvas-soft hover:text-ink focus-visible:bg-canvas-soft focus-visible:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? "hover:w-24 focus-visible:w-24" : "hover:w-28 focus-visible:w-28"}`}
                 title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
-                {isExpanded ? <span>{isDark ? "Light" : "Dark"}</span> : null}
+                {isDark ? <Sun size={18} className="shrink-0" /> : <Moon size={18} className="shrink-0" />}
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">{isDark ? "Light" : "Dark"}</span>
               </button>
 
               {/* Settings Button */}
@@ -213,30 +212,24 @@ export default function SideBarView({
                   onSettingsOpen?.();
                   onClose?.();
                 }}
-                className={`flex items-center justify-center rounded-xl text-muted hover:text-ink hover:bg-canvas-soft transition-all duration-200 ${
-                  isExpanded
-                    ? "flex-1 py-2 px-2 gap-1.5 text-xs font-semibold border border-hairline/60"
-                    : "w-10 h-10"
-                }`}
+                className={`group inline-flex h-10 w-10 items-center justify-start overflow-hidden whitespace-nowrap rounded-xl border border-hairline/60 px-3 text-muted transition-[width,background-color,color] duration-300 ease-out hover:bg-canvas-soft hover:text-ink focus-visible:bg-canvas-soft focus-visible:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isExpanded ? "hover:w-28 focus-visible:w-28" : "hover:w-32 focus-visible:w-32"}`}
                 title="Settings"
+                aria-label="Settings"
               >
-                <Settings size={18} />
-                {isExpanded ? <span>Settings</span> : null}
+                <Settings size={18} className="shrink-0" />
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-20 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-20 group-focus-visible:opacity-100">Settings</span>
               </button>
 
               {/* Logout Button */}
               <button
                 type="button"
                 onClick={logoutUser}
-                className={`flex items-center justify-center rounded-xl text-semantic-error hover:bg-semantic-error/10 transition-all duration-200 ${
-                  isExpanded
-                    ? "py-2 px-2 gap-1.5 text-xs font-semibold border border-semantic-error/20"
-                    : "w-10 h-10"
-                }`}
+                className={`group inline-flex h-10 w-10 items-center justify-start overflow-hidden whitespace-nowrap rounded-xl border border-semantic-error/20 px-3 text-semantic-error transition-[width,background-color,color] duration-300 ease-out hover:bg-semantic-error/10 focus-visible:bg-semantic-error/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-semantic-error ${isExpanded ? "hover:w-24 focus-visible:w-24" : "hover:w-28 focus-visible:w-28"}`}
                 title="Logout"
+                aria-label="Logout"
               >
-                <LogOut size={18} />
-                {isExpanded ? <span>Logout</span> : null}
+                <LogOut size={18} className="shrink-0" />
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">Logout</span>
               </button>
             </div>
           </div>

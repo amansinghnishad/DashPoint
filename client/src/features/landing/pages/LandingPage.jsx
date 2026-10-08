@@ -126,6 +126,7 @@ export default function LandingPage() {
                   muted
                   loop
                   playsInline
+                  preload="none"
                   src="/showCase/calendar.mp4"
                 />
                 <div className="absolute inset-0 bg-black/5" />
@@ -142,6 +143,7 @@ export default function LandingPage() {
                   muted
                   loop
                   playsInline
+                  preload="none"
                   src="/showCase/resize.mp4"
                 />
                 <div className="absolute inset-0 bg-black/5" />
@@ -157,6 +159,8 @@ export default function LandingPage() {
                   muted
                   loop
                   playsInline
+                  preload="none"
+                  poster="/showCase/resize-poster.jpeg"
                   src="/1.mp4"
                 />
 

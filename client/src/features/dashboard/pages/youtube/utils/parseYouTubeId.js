@@ -1,26 +1,32 @@
 export function parseYouTubeId(raw) {
-  if (!raw) return null;
+  if (typeof raw !== "string") return null;
   const value = raw.trim();
   if (!value) return null;
 
-  if (/^[a-zA-Z0-9_-]{6,}$/.test(value) && !value.includes("http")) {
-    return value;
-  }
+  const isVideoId = (candidate) => /^[a-zA-Z0-9_-]{11}$/.test(candidate);
+
+  if (isVideoId(value)) return value;
 
   try {
     const url = new URL(value);
-    if (url.hostname.includes("youtu.be")) {
-      const id = url.pathname.replace("/", "").trim();
-      return id || null;
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+
+    const hostname = url.hostname.toLowerCase();
+    if (hostname === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0] || "";
+      return isVideoId(id) ? id : null;
     }
 
-    if (url.hostname.includes("youtube.com")) {
+    const isYoutubeHost = hostname === "youtube.com" || hostname.endsWith(".youtube.com");
+    if (isYoutubeHost) {
       const id = url.searchParams.get("v");
-      if (id) return id;
+      if (id && isVideoId(id)) return id;
 
       const parts = url.pathname.split("/").filter(Boolean);
       const shortsIdx = parts.indexOf("shorts");
-      if (shortsIdx >= 0 && parts[shortsIdx + 1]) return parts[shortsIdx + 1];
+      if (shortsIdx >= 0 && isVideoId(parts[shortsIdx + 1] || "")) {
+        return parts[shortsIdx + 1];
+      }
     }
   } catch {
     return null;

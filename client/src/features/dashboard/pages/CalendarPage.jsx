@@ -1,16 +1,15 @@
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 
 import CalendarAgendaPanel from "./calendar/components/CalendarAgendaPanel";
 import CalendarHeader from "./calendar/components/CalendarHeader";
 import CalendarMonthGrid from "./calendar/components/CalendarMonthGrid";
 import CreateCalendarItemModal from "./calendar/components/CreateCalendarItemModal";
-import { WEEKDAYS } from "./calendar/constants";
 import { useCalendarCreateItem } from "./calendar/hooks/useCalendarCreateItem";
 import { useCalendarMonthData } from "./calendar/hooks/useCalendarMonthData";
 import { dayKey } from "./calendar/utils/dateUtils";
 import { useCalendar } from "../../../hooks/useCalendar";
 
-export default function CalendarPage({ triggerRef }) {
+export default function CalendarPage() {
   const today = useMemo(() => new Date(), []);
 
   const {
@@ -25,9 +24,7 @@ export default function CalendarPage({ triggerRef }) {
   } = useCalendar({ loadEvents: false });
 
   const {
-    month,
     monthLabel,
-    monthGrid,
     monthLoading,
     monthError,
     setMonthError,
@@ -63,16 +60,6 @@ export default function CalendarPage({ triggerRef }) {
     onError: setMonthError,
   });
 
-  // Wire up the header create trigger ref
-  useEffect(() => {
-    if (triggerRef) {
-      triggerRef.current = () => openCreate();
-    }
-    return () => {
-      if (triggerRef) triggerRef.current = null;
-    };
-  }, [triggerRef, openCreate]);
-
   const onRefresh = useCallback(async () => {
     const status = await refreshStatus();
     const isConnected = Boolean(status?.data?.connected);
@@ -80,11 +67,10 @@ export default function CalendarPage({ triggerRef }) {
   }, [loadMonthEvents, refreshStatus]);
 
   return (
-    <section className="w-full max-w-[1024px] mx-auto py-4 relative">
+    <section className="relative mx-auto w-full max-w-[1100px] py-4">
       {/* Modern styled Calendar Header */}
       <CalendarHeader
         monthLabel={monthLabel}
-        selectedDate={selectedDate}
         connected={connected}
         loadingStatus={loadingStatus}
         connectError={connectError}
@@ -99,29 +85,16 @@ export default function CalendarPage({ triggerRef }) {
         onGoToNextMonth={goToNextMonth}
       />
 
-      <div className="relative z-10 mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Main Grid View */}
-        <div>
-          <CalendarMonthGrid
-            month={month}
-            monthGrid={monthGrid}
-            weekdays={WEEKDAYS}
-            selectedDate={selectedDate}
-            today={today}
-            eventsByDay={eventsByDay}
-            onSelectDate={setSelectedDate}
-          />
-        </div>
-
-        {/* Agenda details */}
-        <div>
-          <CalendarAgendaPanel
-            connected={connected}
-            selectedDate={selectedDate}
-            selectedDayEvents={selectedDayEvents}
-            onOpenCreate={openCreate}
-          />
-        </div>
+      <div className="relative z-10 mt-6 space-y-4">
+        <CalendarMonthGrid
+          selectedDate={selectedDate}
+          today={today}
+          eventsByDay={eventsByDay}
+          onSelectDate={setSelectedDate}
+        />
+        <CalendarAgendaPanel
+          selectedDayEvents={selectedDayEvents}
+        />
       </div>
 
       <CreateCalendarItemModal

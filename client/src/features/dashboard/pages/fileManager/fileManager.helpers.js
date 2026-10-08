@@ -8,9 +8,11 @@ export const FILE_MANAGER_ERRORS = {
   summarize: "Failed to summarize file",
 };
 
-export const FILE_MANAGER_ACCEPT = "image/*,application/pdf,text/*,.md,.json,.csv";
+export const FILE_MANAGER_ACCEPT = "image/*,application/pdf";
 
-export const FILE_MANAGER_MAX_UPLOAD_FILES = 10;
+export const FILE_MANAGER_MAX_UPLOAD_FILES = 5;
+export const FILE_MANAGER_MAX_FILE_SIZE = 10 * 1024 * 1024;
+export const FILE_MANAGER_MAX_TOTAL_UPLOAD_SIZE = 25 * 1024 * 1024;
 
 export const getRequestErrorMessage = (error, fallback) => {
   const status = error?.response?.status;
@@ -64,6 +66,12 @@ export const getUploadValidationMessage = (files) => {
   if (!list.length) return "Choose at least one file.";
   if (list.length > FILE_MANAGER_MAX_UPLOAD_FILES) {
     return `You can upload up to ${FILE_MANAGER_MAX_UPLOAD_FILES} files at a time.`;
+  }
+  if (list.some((file) => file.size > FILE_MANAGER_MAX_FILE_SIZE)) {
+    return "Each file must be 10 MB or smaller.";
+  }
+  if (list.reduce((total, file) => total + (file.size || 0), 0) > FILE_MANAGER_MAX_TOTAL_UPLOAD_SIZE) {
+    return "The combined upload size must be 25 MB or smaller.";
   }
   return null;
 };

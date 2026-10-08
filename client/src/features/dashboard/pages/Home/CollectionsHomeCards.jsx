@@ -3,14 +3,63 @@ import {
   Pencil,
   Trash2,
   Star,
-  Lock,
   ArrowUpRight,
-  Plus,
-  FileText,
   Database,
   Palette,
 } from "lucide-react";
 import { useState } from "react";
+
+const formatRelativeTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const seconds = (date.getTime() - Date.now()) / 1000;
+  const units = [
+    [60, "second", 1],
+    [60 * 60, "minute", 60],
+    [60 * 60 * 24, "hour", 60 * 60],
+    [60 * 60 * 24 * 30, "day", 60 * 60 * 24],
+    [60 * 60 * 24 * 365, "month", 60 * 60 * 24 * 30],
+  ];
+  let unit = "year";
+  let secondsPerUnit = 60 * 60 * 24 * 365;
+  for (const [threshold, nextUnit, unitLength] of units) {
+    if (Math.abs(seconds) < threshold) {
+      unit = nextUnit;
+      secondsPerUnit = unitLength;
+      break;
+    }
+  }
+
+  const amount = Math.round(seconds / secondsPerUnit);
+  return new Intl.RelativeTimeFormat(undefined, { numeric: "auto" }).format(amount, unit);
+};
+
+const getCollectionTimes = (collection) => {
+  const createdAt = collection?.createdAt;
+  const updatedAt = collection?.updatedAt;
+  const createdDate = createdAt ? new Date(createdAt) : null;
+  const updatedDate = updatedAt ? new Date(updatedAt) : null;
+  const created = formatRelativeTime(createdAt);
+  const updated = formatRelativeTime(updatedAt);
+  const hasMeaningfulUpdate =
+    createdDate && updatedDate &&
+    !Number.isNaN(createdDate.getTime()) &&
+    !Number.isNaN(updatedDate.getTime()) &&
+    updatedDate.getTime() - createdDate.getTime() > 1_000;
+
+  return {
+    created,
+    updated: hasMeaningfulUpdate ? updated : null,
+    createdTitle: createdDate && !Number.isNaN(createdDate.getTime())
+      ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(createdDate)
+      : undefined,
+    updatedTitle: updatedDate && !Number.isNaN(updatedDate.getTime())
+      ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(updatedDate)
+      : undefined,
+  };
+};
 
 export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
   const name = collection?.name ?? "Untitled";
@@ -26,8 +75,7 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
   // Check if this is the "Product Roadmap" card to apply the premium ink-black featured layout
   const isFeatured =
     name.toLowerCase().includes("product") || name.toLowerCase().includes("roadmap");
-  const isPrivate = name.toLowerCase().includes("rag") || name.toLowerCase().includes("research");
-  const isShared = name.toLowerCase().includes("visual") || name.toLowerCase().includes("identity");
+  const { created: createdTime, updated: updatedTime, createdTitle, updatedTitle } = getCollectionTimes(collection);
 
   // Determine icon based on collection name for premium visual storytelling
   const getIcon = () => {
@@ -56,15 +104,15 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="bg-primary border-none p-6 rounded-2xl flex flex-col justify-between h-[230px] shadow-lg relative cursor-pointer text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+        className="bg-primary border-none p-6 rounded-2xl flex flex-col justify-between h-[230px] shadow-lg relative cursor-pointer text-on-primary transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         aria-label={`Open collection ${name}`}
       >
         {/* Top Row */}
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold text-white/90 bg-white/10 px-2.5 py-1 rounded-full">
+          <span className="text-[11px] font-semibold text-on-primary/90 bg-on-primary/10 px-2.5 py-1 rounded-full">
             {itemsCount || 48} Files
           </span>
-          <Star size={16} className="text-white fill-white opacity-80" />
+          <Star size={16} className="text-on-primary fill-current opacity-80" />
         </div>
 
         {/* Middle Header & Description */}
@@ -76,7 +124,7 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-4 gap-2">
           <div className="flex items-center gap-1.5">
             <button
               type="button"
@@ -84,7 +132,7 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
                 e.stopPropagation();
                 onEdit?.(collection);
               }}
-              className="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              className="text-on-primary/60 hover:text-on-primary p-1 rounded-lg hover:bg-on-primary/10 transition-colors"
               title="Edit"
             >
               <Pencil size={14} />
@@ -95,17 +143,23 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
                 e.stopPropagation();
                 onDelete?.(collection);
               }}
-              className="text-white/60 hover:text-red-400 p-1 rounded-lg hover:bg-white/10 transition-colors"
+            className="text-on-primary/60 hover:text-red-400 p-1 rounded-lg hover:bg-on-primary/10 transition-colors"
               title="Delete"
             >
               <Trash2 size={14} />
             </button>
           </div>
 
-          <div
-            className={`w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white transition-transform duration-300 ${isHovered ? "rotate-45 bg-white/20" : ""}`}
-          >
-            <ArrowUpRight size={16} />
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="text-right text-[9px] leading-tight text-on-primary/70">
+              {createdTime ? <p title={createdTitle}>Created {createdTime}</p> : null}
+              {updatedTime ? <p title={updatedTitle}>Updated {updatedTime}</p> : null}
+            </div>
+            <div
+              className={`w-8 h-8 shrink-0 rounded-full bg-on-primary/10 flex items-center justify-center text-on-primary transition-transform duration-300 ${isHovered ? "rotate-45 bg-on-primary/20" : ""}`}
+            >
+              <ArrowUpRight size={16} />
+            </div>
           </div>
         </div>
       </div>
@@ -131,7 +185,7 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
           <IconComponent size={18} />
         </div>
         <span className="text-[11px] font-semibold text-muted bg-canvas px-2.5 py-1 rounded-full">
-          {itemsCount} {isShared ? "Assets" : "Items"}
+          {itemsCount} Items
         </span>
       </div>
 
@@ -144,7 +198,7 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
       </div>
 
       {/* Bottom Actions */}
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center justify-between mt-4 gap-2">
         <div
           className={`flex items-center gap-1.5 transition-opacity duration-200 opacity-100 lg:opacity-0 lg:group-hover:opacity-100`}
         >
@@ -172,36 +226,9 @@ export function CollectionCard({ collection, onOpen, onEdit, onDelete }) {
           </button>
         </div>
 
-        {/* Dynamic status metadata */}
-        <div className="flex items-center gap-2">
-          {isPrivate ? (
-            <>
-              <span className="text-[10px] font-bold text-muted-soft uppercase tracking-wider">
-                Private Access
-              </span>
-              <Lock size={12} className="text-muted-soft" />
-            </>
-          ) : isShared ? (
-            <>
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-ink" />
-                <span className="w-2.5 h-2.5 rounded-full bg-gradient-mint" />
-              </div>
-              <span className="text-[10px] font-bold text-muted-soft uppercase tracking-wider">
-                Shared
-              </span>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-gradient-peach" />
-                <span className="w-2.5 h-2.5 rounded-full bg-gradient-lavender" />
-              </div>
-              <span className="text-[10px] font-bold text-muted-soft uppercase tracking-wider">
-                Updated 2h ago
-              </span>
-            </>
-          )}
+        <div className="min-w-0 text-right text-[9px] leading-tight text-muted-soft">
+          {createdTime ? <p title={createdTitle}>Created {createdTime}</p> : null}
+          {updatedTime ? <p title={updatedTitle}>Updated {updatedTime}</p> : null}
         </div>
       </div>
     </div>

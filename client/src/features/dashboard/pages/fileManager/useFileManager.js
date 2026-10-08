@@ -17,6 +17,7 @@ export function useFileManager() {
 
   const [search, setSearch] = useState("");
   const [items, setItems] = useState([]);
+  const [pagination, setPagination] = useState({ current: 1, total: 1, count: 0 });
   const [selectedId, setSelectedId] = useState(null);
   const [textPreview, setTextPreview] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
@@ -30,27 +31,48 @@ export function useFileManager() {
     [items, selectedId],
   );
 
-  const loadFiles = useCallback(async () => {
-    try {
-      setIsBusy(true);
-      const response = await fileService.getFiles({ page: 1, limit: 50 });
-      if (!response?.success) {
-        throw new Error(response?.error || response?.message || FILE_MANAGER_ERRORS.load);
-      }
+  const loadFiles = useCallback(
+    async ({ page = 1, append = false } = {}) => {
+      try {
+        setIsBusy(true);
+        const response = await fileService.getFiles({ page, limit: 50 });
+        if (!response?.success) {
+          throw new Error(response?.error || response?.message || FILE_MANAGER_ERRORS.load);
+        }
 
-      const mappedItems = toFileItems(response.data);
-      setItems(mappedItems);
-      setSelectedId((previousId) => {
-        if (!previousId) return null;
-        const stillExists = mappedItems.some((item) => item.id === previousId);
-        return stillExists ? previousId : null;
-      });
-    } catch (error) {
-      toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.load));
-    } finally {
-      setIsBusy(false);
+        const mappedItems = toFileItems(response.data);
+        setItems((previousItems) =>
+          append
+            ? [
+                ...previousItems,
+                ...mappedItems.filter(
+                  (item) => !previousItems.some((previous) => previous.id === item.id),
+                ),
+              ]
+            : mappedItems,
+        );
+        setPagination(
+          response.pagination || { current: page, total: page, count: mappedItems.length },
+        );
+        setSelectedId((previousId) => {
+          if (!previousId) return null;
+          const stillExists = append || mappedItems.some((item) => item.id === previousId);
+          return stillExists ? previousId : null;
+        });
+      } catch (error) {
+        toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.load));
+      } finally {
+        setIsBusy(false);
+      }
+    },
+    [toast],
+  );
+
+  const loadMoreFiles = useCallback(() => {
+    if (!isBusy && pagination.current < pagination.total) {
+      return loadFiles({ page: pagination.current + 1, append: true });
     }
-  }, [toast]);
+  }, [isBusy, loadFiles, pagination.current, pagination.total]);
 
   const uploadSelectedFiles = useCallback(
     async (fileList) => {
@@ -70,11 +92,19 @@ export function useFileManager() {
 
         const uploadedItems = toFileItems(response.data);
         setItems((previousItems) => mergeUploadedItems(previousItems, uploadedItems));
+        setPagination((previous) => {
+          const count = previous.count + uploadedItems.length;
+          return { ...previous, count, total: Math.ceil(count / 50) };
+        });
         setSelectedId((previousId) => uploadedItems[0]?.id || previousId);
         if (Array.isArray(response.insights) && response.insights.length) {
           setInsightQueue((current) => [...current, ...response.insights]);
         }
-        toast.success("File(s) uploaded.");
+        if (response.partialFailure) {
+          toast.warning(response.message || `${uploadedItems.length} file(s) uploaded with failures.`);
+        } else {
+          toast.success("File(s) uploaded.");
+        }
       } catch (error) {
         toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.upload));
       } finally {
@@ -95,6 +125,10 @@ export function useFileManager() {
 
         const newFileItem = toFileItem(response.data);
         setItems((previousItems) => [newFileItem, ...previousItems]);
+        setPagination((previous) => {
+          const count = previous.count + 1;
+          return { ...previous, count, total: Math.ceil(count / 50) };
+        });
         setSelectedId(newFileItem.id);
         toast.success("Web link added successfully.");
         return true;
@@ -126,6 +160,10 @@ export function useFileManager() {
         );
         return remaining;
       });
+      setPagination((previous) => {
+        const count = Math.max(0, previous.count - 1);
+        return { ...previous, count, total: Math.ceil(count / 50) };
+      });
 
       setDeleteItem(null);
       toast.success("File deleted.");
@@ -138,6 +176,19 @@ export function useFileManager() {
 
   const downloadSelectedFile = useCallback(async () => {
     if (!selected?.id) return;
+
+    if (selected.mime === "text/html" && selected.remoteUrl) {
+      try {
+        const url = new URL(selected.remoteUrl);
+        if (!["http:", "https:"].includes(url.protocol)) {
+          throw new Error("Only HTTP and HTTPS links can be opened");
+        }
+        window.open(url.toString(), "_blank", "noopener,noreferrer");
+      } catch (error) {
+        toast.error(error?.message || "Invalid web link");
+      }
+      return;
+    }
 
     try {
       await fileService.downloadFile(selected.id, selected.title || "download");
@@ -173,6 +224,7 @@ export function useFileManager() {
     state: {
       search,
       items,
+      pagination,
       selected,
       selectedId,
       textPreview,
@@ -192,6 +244,7 @@ export function useFileManager() {
       downloadSelectedFile,
       setInsightQueue,
       addWebLink,
+      loadMoreFiles,
     },
   };
 }

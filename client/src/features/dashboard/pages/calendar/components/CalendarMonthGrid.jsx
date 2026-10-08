@@ -1,98 +1,62 @@
 import { dayKey, isSameDay } from "../utils/dateUtils";
-import { formatEventTimeLabel, getEventChipClass } from "../utils/eventUtils";
+
+const getWeekDays = (selectedDate) => {
+  const firstDay = new Date(selectedDate);
+  firstDay.setHours(0, 0, 0, 0);
+  firstDay.setDate(firstDay.getDate() - ((firstDay.getDay() + 6) % 7));
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(firstDay);
+    date.setDate(firstDay.getDate() + index);
+    return date;
+  });
+};
 
 export default function CalendarMonthGrid({
-  month,
-  monthGrid,
-  weekdays,
   selectedDate,
   today,
   eventsByDay,
   onSelectDate,
 }) {
-  return (
-    <div className="bg-surface-card border border-hairline overflow-hidden rounded-2xl shadow-sm">
-      <div className="grid grid-cols-7 border-b border-hairline bg-canvas-soft select-none">
-        {weekdays.map((weekday) => (
-          <div
-            key={weekday}
-            className="px-4 py-2.5 text-muted text-[10px] font-bold uppercase tracking-wider text-center sm:text-left"
-          >
-            {weekday}
-          </div>
-        ))}
-      </div>
+  const weekDays = getWeekDays(selectedDate);
 
-      <div className="grid grid-cols-7 divide-x divide-y divide-hairline/60">
-        {monthGrid.map((date, idx) => {
-          const inMonth = date.getMonth() === month.getMonth();
-          const isTodayCell = isSameDay(date, today);
-          const isSelected = isSameDay(date, selectedDate);
-          const dayEvents = eventsByDay.get(dayKey(date)) || [];
+  return (
+    <section className="border-y border-hairline py-3" aria-label="Choose a day">
+      <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto px-1 pb-1 sm:justify-between">
+        {weekDays.map((date) => {
+          const selected = isSameDay(date, selectedDate);
+          const isToday = isSameDay(date, today);
+          const eventCount = eventsByDay.get(dayKey(date))?.length ?? 0;
 
           return (
             <button
               key={date.toISOString()}
               type="button"
               onClick={() => onSelectDate(date)}
-              className={
-                "group min-h-[96px] p-2.5 text-left transition-all duration-200 ease-out lg:min-h-[118px] relative " +
-                (isSelected ? "bg-canvas-soft/80" : "hover:bg-canvas-soft/30") +
-                // Fix grid borders since grid division applies to children
-                (idx < 7 ? " border-t-0" : "") +
-                (idx % 7 === 0 ? " border-l-0" : "")
-              }
+              aria-pressed={selected}
+              aria-label={`${date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}${eventCount ? `, ${eventCount} events` : ""}`}
+              className="group flex min-w-[48px] snap-center flex-col items-center gap-1.5 text-ink sm:min-w-[56px]"
             >
-              <div className="flex items-center justify-between">
-                <div
-                  className={
-                    "text-xs font-semibold select-none " +
-                    (inMonth ? "text-ink" : "text-muted-soft") +
-                    (isTodayCell
-                      ? " bg-ink text-canvas rounded-full h-6 w-6 inline-flex items-center justify-center shadow-sm"
-                      : " group-hover:text-ink h-6 w-6 inline-flex items-center justify-center rounded-lg hover:bg-canvas-soft")
-                  }
-                  aria-label={date.toDateString()}
-                >
-                  {date.getDate()}
-                </div>
-
-                {dayEvents.length ? (
-                  <span className="text-[10px] font-bold text-muted bg-canvas-soft px-1.5 py-0.5 rounded-full select-none">
-                    {dayEvents.length}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="mt-2.5 space-y-1">
-                {dayEvents.slice(0, 3).map((event) => (
-                  <div
-                    key={event.id}
-                    className={
-                      "border border-hairline/60 bg-canvas-soft/40 rounded-lg px-2 py-1 shadow-[0_1px_2px_rgba(0,0,0,0.01)] hover:bg-canvas-soft transition-colors " +
-                      getEventChipClass(event)
-                    }
-                    title={event.summary}
-                  >
-                    <p className="text-ink text-[11px] font-semibold truncate leading-tight">
-                      {event.summary}
-                    </p>
-                    <p className="text-muted-soft mt-0.5 text-[9px] truncate">
-                      {formatEventTimeLabel(event) || "All day"}
-                    </p>
-                  </div>
+              <span className="text-[9px] font-semibold uppercase tracking-wide text-muted">
+                {date.toLocaleDateString(undefined, { weekday: "short" })}
+              </span>
+              <span className={`grid h-10 w-10 place-items-center rounded-full border text-sm font-semibold tabular-nums transition-all sm:h-11 sm:w-11 ${
+                selected
+                  ? "border-ink bg-ink text-canvas shadow-md shadow-ink/10"
+                  : isToday
+                    ? "border-ink/30 bg-surface-card text-ink hover:border-ink/60"
+                    : "border-transparent bg-transparent text-ink hover:border-hairline hover:bg-canvas-soft"
+              }`}>{date.getDate()}</span>
+              <span className="flex h-1 items-center gap-0.5" aria-hidden="true">
+                {Array.from({ length: Math.min(eventCount, 3) }, (_, index) => (
+                  <span key={index} className={`h-1 w-1 rounded-full ${selected ? "bg-ink" : "bg-primary"}`} />
                 ))}
-
-                {dayEvents.length > 3 ? (
-                  <p className="text-muted text-[10px] font-semibold select-none pl-1">
-                    +{dayEvents.length - 3} more
-                  </p>
-                ) : null}
-              </div>
+                {isToday && !selected && eventCount === 0 ? <span className="h-1 w-1 rounded-full bg-ink/50" /> : null}
+              </span>
             </button>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

@@ -22,7 +22,7 @@ export default function CreateCalendarItemModal({
           <button
             type="button"
             onClick={onClose}
-            className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-5 py-2 text-sm font-semibold transition-colors"
+            className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-colors"
             disabled={creating}
           >
             Cancel
@@ -31,7 +31,7 @@ export default function CreateCalendarItemModal({
           <button
             type="button"
             onClick={onSubmit}
-            className="bg-primary hover:bg-primary-active text-canvas rounded-full px-5 py-2 text-sm font-semibold transition-colors"
+            className="dp-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-colors"
             disabled={creating}
           >
             {creating ? "Creating..." : "Create"}

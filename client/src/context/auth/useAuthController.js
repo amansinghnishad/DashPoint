@@ -220,6 +220,51 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
     }
   }, [applyLogout]);
 
+  const updateProfile = useCallback(
+    async (profile) => {
+      try {
+        const response = await authAPI.updateProfile(profile);
+        if (!response?.success || !response.data) {
+          const message = response?.message || "Unable to update your profile.";
+          toastError(message);
+          return { success: false, error: message };
+        }
+
+        setAuthSession(getAuthToken(), response.data);
+        dispatch({ type: AuthActionType.UPDATE_USER, payload: response.data });
+        toastSuccess("Profile updated.");
+        return { success: true };
+      } catch (error) {
+        const message = extractErrorMessage(error, "Unable to update your profile.");
+        toastError(message);
+        return { success: false, error: message };
+      }
+    },
+    [toastError, toastSuccess],
+  );
+
+  const changePassword = useCallback(
+    async (passwords) => {
+      try {
+        const response = await authAPI.changePassword(passwords);
+        if (!response?.success) {
+          const message = response?.message || "Unable to change your password.";
+          toastError(message);
+          return { success: false, error: message };
+        }
+
+        toastInfo("Password changed. Please sign in again with your new password.");
+        applyLogout();
+        return { success: true };
+      } catch (error) {
+        const message = extractErrorMessage(error, "Unable to change your password.");
+        toastError(message);
+        return { success: false, error: message };
+      }
+    },
+    [applyLogout, toastError, toastInfo],
+  );
+
   const clearFirstTimeUser = useCallback(() => {
     clearFirstTimeUserFlag();
     dispatch({
@@ -292,6 +337,8 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
       loginWithGoogle,
       registerUser,
       logoutUser,
+      updateProfile,
+      changePassword,
       clearError,
       extendSession,
       clearFirstTimeUser,
@@ -299,11 +346,13 @@ export default function useAuthController({ toastSuccess, toastError, toastInfo 
     [
       clearError,
       clearFirstTimeUser,
+      changePassword,
       extendSession,
       loginUser,
       loginWithGoogle,
       logoutUser,
       registerUser,
+      updateProfile,
     ],
   );
 

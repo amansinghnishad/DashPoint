@@ -37,101 +37,79 @@ export default function SmartCalendarShowcase() {
     <UserCursor
       name="Sarah / Dev"
       color="#3B82F6"
-      className="p-3 sm:p-5 bg-surface-card/90 border border-hairline/80 backdrop-blur-xl shadow-2xl rounded-2xl md:rounded-3xl overflow-hidden transition-all duration-500 hover:border-blue-500/30"
+      className="rounded-[26px] border border-hairline/80 bg-surface-card p-2 shadow-[0_24px_70px_rgba(22,18,14,0.12)] transition-shadow duration-500 hover:shadow-[0_28px_80px_rgba(22,18,14,0.16)]"
     >
-      <div className="flex flex-col h-[380px] sm:h-[420px] w-full text-left">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-hairline/60 select-none">
+      <div className="relative flex h-[380px] w-full flex-col overflow-hidden rounded-[20px] bg-canvas text-left sm:h-[420px]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.11),transparent_45%)]" />
+        <div className="relative flex items-center justify-between border-b border-hairline/70 px-4 py-3 sm:px-5">
           <div>
-            <h4 className="text-xs font-bold text-ink">Smart Adaptive Calendar</h4>
-            <p className="text-[10px] text-muted">Conflict Resolution & Google Sync</p>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted">Your schedule</p>
+            <h4 className="mt-0.5 text-sm font-semibold text-ink">August {selectedDay}<span className="font-normal text-muted">, 2026</span></h4>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-ink">August 2026</span>
-            <div className="flex items-center gap-1 bg-canvas-soft border border-hairline px-2 py-0.5 rounded-lg text-[10px] font-semibold text-muted">
-              Active
-            </div>
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/15 bg-blue-500/[0.07] px-2.5 py-1 text-[9px] font-semibold text-blue-700 dark:text-blue-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Google Calendar
           </div>
         </div>
 
-        {/* Mini Calendar Strip */}
-        <div className="grid grid-cols-7 gap-1 py-3 text-center border-b border-hairline/40 select-none">
-          {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-            <span key={i} className="text-[9px] font-bold text-muted uppercase">
-              {d}
-            </span>
-          ))}
-          {[24, 25, 26, 27, 28, 29, 30].map((day) => {
-            const isSelected = selectedDay === day;
-            return (
+        <div className="relative grid grid-cols-7 gap-1 px-4 py-3 sm:px-5">
+          {["M", "T", "W", "T", "F", "S", "S"].map((dayName, index) => (
+            <div key={`${dayName}-${index}`} className="flex flex-col items-center gap-1.5">
+              <span className="text-[9px] font-semibold uppercase text-muted-soft">{dayName}</span>
               <button
-                key={day}
                 type="button"
-                onClick={() => setSelectedDay(day)}
-                className={`py-1 rounded-lg text-xs font-semibold transition-colors ${
-                  isSelected
-                    ? "bg-ink text-canvas shadow-sm"
-                    : "hover:bg-canvas-soft text-ink"
+                onClick={() => setSelectedDay([24, 25, 26, 27, 28, 29, 30][index])}
+                aria-pressed={selectedDay === [24, 25, 26, 27, 28, 29, 30][index]}
+                className={`flex h-8 w-8 items-center justify-center rounded-xl text-[11px] font-semibold transition-all ${
+                  selectedDay === [24, 25, 26, 27, 28, 29, 30][index]
+                    ? "bg-ink text-canvas shadow-md shadow-ink/15"
+                    : "text-ink hover:bg-canvas-soft"
                 }`}
               >
-                {day}
+                {[24, 25, 26, 27, 28, 29, 30][index]}
               </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Schedule Stream */}
-        <div className="flex-1 overflow-y-auto py-3 space-y-2 text-xs">
-          <div className="flex items-center justify-between select-none mb-1">
-            <span className="text-[11px] font-bold text-ink">Scheduled Timetable</span>
-            <span className="text-[10px] text-muted font-medium">Click chip to toggle</span>
-          </div>
-
-          {events.map((ev) => (
-            <motion.div
-              key={ev.id}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => toggleEvent(ev.id)}
-              className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between select-none ${
-                ev.completed
-                  ? "bg-canvas-soft/60 border-hairline opacity-60 line-through"
-                  : "bg-surface-card border-hairline/80 shadow-sm hover:border-blue-500/40"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <input
-                  type="checkbox"
-                  checked={ev.completed}
-                  onChange={() => toggleEvent(ev.id)}
-                  className="rounded border-hairline text-ink focus:ring-0"
-                />
-                <div>
-                  <p className="font-semibold text-xs text-ink">{ev.title}</p>
-                  <p className="text-[10px] text-muted">{ev.time}</p>
-                </div>
-              </div>
-              <span
-                className={`px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase ${getChipBadge(
-                  ev.color,
-                )}`}
-              >
-                {ev.type}
-              </span>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* Instant AI Auto-Scheduler Insight */}
-        <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-between text-xs select-none">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-            <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
-              Optimal focus block auto-detected at 4:00 PM
-            </span>
-          </div>
-          <span className="text-[9px] font-bold uppercase tracking-wider text-blue-500">
-            Synced
+        <div className="relative flex items-center justify-between border-t border-hairline/60 px-4 pb-2 pt-3 sm:px-5">
+          <span className="text-[10px] font-semibold text-ink">Today at a glance</span>
+          <span className="text-[9px] text-muted">{events.filter((event) => !event.completed).length} items to go</span>
+        </div>
+
+        <div className="relative flex-1 space-y-2 overflow-y-auto px-4 pb-3 sm:px-5">
+          {events.map((event) => (
+            <motion.button
+              key={event.id}
+              type="button"
+              aria-pressed={event.completed}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => toggleEvent(event.id)}
+              className={`group flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition-colors ${
+                event.completed
+                  ? "border-hairline/70 bg-canvas-soft/65"
+                  : "border-hairline/80 bg-surface-card hover:border-blue-500/30 hover:bg-blue-500/[0.025]"
+              }`}
+            >
+              <span className={`h-8 w-1 shrink-0 rounded-full ${event.completed ? "bg-muted-soft/40" : event.color === "success" ? "bg-emerald-500" : event.color === "warning" ? "bg-amber-500" : event.color === "danger" ? "bg-rose-500" : "bg-blue-500"}`} />
+              <span className="w-[58px] shrink-0 text-[9px] font-semibold tabular-nums text-muted">{event.time}</span>
+              <span className="min-w-0 flex-1">
+                <span className={`block truncate text-[10px] font-semibold ${event.completed ? "text-muted line-through" : "text-ink"}`}>{event.title}</span>
+                <span className="mt-0.5 block text-[9px] capitalize text-muted">{event.type}</span>
+              </span>
+              <span aria-hidden="true" className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[9px] ${event.completed ? "border-blue-600 bg-blue-600 text-white" : "border-hairline text-transparent group-hover:border-blue-500/50"}`}>
+                ✓
+              </span>
+            </motion.button>
+          ))}
+        </div>
+
+        <div className="relative mx-3 mb-3 flex items-center gap-2 rounded-2xl border border-blue-500/15 bg-blue-500/[0.06] px-3 py-2.5 sm:mx-4 sm:mb-4">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-300">✦</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[9px] font-semibold text-ink">A little room to focus</span>
+            <span className="block truncate text-[9px] text-muted">Suggested open block · 4:00–4:45 PM</span>
           </span>
+          <span className="shrink-0 rounded-full bg-blue-500/10 px-2 py-1 text-[8px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">Synced</span>
         </div>
       </div>
     </UserCursor>

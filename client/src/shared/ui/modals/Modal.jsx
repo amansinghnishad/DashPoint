@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 
 import { IconClose } from "@/shared/ui/icons/icons";
 
@@ -134,7 +135,7 @@ export default function Modal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       className={styleTheme.modal.overlay}
       role="presentation"
@@ -190,6 +191,7 @@ export default function Modal({
           {footer ? <div className={styleTheme.modal.footer}>{footer}</div> : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

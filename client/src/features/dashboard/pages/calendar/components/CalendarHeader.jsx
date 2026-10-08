@@ -1,15 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, RotateCcw } from "@/shared/ui/icons/icons";
 
-const formatSelectedDate = (value) =>
-  value.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-
 export default function CalendarHeader({
   monthLabel,
-  selectedDate,
   connected,
   loadingStatus,
   connectError,
@@ -24,112 +16,72 @@ export default function CalendarHeader({
   onGoToNextMonth,
 }) {
   return (
-    <div className="relative overflow-hidden bg-surface-card border border-hairline p-4 rounded-2xl shadow-sm mb-6">
-      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between select-none">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-muted" />
-            <h1 className="font-waldenburg-light text-lg font-bold text-ink truncate leading-none">{monthLabel}</h1>
-          </div>
-
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <p className="text-muted-soft text-xs font-medium">{formatSelectedDate(selectedDate)}</p>
-            <span
-              className={
-                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider " +
-                (connected
-                  ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400")
-              }
-            >
-              {connected ? "Connected" : "Disconnected"}
-            </span>
-          </div>
+    <div className="mb-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2.5">
+          <CalendarDays size={19} className="text-muted" />
+          <h1 className="font-waldenburg-light text-xl font-semibold leading-none text-ink sm:text-2xl">{monthLabel}</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {connected ? (
-            <>
-              <button
-                type="button"
-                onClick={onOpenCreate}
-                className="bg-primary hover:bg-primary-active text-canvas inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
-              >
-                <Plus size={13} />
-                <span>Add Event</span>
-              </button>
-
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card p-1">
+            {connected ? (
               <button
                 type="button"
                 onClick={onDisconnect}
-                className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
                 disabled={loadingStatus}
+                className="dp-btn-secondary h-8 rounded-full px-3 text-[10px] font-medium transition-colors disabled:opacity-50"
+                title="Disconnect Google Calendar"
               >
                 {loadingStatus ? "Updating..." : "Disconnect"}
               </button>
-            </>
-          ) : (
+            ) : (
+              <button
+                type="button"
+                onClick={onConnect}
+                disabled={loadingStatus}
+                className="dp-btn-secondary h-8 rounded-full px-3 text-[10px] font-semibold transition-colors disabled:opacity-50"
+              >
+                {loadingStatus ? "Connecting..." : "Connect"}
+              </button>
+            )}
             <button
               type="button"
-              onClick={onConnect}
-              className="bg-primary hover:bg-primary-active text-canvas rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
-              disabled={loadingStatus}
+              onClick={onOpenCreate}
+              disabled={!connected}
+              title={connected ? "Add an event" : "Connect your calendar to add events"}
+              className="dp-btn-primary inline-flex h-8 items-center gap-1 rounded-full px-3 text-[10px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {loadingStatus ? "Connecting..." : "Connect"}
+              <Plus size={13} /> Add event
             </button>
-          )}
+          </div>
 
+          <span className="mx-0.5 hidden h-6 w-px bg-hairline sm:block" aria-hidden="true" />
+          <button type="button" onClick={onGoToToday} className="dp-btn-secondary h-9 rounded-full px-3.5 text-xs font-medium">Today</button>
           <button
             type="button"
             onClick={onRefresh}
-            className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
             disabled={monthLoading}
+            className="dp-btn-secondary inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-50"
+            aria-label={monthLoading ? "Refreshing calendar" : "Refresh calendar"}
+            title={monthLoading ? "Refreshing..." : "Refresh calendar"}
           >
-            <RotateCcw size={13} />
-            {monthLoading ? "Syncing..." : "Refresh"}
+            <RotateCcw size={14} className={monthLoading ? "animate-spin" : ""} />
           </button>
-
-          <button
-            type="button"
-            onClick={onGoToToday}
-            className="bg-transparent hover:bg-hairline-soft border border-hairline text-ink rounded-full px-4 py-1.5 text-xs font-semibold transition-colors"
-          >
-            Today
-          </button>
-
-          <div className="flex items-center border border-hairline rounded-full overflow-hidden h-7 bg-canvas-soft">
-            <button
-              type="button"
-              onClick={onGoToPreviousMonth}
-              className="px-2.5 h-full hover:bg-hairline/30 text-muted hover:text-ink transition-colors"
-              aria-label="Previous month"
-            >
+          <div className="inline-flex h-9 items-center overflow-hidden rounded-full border border-hairline bg-surface-card">
+            <button type="button" onClick={onGoToPreviousMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Previous month">
               <ChevronLeft size={16} />
             </button>
-            <div className="w-px h-full bg-hairline" />
-            <button
-              type="button"
-              onClick={onGoToNextMonth}
-              className="px-2.5 h-full hover:bg-hairline/30 text-muted hover:text-ink transition-colors"
-              aria-label="Next month"
-            >
+            <span className="h-4 w-px bg-hairline" aria-hidden="true" />
+            <button type="button" onClick={onGoToNextMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Next month">
               <ChevronRight size={16} />
             </button>
           </div>
         </div>
       </div>
 
-      {connectError ? (
-        <p className="text-semantic-error relative z-10 mt-3 text-xs font-semibold truncate">
-          {connectError?.response?.data?.message || connectError?.message || "Calendar error"}
-        </p>
-      ) : null}
-
-      {monthError ? (
-        <p className="text-semantic-error relative z-10 mt-2 text-xs font-semibold truncate">
-          {monthError?.response?.data?.message || monthError?.message || "Failed to load events"}
-        </p>
-      ) : null}
+      {connectError ? <p role="alert" className="mt-2 text-xs font-medium text-semantic-error">{connectError?.response?.data?.message || connectError?.message || "Calendar error"}</p> : null}
+      {monthError ? <p role="alert" className="mt-1 text-xs font-medium text-semantic-error">{monthError?.response?.data?.message || monthError?.message || "Failed to load events"}</p> : null}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
 
-import { CalendarDays, Crosshair, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
+import { Bot, CalendarDays, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
 
 import SideBarView from "./SideBarView";
 import { useAuth } from "../../../context/AuthContext";
+import { getPwaInstallHelp } from "../../../context/pwa/installHelp.js";
 import { usePWA } from "../../../hooks/usePWA";
 import useTheme from "../../../hooks/useTheme";
 import { useToast } from "../../../hooks/useToast";
@@ -13,7 +14,7 @@ export const SideBar = ({
   setActiveTab,
   isOpen,
   onClose,
-  // onNotificationsOpen,
+  onAccountOpen,
   onSettingsOpen,
   // onShortcutsOpen,
 }) => {
@@ -28,7 +29,7 @@ export const SideBar = ({
   const fullLogoSrc = isDark ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
 
   const menuItems = [
-    { id: "focus", label: "Focus", icon: Crosshair },
+    { id: "focus", label: "Assistant", icon: Bot },
     { id: "collections", label: "Home", icon: Home },
     { id: "calendar", label: "Calendar", icon: CalendarDays },
     { id: "youtube", label: "YouTube", icon: Youtube },
@@ -54,13 +55,7 @@ export const SideBar = ({
     }
 
     if (!isInstallable) {
-      if (isIOS()) {
-        toast.info("On iPhone/iPad: tap Share -> Add to Home Screen to install.");
-      } else {
-        toast.info(
-          "Install prompt isn't available yet. Use the browser menu (...) -> Install app. If you're on a non-HTTPS URL (or a network IP), install won't show until you deploy to HTTPS.",
-        );
-      }
+      toast.info(getPwaInstallHelp(isIOS()));
       return;
     }
 
@@ -82,6 +77,7 @@ export const SideBar = ({
       onInstallClick={onInstallClick}
       mutedTextClass={mutedTextClass}
       user={user}
+      onAccountOpen={onAccountOpen}
       onSettingsOpen={onSettingsOpen}
       isDark={isDark}
       toggleTheme={toggleTheme}

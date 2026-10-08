@@ -1,12 +1,10 @@
-import { useEffect } from "react";
-
 import { CollectionCard, LoadingGrid } from "./CollectionsHomeCards";
 import CollectionsHomeView from "./CollectionsHomeView";
 import useCollectionsHomeController from "./useCollectionsHomeController";
 import useCollectionsHomeState from "./useCollectionsHomeState";
 import { useToast } from "../../../../hooks/useToast";
 
-export default function CollectionsHome({ onOpenCollection, triggerRef }) {
+export default function CollectionsHome({ onOpenCollection }) {
   const toast = useToast();
   const state = useCollectionsHomeState();
 
@@ -50,16 +48,6 @@ export default function CollectionsHome({ onOpenCollection, triggerRef }) {
     isDeleting,
     confirmDelete: _cd,
   } = state;
-
-  // Wire up the header create trigger ref
-  useEffect(() => {
-    if (triggerRef) {
-      triggerRef.current = () => setIsCreateOpen(true);
-    }
-    return () => {
-      if (triggerRef) triggerRef.current = null;
-    };
-  }, [triggerRef, setIsCreateOpen]);
 
   return (
     <CollectionsHomeView

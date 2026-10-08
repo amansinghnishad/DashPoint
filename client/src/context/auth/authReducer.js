@@ -6,6 +6,7 @@ export const AuthActionType = Object.freeze({
   CLEAR_ERROR: "CLEAR_ERROR",
   SESSION_WARNING: "SESSION_WARNING",
   SET_FIRST_TIME_USER: "SET_FIRST_TIME_USER",
+  UPDATE_USER: "UPDATE_USER",
 });
 
 export const initialAuthState = {
@@ -68,6 +69,11 @@ export default function authReducer(state, action) {
       return {
         ...state,
         isFirstTimeUser: action.payload,
+      };
+    case AuthActionType.UPDATE_USER:
+      return {
+        ...state,
+        user: action.payload,
       };
     default:
       return state;

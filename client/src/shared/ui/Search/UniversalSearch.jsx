@@ -179,8 +179,8 @@ const UniversalSearch = forwardRef(function UniversalSearch(
   };
 
   return (
-    <div ref={rootRef} className="relative">
-      <div className="bg-canvas-soft border border-hairline flex h-9 items-center gap-2 rounded-full px-3 w-[240px] focus-within:bg-white focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-200">
+    <div ref={rootRef} className="relative w-full min-w-0">
+      <div className="flex h-10 w-full items-center gap-2 rounded-full border border-hairline bg-surface-card/70 px-4 transition-all duration-200 focus-within:ring-1 focus-within:ring-primary/20">
         <Search size={15} className="text-muted shrink-0" />
         <input
           ref={ref}
@@ -193,7 +193,7 @@ const UniversalSearch = forwardRef(function UniversalSearch(
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-label="Universal search"
-          className="min-w-0 flex-1 bg-transparent text-[13px] outline-none text-ink placeholder:text-muted-soft"
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none text-ink placeholder:text-muted-soft"
         />
         <kbd className="hidden shrink-0 border border-hairline rounded px-1 text-[9px] font-semibold text-muted-soft bg-white/50 sm:inline">
           ⌘K
