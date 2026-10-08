@@ -12,10 +12,11 @@ import {
 import { useState, useMemo } from "react";
 
 import { useToast } from "@/hooks/useToast";
-import DashboardPageHeader from "../../../../../shared/ui/DashboardPageHeader";
 import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
 import ContentInsightReviewModal from "@/shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
+
+import DashboardPageHeader from "../../../../../shared/ui/DashboardPageHeader";
 
 const MOCK_THUMBNAILS = [
   "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&h=340&q=80",

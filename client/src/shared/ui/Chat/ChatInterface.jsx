@@ -1,12 +1,12 @@
 import { ArrowUp, Globe, Mic, MicOff, Paperclip, Plus, Sparkles, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import ChatPixelAmbient from "./ChatPixelAmbient";
 import ChatHistoryDrawer from "./components/ChatHistoryDrawer";
 import ChatMessageBubble from "./components/ChatMessageBubble";
+import ChatUploadToCollectionModal from "./components/ChatUploadToCollectionModal";
 import useDashboardChatController from "./hooks/useDashboardChatController";
 import useVoiceRecognition from "../../hooks/useVoiceRecognition";
-import ChatUploadToCollectionModal from "./components/ChatUploadToCollectionModal";
-import ChatPixelAmbient from "./ChatPixelAmbient";
 
 function SelectedContextChips({ collections, selectedIds, onRemove }) {
   if (!selectedIds.length) return null;

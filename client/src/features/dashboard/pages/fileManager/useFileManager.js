@@ -72,7 +72,7 @@ export function useFileManager() {
     if (!isBusy && pagination.current < pagination.total) {
       return loadFiles({ page: pagination.current + 1, append: true });
     }
-  }, [isBusy, loadFiles, pagination.current, pagination.total]);
+  }, [isBusy, loadFiles, pagination]);
 
   const uploadSelectedFiles = useCallback(
     async (fileList) => {

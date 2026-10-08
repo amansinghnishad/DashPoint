@@ -20,19 +20,6 @@ export default function SmartCalendarShowcase() {
     );
   };
 
-  const getChipBadge = (color) => {
-    switch (color) {
-      case "success":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
-      case "warning":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
-      case "danger":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
-      default:
-        return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20";
-    }
-  };
-
   return (
     <UserCursor
       name="Sarah / Dev"

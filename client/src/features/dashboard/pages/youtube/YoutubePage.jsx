@@ -5,7 +5,7 @@ import useYoutubePageController from "./hooks/useYoutubePageController";
 
 export default function YoutubePage({ searchTriggerRef }) {
   const controller = useYoutubePageController();
-  const { dispatchUi, dispatchSearch } = controller;
+  const { dispatchSearch } = controller;
 
   useEffect(() => {
     if (searchTriggerRef) {
