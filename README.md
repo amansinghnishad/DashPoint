@@ -1,46 +1,107 @@
+<div align="center">
+
+<img src="client/public/logo.png" alt="DashPoint logo" width="112" />
+
 # DashPoint
 
-**A personal workspace for the things that make work move.**
+### Your work, ideas, and plans in one place.
 
-DashPoint brings conversations, collections, files, saved videos, planning, and calendar events into one place. It is an open-source project built to make everyday work easier to collect, organize, and continue without jumping between disconnected tools.
+An open-source workspace for conversations, collections, files, videos, and planning.
 
-## Why I started DashPoint
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![React](https://img.shields.io/badge/Client-React%2019-149eca?logo=react&logoColor=white)
+![Node.js](https://img.shields.io/badge/Server-Node.js%2022+-339933?logo=nodedotjs&logoColor=white)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248?logo=mongodb&logoColor=white)
+
+</div>
+
+---
+
+## What is DashPoint?
+
+DashPoint is a personal productivity workspace that brings the tools and information you use to move work forward into one application. Keep project materials in collections, ask questions about saved context, manage files and links, plan work, and connect your calendar.
+
+The project is a work in progress. Some capabilities depend on optional services and credentials, such as an AI provider, Google Calendar, YouTube Data API, or Cloudinary.
+
+## Why I started it
 
 I wanted everything I use to think, plan, and get work done to live in one place. The idea was to keep adding useful pieces gradually and let them work together as one workspace.
 
-I had started building DashPoint before announcements around products like Spark and Muse. When those announcements came, I lost momentum and stopped working on this repository for a while. Coming back to it, I realized I could open the project up instead of leaving it unfinished and private. Other people can help improve it, and I can learn how to maintain an open-source project, manage contributions, and take better care of the repository.
+I started DashPoint before announcements around products like Spark and Muse. When those announcements came, I lost motivation and stopped working on this repository for a while. Later, I realized I could open the project so anyone could help improve it. I also wanted to learn how to maintain an open-source project, welcome contributions, and manage a repository well.
 
-DashPoint is still a work in progress. Contributions, bug reports, and thoughtful feedback are welcome.
+That is why DashPoint is public: it gives the project room to grow and gives me a chance to learn alongside the community.
 
-## What you can do with it
+---
 
-- **Ask questions across your workspace.** Chat with your collections and saved materials using supported AI providers.
-- **Organize work in collections.** Bring notes, files, saved videos, and planner widgets together around a project or topic.
-- **Manage documents.** Upload files, save web links, and summarize supported documents.
-- **Find things quickly.** Search across workspace content instead of hunting through separate tools.
-- **Plan your day.** Use planner widgets and, when connected, view and create Google Calendar events.
-- **Save and explore videos.** Search YouTube, keep videos in your workspace, and use available transcript and insight features.
-- **Install the app.** The client is a progressive web app and can be installed on supported browsers and devices.
+## Core capabilities
 
-Some features depend on optional third-party services and credentials. See the [server setup guide](server/README.md) for the complete configuration list.
+### AI workspace assistant
 
-## Project structure
+Chat with your workspace and selected collections using the configured AI provider. The assistant can use saved context, stream responses, and help with supported document and video workflows.
 
-```text
-client/   React application, interface, API client, and PWA setup
-server/   Express API, authentication, data models, and integrations
+### Collections and knowledge
+
+Create collections around a project or topic. Add notes, uploaded files, saved links, YouTube videos, and planner widgets to keep related information together.
+
+### Files and documents
+
+Upload and organize files, save web links, preview supported content, and create document summaries. Cloud file storage uses Cloudinary when configured.
+
+### Calendar and planning
+
+Use planner widgets in your workspace and connect Google Calendar to view and create events. Calendar integration is optional.
+
+### YouTube and search
+
+Search for videos, save them to collections, and use available transcript and insight features. Search across workspace content to find saved information again.
+
+### Installable web app
+
+The client is a progressive web app (PWA). On supported browsers, install DashPoint for an app-like experience. Production installation requires HTTPS.
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+    U[You] --> UI[React client]
+    UI -->|API requests and chat stream| API[Express API]
+    API --> DB[(MongoDB)]
+    API -.-> Cache[(Optional Redis cache)]
+    API --> Integrations[AI providers, Google, YouTube, Cloudinary]
+    DB --> API
+    Cache -.-> API
+    Integrations --> API
+    API -->|JSON responses and streamed chat| UI
 ```
 
-The client and server have separate dependencies, environment files, and scripts. See their guides for details:
+The client and server are maintained as separate applications with their own dependencies and configuration. For the detailed request flow, see the [client guide](client/README.md) and [server guide](server/README.md).
 
-- [Client: setup, architecture, PWA, and checks](client/README.md)
-- [Server: setup, API, configuration, and checks](server/README.md)
+```text
+DashPoint/
+├── client/   React application, user interface, and PWA
+└── server/   Express API, authentication, data models, and integrations
+```
 
-## Run DashPoint locally
+---
 
-You will need Node.js 22 or newer and a MongoDB database. Start the API and client in separate terminals.
+## Run from source
 
-### Start the API
+### Requirements
+
+- Node.js 22 or newer
+- MongoDB, local or hosted
+- Optional credentials for the integrations you want to use
+
+### 1. Get the source
+
+```bash
+git clone https://github.com/amansinghnishad/DashPoint.git
+cd DashPoint
+```
+
+### 2. Configure and start the server
 
 ```bash
 cd server
@@ -48,17 +109,17 @@ npm ci
 cp .env.example .env
 ```
 
-Set `MONGODB_URI` and strong, private `JWT_SECRET` and `JWT_REFRESH_SECRET` values in `server/.env`, then run:
+Set `MONGODB_URI`, `JWT_SECRET`, and `JWT_REFRESH_SECRET` in `server/.env`. Use private random values of at least 32 characters for both JWT secrets. Then start the API:
 
 ```bash
 npm run dev
 ```
 
-The API listens at `http://localhost:5000` by default. Its health endpoint is `http://localhost:5000/health`.
+The API defaults to `http://localhost:5000`; its health endpoint is `http://localhost:5000/health`.
 
-### Start the client
+### 3. Start the client
 
-In another terminal:
+In a second terminal:
 
 ```bash
 cd client
@@ -66,16 +127,25 @@ npm ci
 npm run dev
 ```
 
-Open the local address printed by Vite, usually `http://localhost:5173`. By default, the client connects to `http://localhost:5000/api`.
+Open the local URL printed by Vite, usually `http://localhost:5173`. By default, the client sends API requests to `http://localhost:5000/api`.
 
-## Optional services
+### 4. Configure optional integrations
 
-DashPoint can connect to AI providers, Google Calendar, YouTube Data API, Cloudinary, and Redis. Configure only the services you want to use. The variable names and local defaults are documented in [`server/.env.example`](server/.env.example), with setup notes in the [server README](server/README.md).
+Add credentials for the services you want to use to `server/.env`. The full variable list and integration notes are in [`server/.env.example`](server/.env.example) and the [server setup guide](server/README.md). Google sign-in also uses `VITE_GOOGLE_CLIENT_ID` in `client/.env`.
+
+---
+
+## Project guides
+
+- [Client guide](client/README.md) — setup, frontend architecture, PWA, routes, and checks
+- [Server guide](server/README.md) — setup, API routes, configuration, integrations, and tests
 
 ## Contributing
 
-You can help by reporting bugs, improving the interface, fixing documentation, or working on a feature. For a change, include a short explanation and the checks you ran. Screenshots or recordings are useful for interface changes. Never commit API keys, OAuth secrets, personal files, or production data.
+Contributions, bug reports, and thoughtful feedback are welcome. You can help with interface improvements, feature work, fixes, or documentation.
+
+Please keep pull requests focused and include a clear description of the change. For interface changes, screenshots or a short recording help reviewers. Never commit API keys, OAuth secrets, personal files, or production data.
 
 ## License
 
-DashPoint is released under the [MIT License](LICENSE).
+DashPoint is available under the [MIT License](LICENSE).
