@@ -27,12 +27,12 @@ export default function FloatingInstallDownloadButtons() {
   // Keep the footprint small and avoid blocking content interactions.
   // Container is pointer-events-none; buttons re-enable pointer events.
   return (
-    <div className="hidden lg:block fixed bottom-6 right-6 z-[60] pointer-events-none">
-      <div className="pointer-events-auto bg-surface-card border border-hairline rounded-2xl p-2 shadow-2xl backdrop-blur-sm">
+    <div className="fixed bottom-4 right-4 z-[60] pointer-events-none sm:bottom-6 sm:right-6">
+      <div className="pointer-events-auto rounded-2xl border border-hairline bg-surface-card p-1.5 shadow-2xl backdrop-blur-sm sm:p-2">
         <button
           type="button"
           onClick={onClick}
-          className="group bg-ink text-canvas hover:bg-neutral-900 inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl px-3 text-sm font-semibold transition-[width,background-color,color,box-shadow] duration-250 ease-out hover:w-40 focus-visible:w-40 cursor-pointer"
+          className="group inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-ink px-3 text-sm font-semibold text-canvas transition-[width,background-color,color,box-shadow] duration-250 ease-out hover:bg-neutral-900 hover:w-40 focus-visible:w-40 cursor-pointer"
           aria-label="Install DashPoint"
           title="Install DashPoint"
         >

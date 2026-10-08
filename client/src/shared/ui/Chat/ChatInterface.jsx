@@ -39,7 +39,7 @@ function SelectedContextChips({ collections, selectedIds, onRemove }) {
 export default function ChatInterface({
   showEmptyStateDetails = false,
   isFloating = false,
-  placeholder = "Ask anything about your workspace...",
+  placeholder = "Ask your workspace...",
 }) {
   const {
     provider,
@@ -399,7 +399,7 @@ export default function ChatInterface({
             </form>
           ) : (
             /* Focus Page Empty State or Floating Assistant Drawer: Standard prompt card layout */
-            <div className="bg-surface-card border border-hairline rounded-2xl p-4 shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+            <div className="rounded-2xl border border-hairline bg-surface-card p-3 shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-shadow hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] sm:p-4">
               <SelectedContextChips
                 collections={collections}
                 selectedIds={selectedCollectionIds}
@@ -464,42 +464,42 @@ export default function ChatInterface({
               <div className="h-px bg-hairline/60 my-3" />
 
               {/* Actions & Shortcut layout */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex min-w-0 items-center gap-0.5 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(false); setUploadModalOpen(true); }}
-                    className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas-soft hover:text-ink sm:h-auto sm:w-auto sm:gap-1.5"
                     aria-label="Upload files directly to a collection"
                     title="Upload files directly to a collection"
                   >
                     <Upload size={14} className="opacity-70" />
-                    <span>Upload</span>
+                    <span className="hidden sm:inline">Upload</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => { setModelPickerOpen(false); setCollectionPickerOpen(!collectionPickerOpen); }}
-                    className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas-soft hover:text-ink sm:h-auto sm:w-auto sm:gap-1.5"
                     aria-label={selectedCollectionsLabel || "Add context"}
                     aria-expanded={collectionPickerOpen}
                   >
                     <Paperclip size={14} className="opacity-70" />
-                    <span>Add context</span>
+                    <span className="hidden sm:inline">Add context</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { setCollectionPickerOpen(false); setModelPickerOpen(!modelPickerOpen); }}
-                    className="flex items-center gap-1.5 text-muted hover:text-ink font-medium transition-colors"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas-soft hover:text-ink sm:h-auto sm:w-auto sm:gap-1.5"
                     aria-label={`Choose model · ${selectedModelLabel}`}
                     aria-expanded={modelPickerOpen}
                   >
                     <Globe size={14} className="opacity-70" />
-                    <span>Model · {selectedModelLabel}</span>
+                    <span className="hidden sm:inline">Model · {selectedModelLabel}</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-1 text-muted-soft select-none font-medium">
+                <div className="hidden items-center gap-1 text-muted-soft select-none font-medium sm:flex">
                   <span>Tip: Press</span>
                   <kbd className="border border-hairline bg-canvas px-1 rounded text-[10px] font-mono">
                     ⌘

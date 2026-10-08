@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 
 import {
   IconClose,
-  IconDownload,
   LogOut,
   Settings,
   Sun,
@@ -45,14 +44,12 @@ export default function SideBarView({
   menuItems,
   activeTab,
   setActiveTab,
-  onInstallClick,
   user,
   onAccountOpen,
   onSettingsOpen,
   isDark,
   toggleTheme,
   logoutUser,
-  isInstalled,
 }) {
   const displayName = getSidebarDisplayName(user);
   const initials = getSidebarInitials(user);
@@ -150,19 +147,6 @@ export default function SideBarView({
               );
             })}
 
-            {/* Install PWA Option (Mobile Only) */}
-            {!isInstalled ? (
-              <div className="lg:hidden">
-                <button
-                  type="button"
-                  onClick={onInstallClick}
-                  className={`w-full flex items-center rounded-xl transition-all duration-200 px-4 py-3 gap-3 justify-start text-sm font-medium text-muted hover:text-ink hover:bg-canvas-soft`}
-                >
-                  <IconDownload size={20} />
-                  <span>Download app</span>
-                </button>
-              </div>
-            ) : null}
           </nav>
 
           {/* Account and preferences */}

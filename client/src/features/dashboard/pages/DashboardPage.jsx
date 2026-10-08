@@ -236,7 +236,7 @@ export default function DashboardPage() {
                 </h1>
               </div>
 
-              <div className="col-span-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+              <div className="order-3 col-span-2 min-w-0 sm:order-none sm:col-span-1 sm:col-start-2 sm:row-start-1">
                 {uiState.activeTab === "youtube" || uiState.activeTab === "files" ? (
                   <div className="mx-auto flex h-10 w-full max-w-3xl items-center gap-2 rounded-full border border-hairline bg-surface-card/70 px-4 focus-within:ring-1 focus-within:ring-primary/20">
                     <Search size={16} className="shrink-0 text-muted" />
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-self-end gap-2 sm:col-start-3 sm:row-start-1 sm:gap-3">
+              <div className="order-2 flex items-center justify-self-end gap-1 sm:order-none sm:col-start-3 sm:row-start-1 sm:gap-3">
                 <Clock
                   showSeconds={false}
                   className="border-none bg-transparent p-0 text-sm font-medium tabular-nums text-muted shadow-none"

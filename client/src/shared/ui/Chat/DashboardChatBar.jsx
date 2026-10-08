@@ -3,7 +3,7 @@ import ChatInterface from "./ChatInterface";
 export default function DashboardChatBar({
   className = "",
   show = true,
-  placeholder = "Ask anything about your workspace...",
+  placeholder = "Ask your workspace...",
 }) {
   if (!show) return null;
 
