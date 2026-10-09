@@ -4,6 +4,26 @@ const { geminiFunctionDeclarations } = require('../openaiTools');
 
 const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const MAX_TOOL_ROUNDS = 6;
+const MAX_TRANSIENT_RETRIES = 2;
+const DEFAULT_FALLBACK_MODELS = ['gemini-3.7-flash', 'gemini-3.6-flash'];
+
+const wait = (durationMs) => new Promise((resolve) => setTimeout(resolve, durationMs));
+
+const getFallbackModels = (primaryModel) => {
+  const configuredModels = String(process.env.GEMINI_FALLBACK_MODELS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const fallbackModels = configuredModels.length ? configuredModels : DEFAULT_FALLBACK_MODELS;
+  const normalizedPrimary = normalizeGeminiModelName(primaryModel).toLowerCase();
+
+  return [...new Set(fallbackModels)].filter(
+    (fallbackModel) => normalizeGeminiModelName(fallbackModel).toLowerCase() !== normalizedPrimary
+  );
+};
+
+const isTransientAvailabilityError = (error) =>
+  [429, 500, 502, 503, 504].includes(Number(error?.status || error?.response?.status || 0));
 
 const getApiKey = () => {
   if (!process.env.GEMINI_API_KEY) {
@@ -126,20 +146,27 @@ const isRequestTimeout = (error) => {
 };
 
 const requestGemini = async ({ model, payload, apiKey }) => {
-  try {
-    const response = await axios.post(buildEndpoint(model), payload, {
-      params: { key: apiKey },
-      timeout: 20000
-    });
+  for (let retry = 0; ; retry += 1) {
+    try {
+      const response = await axios.post(buildEndpoint(model), payload, {
+        params: { key: apiKey },
+        timeout: 20000
+      });
 
-    return response.data;
-  } catch (error) {
-    const message = formatGeminiError(error);
-    const wrapped = new Error(message);
-    wrapped.status = error?.response?.status;
-    wrapped.responseData = error?.response?.data;
-    wrapped.cause = error;
-    throw wrapped;
+      return response.data;
+    } catch (error) {
+      if (retry < MAX_TRANSIENT_RETRIES && isTransientAvailabilityError(error)) {
+        await wait(500 * 2 ** retry);
+        continue;
+      }
+
+      const message = formatGeminiError(error);
+      const wrapped = new Error(message);
+      wrapped.status = error?.response?.status;
+      wrapped.responseData = error?.response?.data;
+      wrapped.cause = error;
+      throw wrapped;
+    }
   }
 };
 
@@ -151,6 +178,9 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
       parts: [{ text: userPrompt }]
     }
   ];
+  const modelCandidates = [model, ...getFallbackModels(model)];
+  let activeModel = modelCandidates[0];
+  let hasReceivedToolCall = false;
   let toolsEnabled = true;
   let malformedFunctionFallbackUsed = false;
 
@@ -159,18 +189,26 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
 
     try {
       const payload = createRequestPayload({
-        model,
+        model: activeModel,
         systemPrompt,
         contents: conversation,
         enableTools: toolsEnabled
       });
 
       data = await requestGemini({
-        model,
+        model: activeModel,
         payload,
         apiKey
       });
     } catch (error) {
+      if (isTransientAvailabilityError(error) && !hasReceivedToolCall) {
+        const nextModelIndex = modelCandidates.indexOf(activeModel) + 1;
+        if (nextModelIndex < modelCandidates.length) {
+          activeModel = modelCandidates[nextModelIndex];
+          continue;
+        }
+      }
+
       if (toolsEnabled && round === 0 && (isToolSchemaError(error) || isRequestTimeout(error))) {
         toolsEnabled = false;
         if (isRequestTimeout(error)) {
@@ -227,8 +265,10 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
           onDelta(word);
         }
       }
-      return { text };
+      return { text, model: activeModel };
     }
+
+    hasReceivedToolCall = true;
 
     // Gemini 3 function-call parts may contain an opaque thought_signature.
     // Keep the model turn exactly as returned by Gemini; rebuilding the

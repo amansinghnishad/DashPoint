@@ -269,7 +269,6 @@ export default function useDashboardChatController() {
             responseMeta = metadata;
             updateMessage(assistantMessageId, {
               meta: metadata,
-              status: "streaming",
             });
           },
           onDelta: (chunk) => {

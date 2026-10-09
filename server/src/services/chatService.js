@@ -260,7 +260,7 @@ const runChat = async ({
       const responsePayload = {
         response: finalResponseText,
         provider: attempt.provider,
-        model: attempt.model,
+        model: result.model || attempt.model,
         routing: {
           tier: attempt.route?.tier || '',
           reason: attempt.route?.reason || '',
