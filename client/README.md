@@ -98,7 +98,7 @@ Pages and components handle presentation and user input. Feature hooks coordinat
 
 ## Routes and API connection
 
-The client uses React Router with browser-history URLs. API modules are under `src/services/modules`; shared request configuration and authentication behavior are under `src/shared/api` and `src/shared/auth`. Set `VITE_API_URL` to the API base URL, including `/api`.
+The client uses React Router with browser-history URLs. API modules are under `src/services/modules`; shared request configuration and authentication behavior are under `src/shared/api` and `src/shared/auth`. Local development uses `VITE_API_URL` (including `/api`). Production builds use `/api` on the client origin; `vercel.json` proxies that path to the production API so authentication cookies remain first-party.
 
 For local development, the server allows the Vite origin by default. For another client origin or a deployed client, configure the corresponding server `CLIENT_URL` value as described in [`../server/README.md`](../server/README.md).
 
@@ -119,7 +119,7 @@ PWA installation requires a secure context: HTTPS in production, or localhost du
 
 Because the app uses browser-history routes, the host must return `index.html` for client-side URLs such as `/login` and `/dashboard`. The included `vercel.json` provides a Vercel rewrite, and `public/_redirects` provides a fallback rule for hosts that support that format. Keep the SPA rewrite when deploying the contents of `dist/` so reloading a nested route does not return a host-level 404.
 
-The Vercel configuration also avoids stale caching for the app shell, manifest, and service worker. Configure the production API URL through the deployment environment and allow the deployed client origin in the server’s `CLIENT_URL` setting.
+The Vercel configuration also avoids stale caching for the app shell, manifest, and service worker. Keep the API rewrite pointed at the deployed server and allow the deployed client origin in the server’s `CLIENT_URL` setting.
 
 ## Client tests
 

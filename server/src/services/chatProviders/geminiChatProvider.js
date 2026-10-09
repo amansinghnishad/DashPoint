@@ -120,6 +120,11 @@ const isToolSchemaError = (error) => {
   );
 };
 
+const isRequestTimeout = (error) => {
+  const message = String(error?.message || '').toLowerCase();
+  return error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT' || message.includes('timeout');
+};
+
 const requestGemini = async ({ model, payload, apiKey }) => {
   try {
     const response = await axios.post(buildEndpoint(model), payload, {
@@ -166,8 +171,18 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
         apiKey
       });
     } catch (error) {
-      if (toolsEnabled && round === 0 && isToolSchemaError(error)) {
+      if (toolsEnabled && round === 0 && (isToolSchemaError(error) || isRequestTimeout(error))) {
         toolsEnabled = false;
+        if (isRequestTimeout(error)) {
+          conversation.push({
+            role: 'user',
+            parts: [
+              {
+                text: 'Respond directly without calling tools. Keep the answer concise.'
+              }
+            ]
+          });
+        }
         continue;
       }
 
@@ -215,6 +230,13 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
       return { text };
     }
 
+    // Gemini 3 function-call parts may contain an opaque thought_signature.
+    // Keep the model turn exactly as returned by Gemini; rebuilding the
+    // functionCall object drops that signature and the next request fails.
+    conversation.push(candidate.content);
+
+    const functionResponseParts = [];
+
     for (const functionCall of functionCalls) {
       const parsedArgs = parseToolArgs(functionCall.args);
       let responsePayload;
@@ -236,30 +258,18 @@ const runGeminiChat = async ({ model, systemPrompt, userPrompt, executeToolCall,
         };
       }
 
-      conversation.push({
-        role: 'model',
-        parts: [
-          {
-            functionCall: {
-              name: functionCall.name,
-              args: parsedArgs
-            }
-          }
-        ]
-      });
-
-      conversation.push({
-        role: 'user',
-        parts: [
-          {
-            functionResponse: {
-              name: functionCall.name,
-              response: responsePayload
-            }
-          }
-        ]
+      functionResponseParts.push({
+        functionResponse: {
+          name: functionCall.name,
+          response: responsePayload
+        }
       });
     }
+
+    conversation.push({
+      role: 'user',
+      parts: functionResponseParts
+    });
   }
 
   throw new Error('Gemini exceeded maximum tool rounds');

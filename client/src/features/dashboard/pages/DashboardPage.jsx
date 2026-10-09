@@ -17,6 +17,7 @@ import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { SideBar } from "../../../shared/ui/Navbars/SideBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
 import UniversalSearch from "../../../shared/ui/Search/UniversalSearch";
+import ChatInterface from "../../../shared/ui/Chat/ChatInterface";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 import DashboardAccountDialog from "../components/DashboardAccountDialog";
 import DashboardSettingsPanel from "../components/DashboardSettingsPanel";
@@ -29,8 +30,6 @@ const CollectionView = lazy(() => import("./Collection/CollectionView"));
 const YoutubePage = lazy(() => import("./youtube/YoutubePage"));
 const FileManagerPage = lazy(() => import("./FileManager"));
 const CalendarPage = lazy(() => import("./CalendarPage"));
-const FocusPage = lazy(() => import("./FocusPage"));
-const DashboardChatBar = lazy(() => import("../../../shared/ui/Chat/DashboardChatBar"));
 
 function ContentFallback() {
   return (
@@ -168,7 +167,7 @@ export default function DashboardPage() {
   const content = useMemo(() => {
     switch (uiState.activeTab) {
       case "focus":
-        return <FocusPage />;
+        return null;
       case "calendar":
         return <CalendarPage />;
       case "youtube":
@@ -291,16 +290,24 @@ export default function DashboardPage() {
                 : "px-4 pb-32 lg:px-6"
             }
           >
-            <Suspense fallback={<ContentFallback />}>{content}</Suspense>
+            {uiState.activeTab !== "focus" && (
+              <Suspense fallback={<ContentFallback />}>{content}</Suspense>
+            )}
+            <div
+              className={
+                uiState.activeTab === "focus"
+                  ? "flex min-h-0 flex-1 flex-col"
+                  : "fixed bottom-4 left-1/2 z-[80] w-[calc(100%-2rem)] max-w-[720px] -translate-x-1/2"
+              }
+            >
+              <ChatInterface
+                showEmptyStateDetails={uiState.activeTab === "focus"}
+                isFloating={uiState.activeTab !== "focus"}
+              />
+            </div>
           </main>
         </div>
       </div>
-
-      {uiState.activeTab !== "focus" ? (
-        <Suspense fallback={null}>
-          <DashboardChatBar />
-        </Suspense>
-      ) : null}
 
       <DashboardSettingsPanel
         open={uiState.settingsOpen}
