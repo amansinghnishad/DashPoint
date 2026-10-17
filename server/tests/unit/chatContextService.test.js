@@ -1,4 +1,4 @@
-const { retrieveChatContext, DEFAULT_TOP_K } = require('../../src/services/chatContextService');
+const { retrieveChatContext, DEFAULT_TOP_K } = require('../../src/features/chat/services/chatContextService');
 const embeddingsService = require('../../src/services/embeddingsService');
 
 describe('chatContextService Unit Tests', () => {

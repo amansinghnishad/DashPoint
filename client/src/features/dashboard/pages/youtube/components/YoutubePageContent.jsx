@@ -1,43 +1,190 @@
 import {
-  BookmarkPlus,
   ArrowLeft,
-  ArrowRight,
-  MoreVertical,
-  Trash2,
+  BookmarkCheck,
+  BookmarkPlus,
+  ExternalLink,
   FolderPlus,
+  MoreHorizontal,
+  Play,
   Plus,
-  Star,
-  Lock,
+  Search,
+  Trash2,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { useToast } from "@/hooks/useToast";
 import AddToCollectionModal from "@/shared/ui/modals/AddToCollectionModal";
-import ContentInsightReviewModal from "@/shared/ui/modals/ContentInsightReviewModal";
 import DeleteConfirmModal from "@/shared/ui/modals/DeleteConfirmModal";
 
 import DashboardPageHeader from "../../../../../shared/ui/DashboardPageHeader";
 
-const MOCK_THUMBNAILS = [
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&h=340&q=80",
-  "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=600&h=340&q=80",
-  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&h=340&q=80",
-  "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&h=340&q=80",
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&h=450&q=80",
-];
-
 function LoadingGrid() {
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="flex flex-col justify-between animate-pulse">
-          <div className="aspect-video rounded-xl bg-canvas-soft border border-hairline/40 w-full" />
-          <div className="bg-canvas-soft h-4 w-2/3 rounded mt-4" />
-          <div className="bg-canvas-soft h-3 w-1/3 rounded mt-2" />
-          <div className="bg-canvas-soft h-6 w-24 rounded-full mt-4" />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div
+          key={index}
+          className="overflow-hidden rounded-2xl border border-hairline bg-surface-card"
+        >
+          <div className="aspect-video animate-pulse bg-canvas-soft" />
+          <div className="space-y-3 p-4">
+            <div className="h-4 w-4/5 animate-pulse rounded bg-canvas-soft" />
+            <div className="h-3 w-2/5 animate-pulse rounded bg-canvas-soft" />
+          </div>
         </div>
       ))}
     </div>
+  );
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+}
+
+function VideoCard({
+  video,
+  saved,
+  onWatch,
+  onSave,
+  onAddToCollection,
+  onDelete,
+  saving,
+  savingActive,
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const thumbnail =
+    video.thumbnail || `https://i.ytimg.com/vi/${encodeURIComponent(video.videoId)}/hqdefault.jpg`;
+
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-hairline bg-surface-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative aspect-video overflow-hidden bg-canvas-soft">
+        <img
+          src={thumbnail}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+        />
+        <button
+          type="button"
+          onClick={onWatch}
+          className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/25 focus-visible:bg-black/25"
+          aria-label={`Play ${video.title}`}
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/75 text-white opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-within:opacity-100">
+            <Play size={19} fill="currentColor" />
+          </span>
+        </button>
+        {video.duration ? (
+          <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-1 text-[11px] font-semibold tabular-nums text-white">
+            {video.duration}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <button type="button" onClick={onWatch} className="min-w-0 flex-1 text-left">
+            <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-ink transition group-hover:text-primary">
+              {video.title}
+            </h3>
+          </button>
+          {saved ? (
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-canvas-soft hover:text-ink"
+                aria-label={`Options for ${video.title}`}
+                aria-expanded={menuOpen}
+              >
+                <MoreHorizontal size={18} />
+              </button>
+              {menuOpen ? (
+                <>
+                  <button
+                    type="button"
+                    className="fixed inset-0 z-20 cursor-default"
+                    aria-label="Close video options"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-9 z-30 w-48 rounded-xl border border-hairline bg-surface-card p-1.5 shadow-xl">
+                    <a
+                      href={video.url || `https://www.youtube.com/watch?v=${video.videoId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-ink hover:bg-canvas-soft"
+                    >
+                      <ExternalLink size={14} /> Open on YouTube
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onDelete();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-semantic-error hover:bg-semantic-error/10"
+                    >
+                      <Trash2 size={14} /> Remove from library
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-2 flex min-h-5 items-center gap-2 text-xs text-muted">
+          <span className="max-w-[65%] truncate font-medium">
+            {video.channelTitle || video.channel || "YouTube"}
+          </span>
+          {video.date ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{formatDate(video.date) || video.date}</span>
+            </>
+          ) : null}
+        </div>
+        {video.description ? (
+          <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-soft">{video.description}</p>
+        ) : null}
+
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-hairline/70 pt-3">
+          <button
+            type="button"
+            onClick={onWatch}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-ink transition hover:bg-canvas-soft"
+          >
+            <Play size={13} /> Watch
+          </button>
+          {saved ? (
+            <button
+              type="button"
+              onClick={onAddToCollection}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-ink transition hover:bg-canvas-soft"
+            >
+              <FolderPlus size={14} className="text-primary" /> Add to collection
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={savingActive}
+              className="dp-btn-primary inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold disabled:cursor-wait disabled:opacity-60"
+            >
+              {saving ? (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" />
+              ) : (
+                <BookmarkPlus size={14} />
+              )}
+              {saving ? "Saving…" : "Save to library"}
+            </button>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -46,318 +193,270 @@ export default function YoutubePageContent({
   uiState,
   addVideo,
   items,
+  savedItems = [],
+  savedLoading = false,
+  savingVideoId = null,
   selectedId,
   setSelectedId,
   saveVideoById,
   dispatchUi,
-  isSearchMode,
   searchState,
   selected,
   viewer,
   inputRef,
   confirmDelete,
-  insightQueue,
-  setInsightQueue,
 }) {
-  const toast = useToast();
-  const activeInsight = insightQueue?.[0] || null;
+  const [activeView, setActiveView] = useState("library");
+  const query = String(search || "").trim();
 
-  const closeActiveInsight = () => {
-    setInsightQueue?.((current) => current.slice(1));
-  };
+  useEffect(() => {
+    setActiveView(query ? "search" : "library");
+  }, [query]);
 
-  // Convert database items to visual cards (no static code)
-  const allVideos = useMemo(() => {
-    return (items || []).map((it, idx) => ({
-      id: it.id || it.videoId,
-      videoId: it.videoId || it.id,
-      title: it.title || "Untitled Video",
-      thumbnail: it.thumbnail || MOCK_THUMBNAILS[idx % MOCK_THUMBNAILS.length],
-      duration: it.duration || "12:15",
-      channel: it.channelTitle || it.channel || "YouTube Creator",
-      description: it.description || it.original?.description || "No description available.",
-      date: it.date || "Just now",
-      url: it.url,
-      isSaved: it.isSaved ?? true,
-      original: it,
-    }));
-  }, [items]);
+  const savedByVideoId = useMemo(
+    () => new Map(savedItems.map((video) => [video.videoId, video])),
+    [savedItems],
+  );
 
-  // Filter items based on local search query if we are not in remote API search mode
-  const filteredVideos = useMemo(() => {
-    if (isSearchMode) return allVideos; // Remote API results are already filtered
-    const q = (search || "").trim().toLowerCase();
-    if (!q) return allVideos;
-    return allVideos.filter((v) => v.title.toLowerCase().includes(q));
-  }, [allVideos, search, isSearchMode]);
+  const videos = useMemo(() => {
+    if (activeView === "library") return savedItems;
+    if (!query) return [];
+    return (items || []).map((video) => {
+      const savedVideo = savedByVideoId.get(video.videoId);
+      return savedVideo ? { ...video, id: savedVideo.id, isSaved: true } : video;
+    });
+  }, [activeView, items, query, savedByVideoId, savedItems]);
 
-  // Featured video selection is dynamic: the first video in the list (when not searching)
-  const featuredVideo = useMemo(() => {
-    if (isSearchMode || !filteredVideos.length) return null;
-    return filteredVideos[0];
-  }, [filteredVideos, isSearchMode]);
-
-  const [activeMenuId, setActiveMenuId] = useState(null);
+  const activeDeleteItem = uiState.deleteItem;
 
   return (
-    <>
-      <div className="relative mx-auto w-full max-w-6xl py-4">
-        {/* Full-width video viewer state */}
-        {selectedId && selected ? (
-          <div className="w-full">
-            <button
-              onClick={() => setSelectedId(null)}
-              className="flex items-center gap-2 text-ink hover:opacity-80 mb-6 font-semibold text-sm transition-opacity"
-            >
-              <ArrowLeft size={16} />
-              <span>Back to Videos</span>
-            </button>
-            <div className="bg-surface-card border border-hairline rounded-2xl overflow-hidden shadow-sm p-6">
-              <h3 className="font-waldenburg-light text-2xl text-ink font-bold mb-4">
-                {selected.title}
-              </h3>
-              {viewer}
-            </div>
-          </div>
-        ) : (
-          /* Grid list view */
-          <div>
-            <DashboardPageHeader
-              title="YouTube"
-              description="Find videos and keep useful ones in your workspace."
-              action={
-                !uiState.isAdding ? (
+    <section className="relative mx-auto w-full max-w-6xl py-4">
+      {selectedId && selected ? (
+        <div className="space-y-5">
+          <button
+            type="button"
+            onClick={() => setSelectedId(null)}
+            className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm font-semibold text-muted transition hover:bg-canvas-soft hover:text-ink"
+          >
+            <ArrowLeft size={16} /> Back to videos
+          </button>
+          <div className="overflow-hidden rounded-2xl border border-hairline bg-surface-card shadow-sm">
+            {viewer}
+            <div className="flex flex-wrap items-start justify-between gap-4 p-5 sm:p-6">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-semibold leading-6 text-ink">{selected.title}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {selected.channelTitle || selected.channel || "YouTube"}
+                </p>
+                {selected.description ? (
+                  <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+                    {selected.description}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {selected.isSaved ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => dispatchUi({ type: "OPEN_ADD_COLLECTION", payload: selected })}
+                      title="Add to collection"
+                      aria-label="Add to collection"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted transition hover:bg-canvas-soft hover:text-ink"
+                    >
+                      <FolderPlus size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => dispatchUi({ type: "OPEN_DELETE", payload: selected })}
+                      title="Remove from library"
+                      aria-label="Remove from library"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted transition hover:bg-semantic-error/10 hover:text-semantic-error"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => dispatchUi({ type: "SET_ADDING", payload: true })}
-                    className="dp-btn-primary inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold"
+                    onClick={() => saveVideoById(selected.videoId, selected.url)}
+                    disabled={Boolean(savingVideoId)}
+                    title="Save to library"
+                    aria-label="Save to library"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted transition hover:bg-canvas-soft hover:text-ink disabled:opacity-50"
                   >
-                    <Plus size={14} />
-                    Add video
+                    {savingVideoId === selected.videoId ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+                    ) : (
+                      <BookmarkPlus size={16} />
+                    )}
                   </button>
-                ) : null
-              }
-            />
-            <div className="mb-6 flex items-center justify-between gap-3 text-xs text-muted-soft select-none">
-              <span>{filteredVideos.length} {filteredVideos.length === 1 ? "video" : "videos"}</span>
-              <span className="hidden sm:inline">Saved library</span>
+                )}
+                <a
+                  href={selected.url || `https://www.youtube.com/watch?v=${selected.videoId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Open on YouTube"
+                  aria-label="Open on YouTube"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline text-muted transition hover:bg-canvas-soft hover:text-ink"
+                >
+                  <ExternalLink size={16} />
+                </a>
+              </div>
             </div>
-
-            {/* Add Video Inline Input Form */}
-            {uiState.isAdding ? (
-              <div className="bg-surface-card border border-hairline rounded-2xl p-6 shadow-sm mb-8 max-w-[640px] mx-auto animate-slide-down">
-                <h4 className="text-ink font-bold text-base mb-1">Add a YouTube video</h4>
-                <p className="text-muted text-xs mb-4">
-                  Paste a YouTube URL or video identifier to ingest.
-                </p>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <input
-                    ref={inputRef}
-                    value={uiState.urlInput}
-                    onChange={(e) => dispatchUi({ type: "SET_URL", payload: e.target.value })}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="border border-hairline bg-canvas-soft text-ink w-full rounded-xl px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/20"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={addVideo}
-                      className="dp-btn-primary rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
-                      disabled={uiState.isLoading}
-                    >
-                      {uiState.isLoading ? "Saving..." : "Add"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => dispatchUi({ type: "RESET_ADD_FORM" })}
-                      className="dp-btn-secondary rounded-full px-5 py-2 text-sm font-semibold transition-all shrink-0"
-                      disabled={uiState.isLoading}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <DashboardPageHeader
+            title="YouTube"
+            description="Search for videos, watch them here, and save the ones you want to keep."
+            action={
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveView("library")}
+                  title="Saved videos"
+                  aria-label={`Saved videos, ${savedItems.length} saved`}
+                  aria-pressed={activeView === "library"}
+                  className={`inline-flex h-9 items-center gap-2 rounded-full border border-hairline px-3 text-xs font-semibold transition ${
+                    activeView === "library"
+                      ? "bg-ink text-canvas"
+                      : "text-muted hover:bg-canvas-soft hover:text-ink"
+                  }`}
+                >
+                  <BookmarkCheck size={15} />
+                  <span className="hidden sm:inline">Saved videos</span>
+                  <span className="tabular-nums opacity-70">{savedItems.length}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchUi({ type: "SET_ADDING", payload: true })}
+                  className="dp-btn-secondary inline-flex h-9 items-center gap-2 rounded-full px-4 text-xs font-semibold"
+                >
+                  <Plus size={14} /> Add by link
+                </button>
               </div>
-            ) : null}
+            }
+          />
 
-            {/* Loading Grid */}
-            {searchState?.loading ? (
+          {uiState.isAdding ? (
+            <form
+              className="mt-4 flex flex-col gap-3 rounded-2xl border border-hairline bg-surface-card p-4 shadow-sm sm:flex-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                addVideo();
+              }}
+            >
+              <input
+                ref={inputRef}
+                value={uiState.urlInput}
+                onChange={(event) => dispatchUi({ type: "SET_URL", payload: event.target.value })}
+                placeholder="Paste a YouTube link or video ID"
+                aria-label="YouTube video link or ID"
+                className="h-10 min-w-0 flex-1 rounded-xl border border-hairline bg-canvas px-3.5 text-sm text-ink outline-none focus:border-primary/50"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={uiState.isLoading}
+                  className="dp-btn-primary h-10 rounded-full px-5 text-xs font-semibold disabled:opacity-60"
+                >
+                  {uiState.isLoading ? "Adding…" : "Add video"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => dispatchUi({ type: "RESET_ADD_FORM" })}
+                  className="dp-btn-secondary h-10 rounded-full px-4 text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : null}
+
+          <div className="mt-5">
+            {activeView === "library" && savedLoading ? (
               <LoadingGrid />
-            ) : searchState?.error ? (
-              <div className="border border-hairline bg-surface-card rounded-2xl p-6 text-center select-none">
-                <p className="text-semantic-error font-medium">YouTube search failed</p>
-                <p className="text-body mt-1 text-sm">{searchState.error}</p>
+            ) : activeView === "search" && searchState?.isLoading ? (
+              <LoadingGrid />
+            ) : activeView === "search" && searchState?.error ? (
+              <div className="rounded-2xl border border-semantic-error/20 bg-semantic-error/5 p-6 text-center">
+                <p className="text-sm font-semibold text-semantic-error">YouTube search failed</p>
+                <p className="mt-1 text-sm text-muted">{searchState.error}</p>
               </div>
-            ) : !filteredVideos.length ? (
-              <div className="px-4 py-14 text-center">
-                <p className="text-ink font-semibold">No saved videos yet</p>
-                <p className="text-body mt-1 text-sm">
-                  Click "+ Add Video" above to search YouTube or paste a URL to build your library.
+            ) : !videos.length ? (
+              <div className="rounded-2xl border border-dashed border-hairline bg-surface-card/60 px-5 py-14 text-center">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-canvas-soft text-muted">
+                  {activeView === "library" ? <BookmarkCheck size={21} /> : <Search size={21} />}
+                </div>
+                <h3 className="mt-4 text-sm font-semibold text-ink">
+                  {activeView === "library"
+                    ? "Your saved videos will appear here"
+                    : query.length < 2
+                      ? "Search YouTube"
+                      : "No videos found"}
+                </h3>
+                <p className="mx-auto mt-1 w-full max-w-[448px] px-2 text-sm leading-6 text-muted">
+                  {activeView === "library"
+                    ? "Search for videos to save here, or add a video directly by link. Organize saved videos in collections and play them anytime."
+                    : query.length < 2
+                      ? "Enter at least two characters to find videos."
+                      : "Try a different search phrase."}
                 </p>
+                {activeView === "library" ? (
+                  <button
+                    type="button"
+                    onClick={() => setActiveView("search")}
+                    className="dp-btn-primary mt-4 h-9 rounded-full px-4 text-xs font-semibold"
+                  >
+                    Find videos
+                  </button>
+                ) : null}
               </div>
             ) : (
-              /* Main Cards Grid */
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {(featuredVideo ? filteredVideos.slice(1) : filteredVideos).map((it, index) => (
-                  <div key={it.id || index} className="group flex flex-col justify-between">
-                    {/* Thumbnail container */}
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-canvas-soft border border-hairline/60 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-                      <img
-                        src={it.thumbnail}
-                        alt={it.title}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => {
-                          if (it.isSaved) {
-                            setSelectedId(it.id);
-                          } else {
-                            saveVideoById(it.videoId, it.url, { clearSearch: true });
-                          }
-                        }}
+              <>
+                <div className="mb-3 flex items-center justify-between text-xs text-muted">
+                  <span>
+                    {activeView === "library"
+                      ? "In your library"
+                      : query
+                        ? `Results for “${query}”`
+                        : "Search results"}
+                  </span>
+                  <span className="tabular-nums">
+                    {videos.length} {videos.length === 1 ? "video" : "videos"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {videos.map((video) => {
+                    const savedVideo = savedByVideoId.get(video.videoId);
+                    const saved = activeView === "library" || Boolean(savedVideo) || video.isSaved;
+                    const libraryItem = savedVideo || video;
+
+                    return (
+                      <VideoCard
+                        key={video.videoId || video.id}
+                        video={video}
+                        saved={saved}
+                        saving={savingVideoId === video.videoId}
+                        savingActive={Boolean(savingVideoId)}
+                        onWatch={() => setSelectedId(video.id)}
+                        onSave={() => saveVideoById(video.videoId, video.url)}
+                        onAddToCollection={() =>
+                          dispatchUi({ type: "OPEN_ADD_COLLECTION", payload: libraryItem })
+                        }
+                        onDelete={() => dispatchUi({ type: "OPEN_DELETE", payload: libraryItem })}
                       />
-                      {it.isSaved ? (
-                        <span className="absolute bottom-2 right-2 bg-[#0c0a09]/80 text-[#ffffff] px-2 py-0.5 rounded text-[11px] font-semibold tracking-wider font-mono select-none">
-                          {it.duration}
-                        </span>
-                      ) : (
-                        <span className="absolute bottom-2 right-2 bg-[#0c0a09]/85 text-gradient-mint px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase select-none">
-                          Search Result
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Header Title & Action dots */}
-                    <div className="flex justify-between items-start mt-4 gap-2 relative">
-                      <h4
-                        onClick={() => {
-                          if (it.isSaved) {
-                            setSelectedId(it.id);
-                          } else {
-                            saveVideoById(it.videoId, it.url, { clearSearch: true });
-                          }
-                        }}
-                        className="font-bold text-ink text-sm leading-snug line-clamp-2 hover:underline cursor-pointer flex-1"
-                      >
-                        {it.title}
-                      </h4>
-
-                      {/* Action dropdown toggle (Only show if saved!) */}
-                      {it.isSaved ? (
-                        <div className="shrink-0 relative">
-                          <button
-                            onClick={() => setActiveMenuId(activeMenuId === it.id ? null : it.id)}
-                            className="text-muted hover:text-ink p-1 rounded-lg hover:bg-canvas-soft transition-colors"
-                          >
-                            <MoreVertical size={16} />
-                          </button>
-
-                          {activeMenuId === it.id ? (
-                            <div className="absolute right-0 top-8 z-20 w-36 bg-surface-card border border-hairline rounded-xl shadow-lg p-1.5 flex flex-col gap-1">
-                              <button
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  dispatchUi({
-                                    type: "OPEN_ADD_COLLECTION",
-                                    payload: it.original || it,
-                                  });
-                                }}
-                                className="w-full text-left text-xs font-semibold text-ink hover:bg-canvas-soft px-2.5 py-1.5 rounded-lg flex items-center gap-2"
-                              >
-                                <FolderPlus size={14} />
-                                <span>Add to Album</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setActiveMenuId(null);
-                                  dispatchUi({ type: "OPEN_DELETE", payload: it.original || it });
-                                }}
-                                className="w-full text-left text-xs font-semibold text-semantic-error hover:bg-semantic-error/10 px-2.5 py-1.5 rounded-lg flex items-center gap-2"
-                              >
-                                <Trash2 size={14} />
-                                <span>Delete Video</span>
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className="text-[10px] font-bold text-muted-soft uppercase tracking-wider select-none pt-1">
-                          Unsaved
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Channel & Date info */}
-                    <p className="text-xs text-muted-soft mt-1.5 font-medium select-none">
-                      {it.channel} {it.date ? `• ${it.date}` : ""}
-                    </p>
-
-                    {/* Action Button: View Details (if saved) or Save (if not saved) */}
-                    {it.isSaved ? (
-                      <button
-                        onClick={() => setSelectedId(it.id)}
-                        className="flex items-center gap-1.5 text-xs text-ink font-semibold hover:opacity-80 transition-opacity mt-3 w-fit"
-                      >
-                        <span>View Details</span>
-                        <ArrowRight size={12} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => saveVideoById(it.videoId, it.url, { clearSearch: true })}
-                        className="dp-btn-primary rounded-full px-4 py-1.5 text-xs font-semibold mt-3 flex items-center gap-1.5 transition-all w-fit shadow-sm"
-                      >
-                        <BookmarkPlus size={14} />
-                        <span>Save to Library</span>
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {/* Dynamic Featured Analysis Row spanning 2 columns (uses the first video in the list) */}
-                {featuredVideo && (
-                  <div className="lg:col-span-2 bg-surface-card border border-hairline rounded-2xl overflow-hidden p-6 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
-                    {/* Left Half: Thumbnail with badge */}
-                    <div className="w-full md:w-1/2 relative aspect-video rounded-xl overflow-hidden bg-canvas-soft border border-hairline/60 shrink-0">
-                      <img
-                        src={featuredVideo.thumbnail}
-                        alt={featuredVideo.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute top-3 left-3 bg-[#0c0a09]/80 text-[#ffffff] px-2.5 py-1 rounded text-[10px] font-bold tracking-widest uppercase select-none">
-                        Featured Analysis
-                      </span>
-                    </div>
-
-                    {/* Right Half: Details & action */}
-                    <div className="flex-1 flex flex-col justify-between py-1">
-                      <div>
-                        <h4 className="font-waldenburg-light text-xl font-bold text-ink leading-tight tracking-tight">
-                          {featuredVideo.title}
-                        </h4>
-                        <p className="text-body text-xs leading-relaxed mt-2.5 line-clamp-3">
-                          {featuredVideo.description}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-6">
-                        <button
-                          onClick={() => setSelectedId(featuredVideo.id)}
-                          className="dp-btn-primary rounded-full px-5 py-2.5 text-xs font-bold transition-all h-9 flex items-center justify-center shadow-sm shrink-0"
-                        >
-                          Watch Full Briefing
-                        </button>
-                        <span className="text-[11px] font-bold text-muted-soft uppercase tracking-wider select-none">
-                          {featuredVideo.duration}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* Album Modal */}
       <AddToCollectionModal
         open={Boolean(uiState.addToCollectionItem)}
         onClose={() => dispatchUi({ type: "CLOSE_ADD_COLLECTION" })}
@@ -365,32 +464,16 @@ export default function YoutubePageContent({
         itemId={uiState.addToCollectionItem?.id || null}
         itemTitle={uiState.addToCollectionItem?.title || null}
       />
-
-      {/* Delete Modal */}
       <DeleteConfirmModal
-        open={Boolean(uiState.deleteItem)}
+        open={Boolean(activeDeleteItem)}
         onClose={() => {
-          if (uiState.isDeleting) return;
-          dispatchUi({ type: "CLOSE_DELETE" });
+          if (!uiState.isDeleting) dispatchUi({ type: "CLOSE_DELETE" });
         }}
         onConfirm={confirmDelete}
-        title={uiState.deleteItem?.title ? `Delete: ${uiState.deleteItem.title}` : "Delete video"}
-        description="Delete this saved video?"
+        title={activeDeleteItem?.title ? `Remove “${activeDeleteItem.title}”?` : "Remove video"}
+        description="This removes the video from your saved library."
         busy={uiState.isDeleting}
       />
-
-      {/* Insight Review Modal */}
-      <ContentInsightReviewModal
-        open={Boolean(activeInsight)}
-        insight={activeInsight}
-        onClose={closeActiveInsight}
-        onAccepted={() => {
-          toast.success("Action items saved.");
-        }}
-        onRejected={() => {
-          toast.info("AI suggestions dismissed.");
-        }}
-      />
-    </>
+    </section>
   );
 }

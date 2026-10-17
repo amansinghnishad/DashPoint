@@ -20,7 +20,7 @@ jest.mock('../../src/models/User', () => ({
   findById: jest.fn()
 }));
 
-const { searchAll } = require('../../src/services/universalSearchService');
+const { searchAll } = require('../../src/features/search/services/universalSearchService');
 const Collection = require('../../src/models/Collection');
 const File = require('../../src/models/File');
 const YouTube = require('../../src/models/YouTube');

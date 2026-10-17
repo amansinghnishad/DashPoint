@@ -79,6 +79,11 @@ export function useCalendarMonthData({ connected, selectedDate, setSelectedDate 
     );
   }, []);
 
+  const selectDate = useCallback((date) => {
+    setMonth(startOfMonth(date));
+    setSelectedDate(date);
+  }, [setSelectedDate]);
+
   return {
     month,
     monthLabel,
@@ -91,6 +96,7 @@ export function useCalendarMonthData({ connected, selectedDate, setSelectedDate 
     goToToday,
     goToPreviousMonth,
     goToNextMonth,
+    selectDate,
     loadMonthEvents,
   };
 }

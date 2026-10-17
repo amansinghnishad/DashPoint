@@ -1,4 +1,4 @@
-const { tools, geminiFunctionDeclarations } = require('../../src/services/openaiTools');
+const { tools, geminiFunctionDeclarations } = require('../../src/features/chat/services/openaiTools');
 
 describe('AI Chat Tools Declaration Tests', () => {
   it('should declare valid OpenAI tool schemas with functions and parameters', () => {

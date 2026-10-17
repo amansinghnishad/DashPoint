@@ -18,6 +18,7 @@ import { SideBar } from "../../../shared/ui/Navbars/SideBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
 import UniversalSearch from "../../../shared/ui/Search/UniversalSearch";
 import ChatInterface from "../../../shared/ui/Chat/ChatInterface";
+import TabAmbient from "../../../shared/ui/Chat/TabAmbient";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 import DashboardAccountDialog from "../components/DashboardAccountDialog";
 import DashboardSettingsPanel from "../components/DashboardSettingsPanel";
@@ -86,6 +87,8 @@ export default function DashboardPage() {
   const setActiveTab = useCallback((value) => {
     dispatchUi({ type: "SET_ACTIVE_TAB", payload: value });
   }, []);
+
+  const clearYoutubeSearch = useCallback(() => setYoutubeSearch(""), []);
 
   const openChatHistory = useCallback(() => {
     if (uiState.activeTab === "focus") {
@@ -173,7 +176,8 @@ export default function DashboardPage() {
       case "youtube":
         return (
           <YoutubePage
-            searchTriggerRef={searchTriggerRef}
+            search={youtubeSearch}
+            onClearSearch={clearYoutubeSearch}
           />
         );
       case "files":
@@ -190,7 +194,7 @@ export default function DashboardPage() {
           />
         );
     }
-      }, [onOpenCollection, uiState.activeTab, searchTriggerRef]);
+      }, [clearYoutubeSearch, onOpenCollection, uiState.activeTab, youtubeSearch]);
 
   const currentSectionLabel = SECTION_LABEL_BY_TAB[uiState.activeTab] || "";
 
@@ -247,8 +251,8 @@ export default function DashboardPage() {
                           setYoutubeSearch(event.target.value);
                         } else {
                           setFileSearch(event.target.value);
+                          searchTriggerRef.current?.(event.target.value);
                         }
-                        searchTriggerRef.current?.(event.target.value);
                       }}
                       placeholder={
                         uiState.activeTab === "youtube" ? "Search YouTube..." : "Search files..."
@@ -287,11 +291,14 @@ export default function DashboardPage() {
             className={
               uiState.activeTab === "focus"
                 ? "flex min-h-0 flex-1 flex-col px-0 pb-0"
-                : "px-4 pb-32 lg:px-6"
+                : "relative isolate px-4 pb-32 lg:px-6"
             }
           >
+            {uiState.activeTab !== "focus" && !uiState.openCollectionId ? <TabAmbient /> : null}
             {uiState.activeTab !== "focus" && (
-              <Suspense fallback={<ContentFallback />}>{content}</Suspense>
+              <div className="relative z-10">
+                <Suspense fallback={<ContentFallback />}>{content}</Suspense>
+              </div>
             )}
             <div
               className={
@@ -318,6 +325,7 @@ export default function DashboardPage() {
       <DashboardAccountDialog
         open={uiState.accountOpen}
         onClose={() => dispatchUi({ type: "SET_ACCOUNT_OPEN", payload: false })}
+        onSettingsOpen={() => dispatchUi({ type: "SET_SETTINGS_OPEN", payload: true })}
       />
 
       <InfoModal

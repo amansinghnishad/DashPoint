@@ -16,13 +16,13 @@ const { assertJwtConfiguration } = require('./utils/jwt');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-const youtubeRoutes = require('./routes/youtubeRoutes');
+const youtubeRoutes = require('./features/youtube/routes/youtubeRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
-const fileRoutes = require('./routes/fileRoutes');
+const fileRoutes = require('./features/files/routes/fileRoutes');
 const plannerWidgetRoutes = require('./routes/plannerWidgetRoutes');
-const calendarRoutes = require('./routes/calendarRoutes');
-const chatRoutes = require('./routes/chatRoutes');
-const searchRoutes = require('./routes/searchRoutes');
+const calendarRoutes = require('./features/calendar/routes/calendarRoutes');
+const chatRoutes = require('./features/chat/routes/chatRoutes');
+const searchRoutes = require('./features/search/routes/searchRoutes');
 const focusRoutes = require('./routes/focusRoutes');
 const contentInsightRoutes = require('./routes/contentInsightRoutes');
 

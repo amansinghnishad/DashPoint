@@ -12,10 +12,15 @@ export default function ChatPixelAmbient() {
       className="dp-chat-pixel-ambient pointer-events-none absolute z-0 overflow-hidden"
       aria-hidden="true"
     >
-      <svg className="h-full w-full" viewBox="0 0 1200 280" preserveAspectRatio="none" focusable="false">
+      <svg
+        className="h-full w-full"
+        viewBox="0 0 1200 280"
+        preserveAspectRatio="none"
+        focusable="false"
+      >
         <defs>
           <pattern id={gridId} width="16" height="16" patternUnits="userSpaceOnUse">
-            <rect x="2" y="2" width="11" height="11" rx="0.8" fill="#ff4b55" />
+            <rect x="2" y="2" width="11" height="11" rx="0.8" fill="#f99149" />
           </pattern>
           <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="white" stopOpacity="0" />
@@ -24,9 +29,9 @@ export default function ChatPixelAmbient() {
             <stop offset="100%" stopColor="white" stopOpacity="1" />
           </linearGradient>
           <radialGradient id={glowId} cx="50%" cy="100%" r="75%">
-            <stop offset="0%" stopColor="#ff6d75" stopOpacity="0.7" />
-            <stop offset="52%" stopColor="#f43f50" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#f43f50" stopOpacity="0" />
+            <stop offset="0%" stopColor="#f99149" stopOpacity="0.7" />
+            <stop offset="52%" stopColor="#f18940" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#f18940" stopOpacity="0" />
           </radialGradient>
           <mask id={`${fadeId}-mask`}>
             <rect width="1200" height="280" fill={`url(#${fadeId})`} />

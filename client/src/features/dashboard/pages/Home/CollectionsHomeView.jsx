@@ -38,6 +38,13 @@ export default function CollectionsHomeView({
   LoadingGridComponent,
   getCollectionId,
 }) {
+  const sortedCollections = [...collections]
+    .sort((a, b) => {
+      const dateA = new Date(a?.updatedAt || a?.createdAt || 0).getTime();
+      const dateB = new Date(b?.updatedAt || b?.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+
   return (
     <section className="relative mx-auto w-full max-w-6xl py-4">
       <DashboardPageHeader
@@ -202,7 +209,7 @@ export default function CollectionsHomeView({
         <p className="text-muted text-sm">You can't undo this action.</p>
       </Modal>
 
-      <div className="mt-2">
+      <div className="mt-7">
         {loading ? (
           createElement(LoadingGridComponent)
         ) : error ? (
@@ -211,34 +218,34 @@ export default function CollectionsHomeView({
             <p className="text-body mt-1 text-sm">{error}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {collections.map((c) =>
-              createElement(CollectionCardComponent, {
-                key: getCollectionId(c) || c.name,
-                collection: c,
-                onOpen: openCollection,
-                onEdit: openEdit,
-                onDelete: openDelete,
-              }),
-            )}
-
-            {/* Dashed New Collection Card matching the screenshot */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => setIsCreateOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") setIsCreateOpen(true);
-              }}
-              className="border-2 border-dashed border-hairline bg-canvas/30 hover:bg-canvas-soft rounded-2xl flex flex-col items-center justify-center h-[230px] transition-colors cursor-pointer"
-              title="Create collection"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-muted shadow-sm">
-                <Plus size={20} />
+          <section aria-labelledby="home-collections-heading">
+              <div className="mb-3">
+                <h2 id="home-collections-heading" className="text-base font-semibold text-ink">Collections</h2>
               </div>
-              <span className="text-sm font-semibold text-muted">New Collection</span>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {sortedCollections.map((c) =>
+                  createElement(CollectionCardComponent, {
+                    key: getCollectionId(c) || c.name,
+                    collection: c,
+                    onOpen: openCollection,
+                    onEdit: openEdit,
+                    onDelete: openDelete,
+                  }),
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsCreateOpen(true)}
+                  className="flex h-[230px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-hairline bg-canvas/30 transition-colors hover:border-primary/30 hover:bg-canvas-soft"
+                  title="Create collection"
+                >
+                  <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-muted shadow-sm">
+                    <Plus size={20} />
+                  </span>
+                  <span className="text-sm font-semibold text-muted">New Collection</span>
+                </button>
+              </div>
+          </section>
         )}
       </div>
     </section>

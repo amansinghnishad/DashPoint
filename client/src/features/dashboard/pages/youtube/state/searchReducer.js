@@ -8,7 +8,7 @@ export const SEARCH_INITIAL_STATE = {
 export function searchReducer(state, action) {
   switch (action.type) {
     case "SET_QUERY":
-      return { ...state, query: action.payload };
+      return { ...state, query: typeof action.payload === "string" ? action.payload : "" };
     case "RESET":
       return { ...state, results: [], isLoading: false, error: null };
     case "START":
@@ -16,12 +16,17 @@ export function searchReducer(state, action) {
     case "SUCCESS":
       return {
         ...state,
-        results: action.payload,
+        results: Array.isArray(action.payload) ? action.payload : [],
         isLoading: false,
         error: null,
       };
-    case "FAIL":
-      return { ...state, results: [], isLoading: false, error: action.payload };
+    case "FAIL": {
+      const error =
+        typeof action.payload === "string" && action.payload.trim()
+          ? action.payload
+          : "YouTube search failed. Please try again.";
+      return { ...state, results: [], isLoading: false, error };
+    }
     default:
       return state;
   }

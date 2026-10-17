@@ -7,12 +7,13 @@ import { SEARCH_INITIAL_STATE, searchReducer } from "../state/searchReducer";
 import { UI_INITIAL_STATE, uiReducer } from "../state/uiReducer";
 import { parseYouTubeId } from "../utils/parseYouTubeId";
 
-export default function useYoutubePageController() {
+export default function useYoutubePageController({ search: searchInput = "", onClearSearch } = {}) {
   const toast = useToast();
   const [searchState, dispatchSearch] = useReducer(searchReducer, SEARCH_INITIAL_STATE);
   const [savedItems, setSavedItems] = useState([]);
+  const [savedLoading, setSavedLoading] = useState(true);
+  const [savingVideoId, setSavingVideoId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
-  const [insightQueue, setInsightQueue] = useState([]);
   const inputRef = useRef(null);
   const searchReqIdRef = useRef(0);
   const [uiState, dispatchUi] = useReducer(uiReducer, UI_INITIAL_STATE);
@@ -25,13 +26,13 @@ export default function useYoutubePageController() {
     return undefined;
   }, [uiState.isAdding]);
 
-  const search = searchState.query;
+  const search = typeof searchInput === "string" ? searchInput : "";
   const isSearchMode = Boolean((search || "").trim());
   const items = isSearchMode ? searchState.results : savedItems;
 
   const selected = useMemo(
-    () => items.find((x) => x.id === selectedId) || null,
-    [items, selectedId],
+    () => [...searchState.results, ...savedItems].find((video) => video.id === selectedId) || null,
+    [savedItems, searchState.results, selectedId],
   );
 
   const loadSavedVideos = useCallback(async () => {
@@ -48,7 +49,9 @@ export default function useYoutubePageController() {
         embedUrl: v.embedUrl,
         thumbnail: v.thumbnail,
         channelTitle: v.channelTitle,
+        description: v.description,
         duration: v.duration,
+        date: v.createdAt,
         isSaved: true,
       }));
       setSavedItems(mapped);
@@ -56,6 +59,7 @@ export default function useYoutubePageController() {
       const message = err?.response?.data?.message || err?.message || "Failed to load videos";
       toast.error(message);
     } finally {
+      setSavedLoading(false);
       dispatchUi({ type: "SET_LOADING", payload: false });
     }
   }, [toast]);
@@ -66,17 +70,16 @@ export default function useYoutubePageController() {
 
   const saveVideoById = useCallback(
     async (videoId, urlHint, options = {}) => {
-      if (!videoId) return;
+      if (!videoId || savingVideoId) return;
 
       const already = savedItems.find((v) => v.videoId === videoId);
       if (already) {
-        setSelectedId(already.id);
-        if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
         toast.info("That video is already saved.");
         return;
       }
 
       dispatchUi({ type: "SET_LOADING", payload: true });
+      setSavingVideoId(videoId);
       try {
         const detailsRes = await youtubeAPI.getVideoDetails(videoId);
         if (!detailsRes?.success) {
@@ -124,15 +127,12 @@ export default function useYoutubePageController() {
           thumbnail: saved.thumbnail,
           channelTitle: saved.channelTitle,
           duration: saved.duration,
+          date: saved.createdAt || new Date().toISOString(),
           isSaved: true,
         };
 
         setSavedItems((prev) => [savedItem, ...prev]);
-        setSelectedId(savedItem.id);
-        if (createRes.insight) {
-          setInsightQueue((current) => [...current, createRes.insight]);
-        }
-        if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
+        if (options?.clearSearch) onClearSearch?.();
         toast.success("Video saved.");
       } catch (err) {
         const status = err?.response?.status;
@@ -151,16 +151,17 @@ export default function useYoutubePageController() {
         if (status === 409) {
           toast.info(message);
           await loadSavedVideos();
-          if (options?.clearSearch) dispatchSearch({ type: "SET_QUERY", payload: "" });
+          if (options?.clearSearch) onClearSearch?.();
           return;
         }
 
         toast.error(message);
       } finally {
+        setSavingVideoId(null);
         dispatchUi({ type: "SET_LOADING", payload: false });
       }
     },
-    [loadSavedVideos, savedItems, toast],
+    [loadSavedVideos, onClearSearch, savedItems, savingVideoId, toast],
   );
 
   const addVideo = useCallback(async () => {
@@ -175,11 +176,11 @@ export default function useYoutubePageController() {
 
   useEffect(() => {
     const q = (search || "").trim();
+    const requestId = ++searchReqIdRef.current;
     dispatchSearch({ type: "RESET" });
 
     if (!q || q.length < 2) return;
 
-    const requestId = ++searchReqIdRef.current;
     dispatchSearch({ type: "START" });
 
     const t = window.setTimeout(async () => {
@@ -189,26 +190,44 @@ export default function useYoutubePageController() {
 
         if (!res?.success) throw new Error(res?.message || "YouTube search failed");
 
-        const videos = res?.data?.videos || [];
-        const mapped = videos.map((v) => {
-          const thumb = v?.thumbnail?.high || v?.thumbnail?.medium || v?.thumbnail?.default || null;
-          return {
-            id: `yt:${v.id}`,
-            videoId: v.id,
-            title: v.title,
-            url: v.url,
-            embedUrl: v.embedUrl,
-            thumbnail: thumb,
-            channelTitle: v.channelTitle,
-            publishedAt: v.publishedAt,
-            isSaved: false,
-          };
-        });
+        const videos = Array.isArray(res?.data?.videos) ? res.data.videos : [];
+        const mapped = videos
+          .map((v) => {
+            const thumb =
+              v?.thumbnail?.high || v?.thumbnail?.medium || v?.thumbnail?.default || null;
+            const videoId = String(v?.id || "").trim();
+            if (!videoId) return null;
+            return {
+              id: `yt:${videoId}`,
+              videoId,
+              title: typeof v.title === "string" ? v.title : "Untitled video",
+              url:
+                typeof v.url === "string"
+                  ? v.url
+                  : `https://www.youtube.com/watch?v=${videoId}`,
+              embedUrl:
+                typeof v.embedUrl === "string"
+                  ? v.embedUrl
+                  : `https://www.youtube.com/embed/${videoId}`,
+              thumbnail: typeof thumb === "string" ? thumb : null,
+              channelTitle: typeof v.channelTitle === "string" ? v.channelTitle : "YouTube",
+              description: typeof v.description === "string" ? v.description : "",
+              duration: typeof v.duration === "string" ? v.duration : "",
+              date: typeof v.publishedAt === "string" ? v.publishedAt : "",
+              publishedAt: typeof v.publishedAt === "string" ? v.publishedAt : "",
+              isSaved: false,
+            };
+          })
+          .filter(Boolean);
 
         dispatchSearch({ type: "SUCCESS", payload: mapped });
       } catch (err) {
         if (searchReqIdRef.current !== requestId) return;
-        const message = err?.response?.data?.message || err?.message || "YouTube search failed";
+        const rawMessage = err?.response?.data?.message || err?.message;
+        const message =
+          typeof rawMessage === "string" && rawMessage.trim()
+            ? rawMessage
+            : "YouTube search failed. Please try again.";
         dispatchSearch({ type: "FAIL", payload: message });
       }
     }, 350);
@@ -218,9 +237,8 @@ export default function useYoutubePageController() {
 
   useEffect(() => {
     if (!selectedId) return;
-    const stillExists = items.some((it) => it.id === selectedId);
-    if (!stillExists) setSelectedId(null);
-  }, [items, selectedId]);
+    if (!selected) setSelectedId(null);
+  }, [selected, selectedId]);
 
   const confirmDelete = useCallback(async () => {
     const id = uiState.deleteItem?.id;
@@ -250,14 +268,14 @@ export default function useYoutubePageController() {
   }, [toast, uiState.deleteItem?.id]);
 
   const viewer = selected ? (
-    <div className="h-[520px] w-full">
+    <div className="aspect-video w-full overflow-hidden rounded-2xl bg-black">
       <iframe
         title={selected.title}
         className="h-full w-full"
-        src={
-          selected.embedUrl || `https://www.youtube.com/embed/${selected.videoId || selected.id}`
-        }
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        src={`${selected.embedUrl || `https://www.youtube.com/embed/${selected.videoId || selected.id}`}${
+          (selected.embedUrl || "").includes("?") ? "&" : "?"
+        }autoplay=1&rel=0`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
       />
     </div>
@@ -272,10 +290,12 @@ export default function useYoutubePageController() {
 
   return {
     search,
-    dispatchSearch,
     uiState,
     addVideo,
     items,
+    savedItems,
+    savedLoading,
+    savingVideoId,
     selectedId,
     setSelectedId,
     saveVideoById,
@@ -286,7 +306,5 @@ export default function useYoutubePageController() {
     viewer,
     inputRef,
     confirmDelete,
-    insightQueue,
-    setInsightQueue,
   };
 }

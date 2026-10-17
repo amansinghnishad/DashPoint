@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
 import UserCursor from "../../../shared/ui/Cursor/UserCursor";
+import brandMark from "@/assets/brand/dashpoint-mark.png";
 
 const CAPABILITY_TABS = [
   {
@@ -79,8 +80,20 @@ export default function InteractiveCapabilities() {
 
   // 02. Calendar Demo State
   const [events, setEvents] = useState([
-    { id: 1, time: "09:00 AM", title: "Product Architecture Review", tag: "Strategy", active: true },
-    { id: 2, time: "11:30 AM", title: "Sprint 42 Backlog Refinement", tag: "Engineering", active: false },
+    {
+      id: 1,
+      time: "09:00 AM",
+      title: "Product Architecture Review",
+      tag: "Strategy",
+      active: true,
+    },
+    {
+      id: 2,
+      time: "11:30 AM",
+      title: "Sprint 42 Backlog Refinement",
+      tag: "Engineering",
+      active: false,
+    },
     { id: 3, time: "02:00 PM", title: "AI Agent Tool-Calling Demo", tag: "AI / ML", active: true },
     { id: 4, time: "04:30 PM", title: "Deep Work: Vector Similarity", tag: "Focus", active: false },
   ]);
@@ -92,7 +105,9 @@ export default function InteractiveCapabilities() {
     { id: 3, text: "Deploy Server-Sent Events stream", done: true },
     { id: 4, text: "Export workspace to Obsidian Markdown", done: false },
   ]);
-  const [noteText, setNoteText] = useState("DashPoint v2.0 delivers 85ms token responses with local vector cache.");
+  const [noteText, setNoteText] = useState(
+    "DashPoint v2.0 delivers 85ms token responses with local vector cache.",
+  );
 
   // 04. YouTube & Insights State
   const [selectedTimestamp, setSelectedTimestamp] = useState("02:15");
@@ -123,15 +138,11 @@ export default function InteractiveCapabilities() {
   }, [activeTab, chatStep]);
 
   const toggleTodo = (id) => {
-    setTodos((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)),
-    );
+    setTodos((prev) => prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)));
   };
 
   const toggleEvent = (id) => {
-    setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, active: !e.active } : e)),
-    );
+    setEvents((prev) => prev.map((e) => (e.id === id ? { ...e, active: !e.active } : e)));
   };
 
   return (
@@ -149,7 +160,8 @@ export default function InteractiveCapabilities() {
             </h2>
           </div>
           <p className="text-sm sm:text-base text-muted max-w-md">
-            Interact with live simulated interfaces below. Click, type, and explore real DashPoint tools in action.
+            Interact with live simulated interfaces below. Click, type, and explore real DashPoint
+            tools in action.
           </p>
         </div>
 
@@ -216,10 +228,14 @@ export default function InteractiveCapabilities() {
                   Live Sandbox Controls
                 </div>
                 <p className="text-xs text-muted leading-relaxed">
-                  {activeTab === "ai-assistant" && "Click the prompt pills to test RAG retrieval & autonomous agent execution."}
-                  {activeTab === "smart-calendar" && "Click events on the calendar to toggle and observe schedule state updates."}
-                  {activeTab === "spatial-canvas" && "Check off items on the todo list and test notes reactivity."}
-                  {activeTab === "content-hub" && "Click video transcript timestamps to navigate quotes and approve insights."}
+                  {activeTab === "ai-assistant" &&
+                    "Click the prompt pills to test RAG retrieval & autonomous agent execution."}
+                  {activeTab === "smart-calendar" &&
+                    "Click events on the calendar to toggle and observe schedule state updates."}
+                  {activeTab === "spatial-canvas" &&
+                    "Check off items on the todo list and test notes reactivity."}
+                  {activeTab === "content-hub" &&
+                    "Click video transcript timestamps to navigate quotes and approve insights."}
                 </p>
               </div>
             </div>
@@ -278,14 +294,20 @@ export default function InteractiveCapabilities() {
                       {/* Tool Calling Execution Status */}
                       <div className="flex items-center gap-2 text-[11px] font-semibold text-muted py-1 px-3 rounded-full bg-ink/5 dark:bg-white/5 w-fit border border-hairline">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Tools: GoogleCalendar.createEvent, VectorSearch.query ($vectorSearch)</span>
+                        <span>
+                          Tools: GoogleCalendar.createEvent, VectorSearch.query ($vectorSearch)
+                        </span>
                       </div>
 
                       {/* Assistant Stream */}
                       <div className="max-w-[90%] rounded-2xl bg-surface-card border border-amber-500/30 p-4 shadow-md space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded bg-ink text-canvas flex items-center justify-center text-[9px] font-bold">
-                            DP
+                          <div className="w-5 h-5 rounded bg-ink flex items-center justify-center">
+                            <img
+                              src={brandMark}
+                              alt=""
+                              className="h-[18px] w-[18px] object-contain"
+                            />
                           </div>
                           <span className="text-xs font-bold text-ink">DashPoint Intelligence</span>
                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold uppercase">
@@ -294,7 +316,9 @@ export default function InteractiveCapabilities() {
                         </div>
                         <p className="text-xs sm:text-sm text-ink leading-relaxed font-mono min-h-[40px]">
                           {chatStreamingText}
-                          {isTyping && <span className="inline-block w-1.5 h-3.5 bg-amber-500 ml-1 animate-pulse" />}
+                          {isTyping && (
+                            <span className="inline-block w-1.5 h-3.5 bg-amber-500 ml-1 animate-pulse" />
+                          )}
                         </p>
                       </div>
 
@@ -329,7 +353,9 @@ export default function InteractiveCapabilities() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-bold text-ink">Tuesday, August 25, 2026</div>
-                        <span className="text-[11px] text-muted font-medium">Click event to toggle state</span>
+                        <span className="text-[11px] text-muted font-medium">
+                          Click event to toggle state
+                        </span>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -350,7 +376,9 @@ export default function InteractiveCapabilities() {
                                 {event.tag}
                               </span>
                             </div>
-                            <div className="text-xs sm:text-sm font-semibold text-ink">{event.title}</div>
+                            <div className="text-xs sm:text-sm font-semibold text-ink">
+                              {event.title}
+                            </div>
                           </button>
                         ))}
                       </div>
@@ -389,7 +417,9 @@ export default function InteractiveCapabilities() {
                               ) : (
                                 <Circle className="w-4 h-4 text-muted shrink-0" />
                               )}
-                              <span className={todo.done ? "line-through opacity-50" : "font-medium"}>
+                              <span
+                                className={todo.done ? "line-through opacity-50" : "font-medium"}
+                              >
                                 {todo.text}
                               </span>
                             </button>
@@ -436,13 +466,16 @@ export default function InteractiveCapabilities() {
                         </div>
                         <div className="flex-1 space-y-2 w-full">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-ink">Building Agentic Systems with LLMs</span>
+                            <span className="text-xs font-bold text-ink">
+                              Building Agentic Systems with LLMs
+                            </span>
                             <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
                               Indexed
                             </span>
                           </div>
                           <p className="text-xs text-muted leading-relaxed">
-                            Vector search extracted 4 relevant sliding windows from video timestamps.
+                            Vector search extracted 4 relevant sliding windows from video
+                            timestamps.
                           </p>
                           <div className="flex items-center gap-2">
                             {["01:30", "02:15", "04:50"].map((ts) => (
@@ -494,7 +527,9 @@ export default function InteractiveCapabilities() {
                   <span className="w-2 h-2 rounded-full bg-amber-500" />
                   DashPoint v2.0 Sandbox Runtime
                 </span>
-                <span className="hidden sm:inline font-mono">Move cursor inside to test follower physics</span>
+                <span className="hidden sm:inline font-mono">
+                  Move cursor inside to test follower physics
+                </span>
               </div>
             </UserCursor>
           </div>

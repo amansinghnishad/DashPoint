@@ -3,7 +3,7 @@ const {
   buildChatProviderAttempts,
   MODEL_TIERS,
   CHAT_PROVIDERS
-} = require('../../src/services/chatModelRouter');
+} = require('../../src/features/chat/services/chatModelRouter');
 
 describe('chatModelRouter Unit Tests', () => {
   const originalEnv = process.env;

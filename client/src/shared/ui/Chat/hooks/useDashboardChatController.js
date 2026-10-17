@@ -11,6 +11,7 @@ import { sanitizeMessageForSubmit } from "../chatBar.utils";
 const FALLBACK_DONE_RESPONSE = "Done.";
 const FALLBACK_ERROR_RESPONSE = "Unable to complete chat request.";
 const OPENAI_COMING_SOON_MESSAGE = "This model is under development. Try using Gemini.";
+const ACTIVE_CHAT_SESSION_STORAGE_KEY = "dashpoint:active-chat-session";
 
 export default function useDashboardChatController() {
   const [provider, setProvider] = useState("auto");
@@ -27,6 +28,7 @@ export default function useDashboardChatController() {
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsLoaded, setSessionsLoaded] = useState(false);
 
   const {
     loading: collectionsLoading,
@@ -38,6 +40,7 @@ export default function useDashboardChatController() {
   const inputRef = useRef(null);
   const scrollAnchorRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const restoredSessionRef = useRef(false);
 
   const modelOptions = useMemo(
     () => MODEL_OPTIONS_BY_PROVIDER[provider] || MODEL_OPTIONS_BY_PROVIDER.auto,
@@ -92,6 +95,70 @@ export default function useDashboardChatController() {
     );
   }, []);
 
+  const updatePendingAction = useCallback((messageId, actionId, updates) => {
+    setMessages((current) =>
+      current.map((entry) => {
+        if (entry.id !== messageId || !Array.isArray(entry.meta?.pendingActions)) return entry;
+        return {
+          ...entry,
+          meta: {
+            ...entry.meta,
+            pendingActions: entry.meta.pendingActions.map((action) =>
+              action.id === actionId ? { ...action, ...updates } : action,
+            ),
+          },
+        };
+      }),
+    );
+  }, []);
+
+  const approvePendingAction = useCallback(
+    async (messageId, actionId, collectionId = "") => {
+      const messageEntry = messages.find((entry) => entry.id === messageId);
+      const action = messageEntry?.meta?.pendingActions?.find((entry) => entry.id === actionId);
+      if (!action || action.status === "saved" || action.status === "saving") return;
+
+      updatePendingAction(messageId, actionId, { status: "saving", error: "" });
+      try {
+        const selectedCollectionId = action.payload?.collectionId || collectionId;
+        const response = await chatApi.commitAction(actionId, selectedCollectionId);
+        updatePendingAction(messageId, actionId, { status: "saved", result: response?.data || null });
+        window.dispatchEvent(
+          new CustomEvent(DASHPOINT_COLLECTIONS_CHANGED_EVENT, {
+            detail: { collectionChanged: Boolean(selectedCollectionId) },
+          }),
+        );
+        loadCollections();
+      } catch (error) {
+        updatePendingAction(messageId, actionId, {
+          status: "pending",
+          error: error?.response?.data?.message || error?.message || "Could not save this draft.",
+        });
+      }
+    },
+    [loadCollections, messages, updatePendingAction],
+  );
+
+  const dismissPendingAction = useCallback(
+    async (messageId, actionId) => {
+      const messageEntry = messages.find((entry) => entry.id === messageId);
+      const action = messageEntry?.meta?.pendingActions?.find((entry) => entry.id === actionId);
+      if (!action || action.status === "saved" || action.status === "saving" || action.status === "dismissed") return;
+
+      updatePendingAction(messageId, actionId, { status: "dismissing", error: "" });
+      try {
+        await chatApi.dismissAction(actionId);
+        updatePendingAction(messageId, actionId, { status: "dismissed", error: "" });
+      } catch (error) {
+        updatePendingAction(messageId, actionId, {
+          status: "pending",
+          error: error?.response?.data?.message || error?.message || "Could not dismiss this draft.",
+        });
+      }
+    },
+    [messages, updatePendingAction],
+  );
+
   const loadSessions = useCallback(async () => {
     try {
       setSessionsLoading(true);
@@ -103,6 +170,7 @@ export default function useDashboardChatController() {
       // Ignore
     } finally {
       setSessionsLoading(false);
+      setSessionsLoaded(true);
     }
   }, []);
 
@@ -111,6 +179,11 @@ export default function useDashboardChatController() {
       if (!sessionId) return;
       try {
         setActiveSessionId(sessionId);
+        try {
+          window.localStorage.setItem(ACTIVE_CHAT_SESSION_STORAGE_KEY, sessionId);
+        } catch {
+          // Storage may be disabled; the current conversation still works in memory.
+        }
         const res = await chatApi.getSessionMessages(sessionId);
         if (res?.success) {
           const session = res.data?.session;
@@ -135,6 +208,11 @@ export default function useDashboardChatController() {
 
   const createNewSession = useCallback(() => {
     setActiveSessionId(null);
+    try {
+      window.localStorage.removeItem(ACTIVE_CHAT_SESSION_STORAGE_KEY);
+    } catch {
+      // Storage may be disabled; the current conversation still works in memory.
+    }
     setMessages([]);
     setMessage("");
     inputRef.current?.focus();
@@ -243,6 +321,11 @@ export default function useDashboardChatController() {
           if (createRes?.success && createRes.data?._id) {
             currentSessionId = String(createRes.data._id);
             setActiveSessionId(currentSessionId);
+            try {
+              window.localStorage.setItem(ACTIVE_CHAT_SESSION_STORAGE_KEY, currentSessionId);
+            } catch {
+              // Storage may be disabled; the session remains available in chat history.
+            }
           }
         } catch {
           // Continue without blocking chat
@@ -301,6 +384,7 @@ export default function useDashboardChatController() {
                 routing: donePayload.routing,
                 mutations: donePayload.mutations,
                 retrieval: donePayload.retrieval,
+                pendingActions: donePayload.pendingActions || [],
               },
             });
 
@@ -381,6 +465,22 @@ export default function useDashboardChatController() {
   }, [loadCollections, loadSessions]);
 
   useEffect(() => {
+    if (restoredSessionRef.current || !sessionsLoaded) return;
+    restoredSessionRef.current = true;
+
+    let savedSessionId = null;
+    try {
+      savedSessionId = window.localStorage.getItem(ACTIVE_CHAT_SESSION_STORAGE_KEY);
+    } catch {
+      // Storage may be disabled; chat history remains available from the history drawer.
+    }
+
+    if (savedSessionId && sessions.some((session) => String(session._id || session.id) === savedSessionId)) {
+      selectSession(savedSessionId);
+    }
+  }, [selectSession, sessions, sessionsLoaded]);
+
+  useEffect(() => {
     setSelectedCollectionIds((current) =>
       current.filter((id) => collections.some((collection) => collection.id === id)),
     );
@@ -418,6 +518,8 @@ export default function useDashboardChatController() {
     inputRef,
     scrollAnchorRef,
     handleSubmit,
+    approvePendingAction,
+    dismissPendingAction,
     toggleCollection,
     openAiComingSoonMessage: OPENAI_COMING_SOON_MESSAGE,
   };

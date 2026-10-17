@@ -13,7 +13,7 @@ const {
   buildChatContextId,
   getCachedChatResponse,
   setCachedChatResponse
-} = require('../../src/services/chatResponseCacheService');
+} = require('../../src/features/chat/services/chatResponseCacheService');
 
 describe('chatResponseCacheService Unit Tests', () => {
   afterEach(() => {

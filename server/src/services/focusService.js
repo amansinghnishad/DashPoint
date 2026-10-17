@@ -4,7 +4,7 @@ const PlannerWidget = require('../models/PlannerWidget');
 const User = require('../models/User');
 const YouTube = require('../models/YouTube');
 const { getAssistantMemoryForUser } = require('./assistantMemoryService');
-const { getCalendarClient, normalizeEvent } = require('./googleCalendarService');
+const { getCalendarClient, normalizeEvent } = require('../features/calendar/services/googleCalendarService');
 
 const RECENT_LIMIT = 6;
 const TASK_LIMIT = 12;

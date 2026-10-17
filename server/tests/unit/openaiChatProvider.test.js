@@ -1,4 +1,4 @@
-const { runOpenAiChat } = require('../../src/services/chatProviders/openaiChatProvider');
+const { runOpenAiChat } = require('../../src/features/chat/services/providers/openaiChatProvider');
 
 describe('openaiChatProvider Unit Tests', () => {
   it('should throw error when OPENAI_API_KEY is not configured', async () => {

@@ -1,4 +1,4 @@
-const { chunkSegments } = require('../../src/services/youtubeTranscriptService');
+const { chunkSegments } = require('../../src/features/youtube/services/youtubeTranscriptService');
 
 describe('youtubeTranscriptService Unit Tests', () => {
   it('should chunk raw transcript segments into bounded overlapping chunks', () => {

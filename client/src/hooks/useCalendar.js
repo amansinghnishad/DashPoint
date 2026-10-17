@@ -10,7 +10,7 @@ export function useCalendar(options = {}) {
   const { loadEvents = true } = options;
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [connected, setConnected] = useState(false);
-  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);

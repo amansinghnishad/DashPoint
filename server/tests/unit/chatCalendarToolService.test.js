@@ -1,7 +1,7 @@
 const {
   getGoogleCalendarStatusTool,
   getGoogleCalendarAuthUrlTool
-} = require('../../src/services/chatCalendarToolService');
+} = require('../../src/features/chat/services/chatCalendarToolService');
 const User = require('../../src/models/User');
 
 describe('chatCalendarToolService Unit Tests', () => {

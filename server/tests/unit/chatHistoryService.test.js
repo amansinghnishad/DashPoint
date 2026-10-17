@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { saveChatTurn } = require('../../src/services/chatHistoryService');
+const { saveChatTurn } = require('../../src/features/chat/services/chatHistoryService');
 const ChatMessage = require('../../src/models/ChatMessage');
 const ChatSession = require('../../src/models/ChatSession');
 

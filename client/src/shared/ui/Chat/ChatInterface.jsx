@@ -71,6 +71,8 @@ export default function ChatInterface({
     inputRef,
     scrollAnchorRef,
     handleSubmit,
+    approvePendingAction,
+    dismissPendingAction,
     toggleCollection,
     openAiComingSoonMessage,
   } = useDashboardChatController();
@@ -218,7 +220,13 @@ export default function ChatInterface({
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 scrollbar-thin">
               <div className="mx-auto w-full max-w-5xl space-y-5 py-2">
                 {messages.map((entry) => (
-                  <ChatMessageBubble key={entry.id} entry={entry} />
+                  <ChatMessageBubble
+                    key={entry.id}
+                    entry={entry}
+                    collections={collections}
+                    onApproveAction={approvePendingAction}
+                    onDismissAction={dismissPendingAction}
+                  />
                 ))}
                 <div ref={scrollAnchorRef} />
               </div>
@@ -229,7 +237,13 @@ export default function ChatInterface({
               <div className="max-h-[30vh] overflow-y-auto px-4 py-4 scrollbar-thin">
                 <div className="space-y-4">
                   {messages.map((entry) => (
-                    <ChatMessageBubble key={entry.id} entry={entry} />
+                    <ChatMessageBubble
+                      key={entry.id}
+                      entry={entry}
+                      collections={collections}
+                      onApproveAction={approvePendingAction}
+                      onDismissAction={dismissPendingAction}
+                    />
                   ))}
                 </div>
                 <div ref={scrollAnchorRef} />

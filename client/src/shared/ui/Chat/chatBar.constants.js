@@ -1,4 +1,4 @@
-export const DEFAULT_TOP_K = 3;
+export const DEFAULT_TOP_K = 6;
 export const MAX_MESSAGE_LENGTH = 4000;
 export const STREAM_MIN_UPDATES = 8;
 export const STREAM_MAX_UPDATES = 24;

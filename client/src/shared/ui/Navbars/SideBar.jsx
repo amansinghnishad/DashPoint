@@ -1,5 +1,8 @@
 import { useState } from "react";
 
+import darkFullLogo from "@/assets/brand/dashpoint-dark.png";
+import lightFullLogo from "@/assets/brand/dashpoint-light.png";
+import brandMark from "@/assets/brand/dashpoint-mark.png";
 import { Bot, CalendarDays, Home, IconUpload, Youtube } from "@/shared/ui/icons/icons";
 
 import SideBarView from "./SideBarView";
@@ -26,7 +29,7 @@ export const SideBar = ({
 
   const isExpanded = Boolean(isOpen || isHovered);
   const isDark = theme === "dark";
-  const fullLogoSrc = isDark ? "/Dark-mode-logo.png" : "/Light-mode-logo.png";
+  const fullLogoSrc = isDark ? darkFullLogo : lightFullLogo;
 
   const menuItems = [
     { id: "focus", label: "Assistant", icon: Bot },
@@ -70,6 +73,7 @@ export const SideBar = ({
       isExpanded={isExpanded}
       subBorderClass={subBorderClass}
       fullLogoSrc={fullLogoSrc}
+      brandMarkSrc={brandMark}
       menuItems={menuItems}
       activeTab={activeTab}
       setActiveTab={setActiveTab}

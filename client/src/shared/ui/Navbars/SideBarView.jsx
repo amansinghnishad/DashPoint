@@ -1,12 +1,6 @@
 import { Link } from "react-router-dom";
 
-import {
-  IconClose,
-  LogOut,
-  Settings,
-  Sun,
-  Moon,
-} from "@/shared/ui/icons/icons";
+import { IconClose, LogOut, Settings, Sun, Moon } from "@/shared/ui/icons/icons";
 
 const getSidebarDisplayName = (user) => {
   const username = String(user?.username || "").trim();
@@ -41,6 +35,8 @@ export default function SideBarView({
   onClose,
   setIsHovered,
   isExpanded,
+  fullLogoSrc,
+  brandMarkSrc,
   menuItems,
   activeTab,
   setActiveTab,
@@ -85,20 +81,24 @@ export default function SideBarView({
               {isExpanded ? (
                 <Link
                   to="/"
-                  className="font-waldenburg-light text-xl font-bold text-ink tracking-tight select-none"
+                  className="flex min-w-0 items-center rounded-lg transition-opacity hover:opacity-80"
                   onClick={onClose}
+                  aria-label="DashPoint home"
                 >
-                  DASHPOINT
+                  <img
+                    src={fullLogoSrc}
+                    alt="DashPoint"
+                    className="h-10 w-auto max-w-[168px] object-contain object-left"
+                  />
                 </Link>
               ) : (
                 <Link
                   to="/"
-                  className="w-10 h-10 rounded-xl bg-[#0c0a09] flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl transition-opacity hover:opacity-80"
                   onClick={onClose}
+                  aria-label="DashPoint home"
                 >
-                  <span className="font-waldenburg-light text-lg font-bold text-[#ffffff] tracking-tighter select-none">
-                    DP
-                  </span>
+                  <img src={brandMarkSrc} alt="" className="h-10 w-10 object-contain" />
                 </Link>
               )}
 
@@ -146,12 +146,13 @@ export default function SideBarView({
                 </div>
               );
             })}
-
           </nav>
 
           {/* Account and preferences */}
           <div className="border-t border-hairline/60 px-3 pt-4">
-            <div className={`flex items-center ${isExpanded ? "flex-row justify-center gap-1.5" : "flex-col items-center gap-2"}`}>
+            <div
+              className={`flex items-center ${isExpanded ? "flex-row justify-center gap-1.5" : "flex-col items-center gap-2"}`}
+            >
               {/* Account Button */}
               <button
                 type="button"
@@ -174,7 +175,9 @@ export default function SideBarView({
                     />
                   ) : null}
                 </span>
-                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">Account</span>
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">
+                  Account
+                </span>
               </button>
 
               {/* Theme Toggle Button */}
@@ -185,8 +188,14 @@ export default function SideBarView({
                 title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
                 aria-label={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
-                {isDark ? <Sun size={18} className="shrink-0" /> : <Moon size={18} className="shrink-0" />}
-                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">{isDark ? "Light" : "Dark"}</span>
+                {isDark ? (
+                  <Sun size={18} className="shrink-0" />
+                ) : (
+                  <Moon size={18} className="shrink-0" />
+                )}
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">
+                  {isDark ? "Light" : "Dark"}
+                </span>
               </button>
 
               {/* Settings Button */}
@@ -201,7 +210,9 @@ export default function SideBarView({
                 aria-label="Settings"
               >
                 <Settings size={18} className="shrink-0" />
-                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-20 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-20 group-focus-visible:opacity-100">Settings</span>
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-20 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-20 group-focus-visible:opacity-100">
+                  Settings
+                </span>
               </button>
 
               {/* Logout Button */}
@@ -213,7 +224,9 @@ export default function SideBarView({
                 aria-label="Logout"
               >
                 <LogOut size={18} className="shrink-0" />
-                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">Logout</span>
+                <span className="ml-0 max-w-0 overflow-hidden text-xs font-semibold opacity-0 transition-all duration-300 group-hover:ml-2 group-hover:max-w-16 group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-16 group-focus-visible:opacity-100">
+                  Logout
+                </span>
               </button>
             </div>
           </div>

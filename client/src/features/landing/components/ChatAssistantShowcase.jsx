@@ -4,17 +4,30 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import UserCursor from "../../../shared/ui/Cursor/UserCursor";
+import brandMark from "@/assets/brand/dashpoint-mark.png";
 
 const SAMPLE_CONVERSATIONS = [
   {
     prompt: "Summarize today's product priorities",
-    response: "Here are today's high-priority items based on your calendar and planner:\n\n1. **Q3 Architecture Review** at 2:00 PM\n2. **Review 3 YouTube transcripts** for vector search optimization\n3. **Approve 2 extracted action items** from yesterday's sync",
-    meta: { provider: "gemini", model: "gemini-2.0-flash", routing: { tier: "FAST" }, retrieval: { hitCount: 3 } },
+    response:
+      "Here are today's high-priority items based on your calendar and planner:\n\n1. **Q3 Architecture Review** at 2:00 PM\n2. **Review 3 YouTube transcripts** for vector search optimization\n3. **Approve 2 extracted action items** from yesterday's sync",
+    meta: {
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      routing: { tier: "FAST" },
+      retrieval: { hitCount: 3 },
+    },
   },
   {
     prompt: "Schedule a 45-minute deep focus block",
-    response: "Found open slot from **3:30 PM – 4:15 PM** without conflicts. Added **Deep Focus Block** to your Google Calendar and pinned to your Daily Schedule widget.",
-    meta: { provider: "gemini", model: "gemini-2.0-flash", routing: { tier: "BALANCED" }, retrieval: { hitCount: 1 } },
+    response:
+      "Found open slot from **3:30 PM – 4:15 PM** without conflicts. Added **Deep Focus Block** to your Google Calendar and pinned to your Daily Schedule widget.",
+    meta: {
+      provider: "gemini",
+      model: "gemini-2.0-flash",
+      routing: { tier: "BALANCED" },
+      retrieval: { hitCount: 1 },
+    },
   },
 ];
 
@@ -23,8 +36,14 @@ export default function ChatAssistantShowcase() {
     {
       id: "m1",
       role: "assistant",
-      content: "Hello! I'm DashPoint Intelligence. Ask me anything across your notes, meetings, and planner widgets.",
-      meta: { provider: "gemini", model: "gemini-2.0-flash", routing: { tier: "FAST" }, retrieval: { hitCount: 0 } },
+      content:
+        "Hello! I'm DashPoint Intelligence. Ask me anything across your notes, meetings, and planner widgets.",
+      meta: {
+        provider: "gemini",
+        model: "gemini-2.0-flash",
+        routing: { tier: "FAST" },
+        retrieval: { hitCount: 0 },
+      },
     },
   ]);
   const [input, setInput] = useState("");
@@ -42,9 +61,16 @@ export default function ChatAssistantShowcase() {
     setInput("");
     setIsTyping(true);
 
-    const match = SAMPLE_CONVERSATIONS.find((c) => c.prompt.toLowerCase() === text.toLowerCase()) || {
+    const match = SAMPLE_CONVERSATIONS.find(
+      (c) => c.prompt.toLowerCase() === text.toLowerCase(),
+    ) || {
       response: `Processed query: "${text}". Retrieved relevant context from your workspace collections and synced actions with 0 latency.`,
-      meta: { provider: "gemini", model: "gemini-2.0-flash", routing: { tier: "FAST" }, retrieval: { hitCount: 2 } },
+      meta: {
+        provider: "gemini",
+        model: "gemini-2.0-flash",
+        routing: { tier: "FAST" },
+        retrieval: { hitCount: 2 },
+      },
     };
 
     const assistantId = `${Date.now()}-assistant`;
@@ -83,10 +109,15 @@ export default function ChatAssistantShowcase() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(249,145,73,0.12),transparent_42%)]" />
         <div className="relative flex items-center justify-between border-b border-hairline/70 px-4 py-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink text-[10px] font-black tracking-tight text-canvas shadow-sm">DP</div>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ink shadow-sm">
+              <img src={brandMark} alt="" className="h-8 w-8 object-contain" />
+            </div>
             <div className="min-w-0">
               <h4 className="truncate text-xs font-bold text-ink">DashPoint Intelligence</h4>
-              <p className="mt-0.5 truncate text-[10px] text-muted">Workspace assistant <span className="mx-1.5 text-muted-soft">·</span> Gemini 2.5 Flash</p>
+              <p className="mt-0.5 truncate text-[10px] text-muted">
+                Workspace assistant <span className="mx-1.5 text-muted-soft">·</span> Gemini 2.5
+                Flash
+              </p>
             </div>
           </div>
           <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/15 bg-emerald-500/[0.08] px-2.5 py-1 text-[9px] font-semibold text-emerald-700 dark:text-emerald-400">
@@ -110,8 +141,12 @@ export default function ChatAssistantShowcase() {
                 ) : (
                   <div className="dp-chat-bubble-assistant max-w-[94%] rounded-2xl rounded-tl-md border border-hairline/70 p-3.5 shadow-[0_5px_18px_rgba(30,24,18,0.045)] space-y-2">
                     <div className="flex items-center gap-2 select-none">
-                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-amber-500 to-orange-600 text-[8px] font-black tracking-tight text-white">
-                        DP
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-ink">
+                        <img
+                          src={brandMark}
+                          alt=""
+                          className="h-[18px] w-[18px] object-contain"
+                        />
                       </div>
                       <span className="text-xs font-bold text-[color:var(--dp-chat-bubble-assistant-fg)]">
                         DashPoint Intelligence
@@ -120,18 +155,23 @@ export default function ChatAssistantShowcase() {
                     {m.streaming && !m.content ? (
                       <div className="flex items-center gap-2 text-muted select-none">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        <span className="text-[10px] font-semibold uppercase tracking-wider">Thinking...</span>
+                        <span className="text-[10px] font-semibold uppercase tracking-wider">
+                          Thinking...
+                        </span>
                       </div>
                     ) : (
                       <div className="dp-markdown text-sm leading-relaxed text-[color:var(--dp-chat-bubble-assistant-fg)]">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
-                        {m.streaming && <span className="ml-1 inline-block h-3.5 w-1.5 animate-pulse bg-amber-500 align-middle" />}
+                        {m.streaming && (
+                          <span className="ml-1 inline-block h-3.5 w-1.5 animate-pulse bg-amber-500 align-middle" />
+                        )}
                       </div>
                     )}
                     {m.meta && m.meta.retrieval.hitCount > 0 && (
                       <div className="flex flex-wrap items-center gap-1.5 pt-1 select-none">
                         <span className="inline-flex items-center gap-1 rounded-md bg-canvas-soft px-2 py-1 text-[9px] font-medium text-muted">
-                          <span className="h-1 w-1 rounded-full bg-amber-500" /> {m.meta.retrieval.hitCount} workspace sources
+                          <span className="h-1 w-1 rounded-full bg-amber-500" />{" "}
+                          {m.meta.retrieval.hitCount} workspace sources
                         </span>
                       </div>
                     )}
@@ -141,7 +181,12 @@ export default function ChatAssistantShowcase() {
             ))}
           </AnimatePresence>
 
-          {isTyping ? <div className="flex items-center gap-2 pl-1 text-[10px] font-medium text-muted"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />Writing a response…</div> : null}
+          {isTyping ? (
+            <div className="flex items-center gap-2 pl-1 text-[10px] font-medium text-muted">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              Writing a response…
+            </div>
+          ) : null}
         </div>
 
         <div className="relative flex items-center gap-2 overflow-x-auto px-4 pb-2.5 select-none no-scrollbar sm:px-5">

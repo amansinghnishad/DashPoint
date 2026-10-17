@@ -30,49 +30,70 @@ export const chatApi = {
         throw new Error(errorData.message || `Request failed with status ${response.status}`);
       }
 
+      if (!response.body) {
+        throw new Error("The chat connection did not return a response stream.");
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let buffer = "";
+      let receivedTerminalEvent = false;
+
+      const handleEventBlock = (eventBlock) => {
+        if (!eventBlock.trim() || eventBlock.trimStart().startsWith(":")) return;
+
+        let eventType = "message";
+        const dataLines = [];
+
+        for (const line of eventBlock.split(/\r?\n/)) {
+          if (line.startsWith("event:")) {
+            eventType = line.slice(6).trim();
+          } else if (line.startsWith("data:")) {
+            dataLines.push(line.slice(5).replace(/^ /, ""));
+          }
+        }
+
+        if (!dataLines.length) return;
+
+        let parsed;
+        try {
+          parsed = JSON.parse(dataLines.join("\n"));
+        } catch {
+          return;
+        }
+
+        if (eventType === "metadata") {
+          onMetadata?.(parsed);
+        } else if (eventType === "delta") {
+          onDelta?.(parsed.text);
+        } else if (eventType === "done") {
+          receivedTerminalEvent = true;
+          onDone?.(parsed);
+        } else if (eventType === "error") {
+          receivedTerminalEvent = true;
+          onError?.(new Error(parsed.message || "Streaming error"));
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          buffer += decoder.decode();
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split("\n\n");
+        const events = buffer.split(/\r?\n\r?\n/);
         buffer = events.pop() || "";
 
         for (const eventBlock of events) {
-          if (!eventBlock.trim()) continue;
-          let eventType = "message";
-          let dataStr = "";
-
-          const lines = eventBlock.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("event:")) {
-              eventType = line.slice(6).trim();
-            } else if (line.startsWith("data:")) {
-              dataStr += line.slice(5).trim();
-            }
-          }
-
-          if (dataStr) {
-            try {
-              const parsed = JSON.parse(dataStr);
-              if (eventType === "metadata") {
-                onMetadata?.(parsed);
-              } else if (eventType === "delta") {
-                onDelta?.(parsed.text);
-              } else if (eventType === "done") {
-                onDone?.(parsed);
-              } else if (eventType === "error") {
-                onError?.(new Error(parsed.message || "Streaming error"));
-              }
-            } catch {
-              // Ignore partial chunk parse error
-            }
-          }
+          handleEventBlock(eventBlock);
         }
+      }
+
+      if (buffer.trim()) handleEventBlock(buffer);
+      if (!receivedTerminalEvent) {
+        throw new Error("The chat connection ended before the response was complete. Please try again.");
       }
     } catch (err) {
       if (err.name === "AbortError") return;
@@ -111,5 +132,13 @@ export const chatApi = {
 
   approveActionItems(payload) {
     return getResponseData(apiClient.post("/chat/action-items/approve", payload));
+  },
+
+  commitAction(actionId, collectionId = "") {
+    return getResponseData(apiClient.post("/chat/actions/commit", { actionId, collectionId }));
+  },
+
+  dismissAction(actionId) {
+    return getResponseData(apiClient.post("/chat/actions/dismiss", { actionId }));
   },
 };

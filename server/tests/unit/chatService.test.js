@@ -1,8 +1,8 @@
-jest.mock('../../src/services/chatModelRouter', () => ({
+jest.mock('../../src/features/chat/services/chatModelRouter', () => ({
   buildChatProviderAttempts: jest.fn()
 }));
 
-jest.mock('../../src/services/chatResponseCacheService', () => ({
+jest.mock('../../src/features/chat/services/chatResponseCacheService', () => ({
   buildChatContextId: jest.fn(() => 'test-cache-context-id'),
   getCachedChatResponse: jest.fn(),
   setCachedChatResponse: jest.fn()
@@ -12,24 +12,24 @@ jest.mock('../../src/services/assistantMemoryService', () => ({
   formatAssistantMemoryForPrompt: jest.fn()
 }));
 
-jest.mock('../../src/services/chatContextService', () => ({
+jest.mock('../../src/features/chat/services/chatContextService', () => ({
   retrieveChatContext: jest.fn(() => Promise.resolve({ items: [], contextText: '', topK: 3 })),
   DEFAULT_TOP_K: 3
 }));
 
-jest.mock('../../src/services/chatPromptService', () => ({
+jest.mock('../../src/features/chat/services/chatPromptService', () => ({
   buildAugmentedChatPrompt: jest.fn(() => ({ systemPrompt: 'System', userPrompt: 'User' }))
 }));
 
-jest.mock('../../src/services/chatProviders/geminiChatProvider', () => ({
+jest.mock('../../src/features/chat/services/providers/geminiChatProvider', () => ({
   runGeminiChat: jest.fn()
 }));
 
-const { runChat } = require('../../src/services/chatService');
-const chatModelRouter = require('../../src/services/chatModelRouter');
-const chatResponseCacheService = require('../../src/services/chatResponseCacheService');
+const { runChat } = require('../../src/features/chat/services/chatService');
+const chatModelRouter = require('../../src/features/chat/services/chatModelRouter');
+const chatResponseCacheService = require('../../src/features/chat/services/chatResponseCacheService');
 const assistantMemoryService = require('../../src/services/assistantMemoryService');
-const geminiProvider = require('../../src/services/chatProviders/geminiChatProvider');
+const geminiProvider = require('../../src/features/chat/services/providers/geminiChatProvider');
 
 describe('chatService Unit Tests', () => {
   afterEach(() => {

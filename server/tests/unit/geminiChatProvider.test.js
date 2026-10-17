@@ -1,4 +1,4 @@
-const { runGeminiChat } = require('../../src/services/chatProviders/geminiChatProvider');
+const { runGeminiChat } = require('../../src/features/chat/services/providers/geminiChatProvider');
 
 describe('geminiChatProvider Unit Tests', () => {
   it('should throw error when GEMINI_API_KEY is not configured', async () => {

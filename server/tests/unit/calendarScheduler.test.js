@@ -2,7 +2,7 @@ const {
   planSchedule,
   mergeIntervals,
   invertIntervals
-} = require('../../src/services/calendarScheduler');
+} = require('../../src/features/calendar/services/calendarScheduler');
 
 describe('Calendar Scheduler Unit Tests', () => {
   const baseDate = new Date('2026-08-25T09:00:00.000Z');

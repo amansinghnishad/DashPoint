@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import CalendarAgendaPanel from "./calendar/components/CalendarAgendaPanel";
 import CalendarHeader from "./calendar/components/CalendarHeader";
@@ -8,9 +8,13 @@ import { useCalendarCreateItem } from "./calendar/hooks/useCalendarCreateItem";
 import { useCalendarMonthData } from "./calendar/hooks/useCalendarMonthData";
 import { dayKey } from "./calendar/utils/dateUtils";
 import { useCalendar } from "../../../hooks/useCalendar";
+import { calendarAPI } from "../../../services/modules/calendarApi";
+import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 
 export default function CalendarPage() {
   const today = useMemo(() => new Date(), []);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
 
   const {
     selectedDate,
@@ -32,6 +36,7 @@ export default function CalendarPage() {
     goToToday,
     goToPreviousMonth,
     goToNextMonth,
+    selectDate,
     loadMonthEvents,
   } = useCalendarMonthData({
     connected,
@@ -66,6 +71,24 @@ export default function CalendarPage() {
     await loadMonthEvents({ connected: isConnected });
   }, [loadMonthEvents, refreshStatus]);
 
+  const confirmDeleteEvent = useCallback(async () => {
+    if (!eventToDelete?.id || deletingEventId) return;
+
+    setDeletingEventId(eventToDelete.id);
+    try {
+      const response = await calendarAPI.deleteGoogleEvent(eventToDelete.id);
+      if (!response?.success) {
+        throw new Error(response?.message || "Could not delete this calendar item.");
+      }
+      setEventToDelete(null);
+      await loadMonthEvents();
+    } catch (error) {
+      setMonthError(error);
+    } finally {
+      setDeletingEventId(null);
+    }
+  }, [deletingEventId, eventToDelete, loadMonthEvents, setMonthError]);
+
   return (
     <section className="relative mx-auto w-full max-w-[1100px] py-4">
       {/* Modern styled Calendar Header */}
@@ -90,12 +113,28 @@ export default function CalendarPage() {
           selectedDate={selectedDate}
           today={today}
           eventsByDay={eventsByDay}
-          onSelectDate={setSelectedDate}
+          onSelectDate={selectDate}
         />
         <CalendarAgendaPanel
           selectedDayEvents={selectedDayEvents}
+          selectedDate={selectedDate}
+          connected={connected}
+          loading={monthLoading || loadingStatus}
+          onConnect={connectGoogleCalendar}
+          onDeleteEvent={setEventToDelete}
+          deletingEventId={deletingEventId}
         />
       </div>
+
+      <DeleteConfirmModal
+        open={Boolean(eventToDelete)}
+        onClose={() => setEventToDelete(null)}
+        onConfirm={confirmDeleteEvent}
+        title={`Delete “${eventToDelete?.summary || "calendar item"}”?`}
+        description="This will permanently delete this item from your Google Calendar."
+        confirmLabel="Delete item"
+        busy={Boolean(eventToDelete?.id && deletingEventId === eventToDelete.id)}
+      />
 
       <CreateCalendarItemModal
         open={createOpen}

@@ -1,4 +1,4 @@
-const { buildAugmentedChatPrompt } = require('../../src/services/chatPromptService');
+const { buildAugmentedChatPrompt } = require('../../src/features/chat/services/chatPromptService');
 
 describe('chatPromptService Unit Tests', () => {
   it('should build augmented system and user prompt with retrieval context and memory', () => {

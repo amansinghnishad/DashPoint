@@ -261,6 +261,63 @@
   animation: dp-collection-arc-float 18s ease-in-out infinite alternate;
 }
 
+.dp-tab-ambient-glow {
+  position: absolute;
+  display: block;
+  width: min(46vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  filter: blur(95px);
+  opacity: 0.095;
+  background: #f99149;
+  animation: dp-tab-ambient-drift 22s ease-in-out infinite alternate;
+}
+
+.dp-tab-ambient-glow--one {
+  top: -30%;
+  right: -14%;
+}
+
+.dp-tab-ambient-glow--two {
+  bottom: -55%;
+  left: 6%;
+  width: min(36vw, 420px);
+  opacity: 0.06;
+  animation-delay: -11s;
+}
+
+.dp-tab-ambient-orbit {
+  position: absolute;
+  top: 18%;
+  right: 9%;
+  width: min(43vw, 530px);
+  height: min(28vw, 300px);
+  border: 1px solid color-mix(in srgb, #f99149 19%, transparent);
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  opacity: 0.55;
+  transform: rotate(-18deg);
+  animation: dp-tab-ambient-orbit 28s ease-in-out infinite alternate;
+}
+
+@keyframes dp-tab-ambient-drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(0.96); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.06); }
+}
+
+@keyframes dp-tab-ambient-orbit {
+  from { transform: rotate(-20deg) translateY(-5px); }
+  to { transform: rotate(-12deg) translateY(10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dp-tab-ambient-glow,
+  .dp-tab-ambient-orbit {
+    animation: none;
+  }
+}
+
 @keyframes dp-collection-arc-float {
   from {
     transform: translateY(4px);

@@ -3,7 +3,7 @@ jest.mock('../../src/services/assistantMemoryService', () => ({
   updateAssistantMemoryForUser: jest.fn()
 }));
 
-jest.mock('../../src/services/chatCalendarToolService', () => ({
+jest.mock('../../src/features/chat/services/chatCalendarToolService', () => ({
   getGoogleCalendarStatusTool: jest.fn(),
   getGoogleCalendarAuthUrlTool: jest.fn(),
   listGoogleCalendarEventsTool: jest.fn(),
@@ -11,9 +11,9 @@ jest.mock('../../src/services/chatCalendarToolService', () => ({
   scheduleGoogleCalendarBlockTool: jest.fn()
 }));
 
-const { executeToolCall } = require('../../src/services/chatToolExecutor');
+const { executeToolCall } = require('../../src/features/chat/services/chatToolExecutor');
 const assistantMemoryService = require('../../src/services/assistantMemoryService');
-const calendarToolService = require('../../src/services/chatCalendarToolService');
+const calendarToolService = require('../../src/features/chat/services/chatCalendarToolService');
 
 describe('chatToolExecutor Unit Tests', () => {
   afterEach(() => {

@@ -53,8 +53,8 @@ export default defineConfig({
         short_name: "DashPoint",
         description:
           "A personal productivity dashboard for planning, tasks, notes, and saved content",
-        theme_color: "#8B5CF6",
-        background_color: "#ffffff",
+        theme_color: "#171412",
+        background_color: "#171412",
         id: "/",
         lang: "en",
         dir: "ltr",

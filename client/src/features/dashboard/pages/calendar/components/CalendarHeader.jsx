@@ -24,6 +24,20 @@ export default function CalendarHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex h-8 items-center gap-2 rounded-full border px-3 text-[10px] font-medium ${
+              loadingStatus
+                ? "border-hairline bg-surface-card text-muted"
+                : connected
+                  ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+                  : "border-hairline bg-surface-card text-muted"
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${loadingStatus ? "animate-pulse bg-muted" : connected ? "bg-emerald-500" : "bg-muted-soft"}`} aria-hidden="true" />
+            {loadingStatus ? "Checking calendar…" : connected ? "Google Calendar connected" : "Calendar not connected"}
+          </span>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface-card p-1">
             {connected ? (
               <button
@@ -50,6 +64,7 @@ export default function CalendarHeader({
               onClick={onOpenCreate}
               disabled={!connected}
               title={connected ? "Add an event" : "Connect your calendar to add events"}
+              aria-label={connected ? "Add event to Google Calendar" : "Add event (connect Google Calendar first)"}
               className="dp-btn-primary inline-flex h-8 items-center gap-1 rounded-full px-3 text-[10px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Plus size={13} /> Add event
@@ -68,12 +83,12 @@ export default function CalendarHeader({
           >
             <RotateCcw size={14} className={monthLoading ? "animate-spin" : ""} />
           </button>
-          <div className="inline-flex h-9 items-center overflow-hidden rounded-full border border-hairline bg-surface-card">
-            <button type="button" onClick={onGoToPreviousMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Previous month">
+          <div className="inline-flex h-9 items-center overflow-hidden rounded-full border border-hairline bg-surface-card" role="group" aria-label="Change month">
+            <button type="button" onClick={onGoToPreviousMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Previous month" title="Previous month">
               <ChevronLeft size={16} />
             </button>
             <span className="h-4 w-px bg-hairline" aria-hidden="true" />
-            <button type="button" onClick={onGoToNextMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Next month">
+            <button type="button" onClick={onGoToNextMonth} className="grid h-full w-9 place-items-center text-muted transition-colors hover:bg-canvas-soft hover:text-ink" aria-label="Next month" title="Next month">
               <ChevronRight size={16} />
             </button>
           </div>

@@ -29,4 +29,10 @@ export const calendarAPI = {
   createGoogleEvent(payload) {
     return getResponseData(apiClient.post("/calendar/google/events", payload));
   },
+
+  deleteGoogleEvent(eventId) {
+    return getResponseData(
+      apiClient.delete(`/calendar/google/events/${encodeURIComponent(eventId)}`),
+    );
+  },
 };

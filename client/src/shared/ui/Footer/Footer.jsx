@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
 import InteractiveLines from "../../../features/landing/components/InteractiveLines";
+import darkFullLogo from "@/assets/brand/dashpoint-dark.png";
+import lightFullLogo from "@/assets/brand/dashpoint-light.png";
 
 export default function Footer({ embedded = false }) {
   const [isDark, setIsDark] = useState(() => {
@@ -24,9 +26,11 @@ export default function Footer({ embedded = false }) {
   const borderStyle = "border-hairline/60";
 
   return (
-    <footer className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
-      embedded ? "bg-transparent" : "bg-canvas text-ink border-t border-hairline/60"
-    }`}>
+    <footer
+      className={`py-16 px-xl md:px-xxl select-none relative overflow-hidden z-10 ${
+        embedded ? "bg-transparent" : "bg-canvas text-ink border-t border-hairline/60"
+      }`}
+    >
       {!embedded && (
         <InteractiveLines
           backgroundColor={isDark ? "#0c0a09" : "#f5f5f5"}
@@ -45,9 +49,14 @@ export default function Footer({ embedded = false }) {
             <div>
               <Link
                 to={APP_ROUTES.HOME}
-                className={`font-waldenburg-light text-2xl tracking-tight ${headingText} block mb-4`}
+                aria-label="DashPoint home"
+                className="mb-4 inline-flex items-center transition-opacity hover:opacity-80"
               >
-                DASHPOINT
+                <img
+                  src={isDark ? darkFullLogo : lightFullLogo}
+                  alt="DashPoint"
+                  className="h-10 w-auto max-w-[170px] object-contain object-left"
+                />
               </Link>
               <p className={`text-xs ${bodyText} leading-relaxed max-w-[280px]`}>
                 The print-editorial intelligence layer for files, calendar schedules, and workflows.

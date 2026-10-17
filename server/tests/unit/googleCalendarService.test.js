@@ -1,7 +1,7 @@
 const {
   getScopes,
   normalizeEvent
-} = require('../../src/services/googleCalendarService');
+} = require('../../src/features/calendar/services/googleCalendarService');
 
 describe('googleCalendarService Unit Tests', () => {
   it('should return default calendar scopes if GOOGLE_OAUTH_SCOPES is unset', () => {

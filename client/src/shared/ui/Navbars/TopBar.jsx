@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { APP_ROUTES } from "../../../app/routes/paths";
+import useTheme from "../../../hooks/useTheme";
+import darkFullLogo from "@/assets/brand/dashpoint-dark.png";
+import lightFullLogo from "@/assets/brand/dashpoint-light.png";
 
 export default function TopBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [hoveredNav, setHoveredNav] = useState(null);
   const location = useLocation();
+  const { theme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +23,7 @@ export default function TopBar() {
 
   const isLoginPage = location.pathname === APP_ROUTES.LOGIN;
   const isRegisterPage = location.pathname === APP_ROUTES.REGISTER;
+  const logoSrc = theme === "dark" ? darkFullLogo : lightFullLogo;
 
   const NAV_LINKS = [
     { id: "capabilities", label: "Capabilities", href: "/#capabilities" },
@@ -36,10 +41,15 @@ export default function TopBar() {
       <div className="flex items-center gap-xl">
         <Link
           to={APP_ROUTES.HOME}
-          className="relative font-waldenburg-light text-2xl tracking-tight text-ink group py-1.5 px-2 -ml-2 rounded-xl transition-transform duration-200 active:scale-95"
+          aria-label="DashPoint home"
+          className="relative -ml-2 flex items-center rounded-xl px-2 py-1.5 transition-transform duration-200 active:scale-95"
         >
-          <span>DASHPOINT</span>
-          <span className="absolute bottom-1 left-2 right-2 h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+          <img
+            src={logoSrc}
+            alt="DashPoint"
+            className="h-9 w-auto max-w-[150px] object-contain md:h-10"
+          />
+          <span className="sr-only">DASHPOINT</span>
         </Link>
 
         {/* Liquid Bubble Nav Items */}

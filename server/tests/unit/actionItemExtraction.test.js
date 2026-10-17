@@ -1,7 +1,7 @@
 const {
   extractActionItemsFromText,
   mapSuggestionsToTodoItems
-} = require('../../src/services/actionItemExtractionService');
+} = require('../../src/features/chat/services/actionItemExtractionService');
 
 describe('Action Item Extraction Unit Tests', () => {
   it('should extract bulleted action items and tasks from text', async () => {
