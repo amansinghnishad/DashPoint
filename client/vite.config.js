@@ -98,6 +98,10 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true,
+        // The dev service worker only precaches the app shell; Vite serves the
+        // rest of the module graph directly. Avoid scanning the generated
+        // dev-dist folder with production asset globs.
+        suppressWarnings: true,
       },
       workbox: {
         cacheId: `dashpoint-${appVersion}`,

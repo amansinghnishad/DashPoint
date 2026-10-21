@@ -28,7 +28,7 @@ import ContentInsightReviewModal from "../../../shared/ui/modals/ContentInsightR
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 import Modal from "../../../shared/ui/modals/Modal";
 
-export default function FileManagerPage({ searchTriggerRef }) {
+export default function FileManagerPage({ searchTriggerRef, openFileId = "", openFileRequestId = "" }) {
   const toast = useToast();
   const {
     state: {
@@ -38,6 +38,7 @@ export default function FileManagerPage({ searchTriggerRef }) {
       selectedId,
       textPreview,
       isBusy,
+      hasLoadedFiles,
       pagination,
       addToCollectionItem,
       deleteItem,
@@ -55,6 +56,7 @@ export default function FileManagerPage({ searchTriggerRef }) {
       setInsightQueue,
       addWebLink,
       loadMoreFiles,
+      openFileById,
     },
   } = useFileManager();
 
@@ -87,6 +89,11 @@ export default function FileManagerPage({ searchTriggerRef }) {
       if (searchTriggerRef) searchTriggerRef.current = null;
     };
   }, [searchTriggerRef, setSearch]);
+
+  useEffect(() => {
+    if (!openFileId || !hasLoadedFiles) return;
+    openFileById(openFileId);
+  }, [hasLoadedFiles, openFileId, openFileRequestId, openFileById]);
 
   useEffect(() => {
     const isPdfSelected =

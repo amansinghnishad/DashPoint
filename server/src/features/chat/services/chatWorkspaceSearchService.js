@@ -60,11 +60,11 @@ const searchChatWorkspace = async ({
     ['planner', () => searchPlannerWidgets({ userId, regex, limit }), []],
     ['videos', () => searchYouTubeVideos({ userId, regex, limit }), []],
     ['transcripts', () => searchYouTubeTranscripts({ userId, regex, limit }), []],
-    [
+    ...(!restrictToCollections ? [[
       'calendar',
       () => searchCalendarEvents({ userId, query: terms.join(' '), limit: MAX_RESULTS_PER_SOURCE }),
       { results: [], warning: '' }
-    ]
+    ]] : [])
   ];
   const settledSources = await Promise.all(
     sources.map(async ([name, search, fallback]) => {
@@ -82,7 +82,8 @@ const searchChatWorkspace = async ({
   );
   const sourceResults = Object.fromEntries(settledSources.map(({ name, value }) => [name, value]));
   const searchWarnings = settledSources.map(({ warning }) => warning).filter(Boolean);
-  const { collections, files, planner, videos, transcripts, calendar } = sourceResults;
+  const { collections, files, planner, videos, transcripts } = sourceResults;
+  const calendar = sourceResults.calendar || { results: [], warning: '' };
 
   const selectedIds = new Set((collectionIds || []).map(String));
   const hasCollectionScope = selectedIds.size > 0;

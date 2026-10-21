@@ -1,4 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
+
+import ErrorState from "../ErrorState/ErrorState";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -23,24 +26,25 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-canvas p-6">
-          <div className="max-w-md w-full p-8 rounded-2xl border border-hairline bg-surface-card shadow-2xl text-center space-y-4">
-            <div className="h-12 w-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center mx-auto text-xl font-bold">
-              !
-            </div>
-            <h2 className="text-xl font-bold text-ink tracking-tight">Something went wrong</h2>
-            <p className="text-sm text-muted leading-relaxed">
-              An unexpected render error occurred. You can reload the application to restore state.
-            </p>
-            <button
-              type="button"
-              onClick={this.handleReload}
-              className="dp-btn-primary px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-            >
-              Reload Application
-            </button>
-          </div>
-        </div>
+        <ErrorState
+          eyebrow="The page hit an error"
+          title="We couldn’t load this view"
+          description="Your work is still saved. Reload the page to try again, or return home and continue from there."
+        >
+          <button
+            type="button"
+            onClick={this.handleReload}
+            className="dp-btn-primary inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition-opacity hover:opacity-90"
+          >
+            Reload Application
+          </button>
+          <Link
+            to="/"
+            className="inline-flex h-11 items-center justify-center rounded-xl border border-hairline px-5 text-sm font-semibold text-ink transition-colors hover:bg-canvas-soft"
+          >
+            Go to home
+          </Link>
+        </ErrorState>
       );
     }
 

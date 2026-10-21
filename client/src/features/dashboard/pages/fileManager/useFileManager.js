@@ -21,6 +21,7 @@ export function useFileManager() {
   const [selectedId, setSelectedId] = useState(null);
   const [textPreview, setTextPreview] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [hasLoadedFiles, setHasLoadedFiles] = useState(false);
   const [addToCollectionItem, setAddToCollectionItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -63,6 +64,7 @@ export function useFileManager() {
         toast.error(getRequestErrorMessage(error, FILE_MANAGER_ERRORS.load));
       } finally {
         setIsBusy(false);
+        setHasLoadedFiles(true);
       }
     },
     [toast],
@@ -73,6 +75,31 @@ export function useFileManager() {
       return loadFiles({ page: pagination.current + 1, append: true });
     }
   }, [isBusy, loadFiles, pagination]);
+
+  const openFileById = useCallback(
+    async (fileId) => {
+      const id = String(fileId || "");
+      if (!id) return;
+      const existing = items.find((item) => String(item.id) === id);
+      if (existing) {
+        setSelectedId(id);
+        return;
+      }
+
+      try {
+        const response = await fileService.getFileById(id);
+        if (!response?.success || !response?.data) {
+          throw new Error(response?.error || response?.message || "File not found");
+        }
+        const item = toFileItem(response.data);
+        setItems((current) => [item, ...current.filter((entry) => entry.id !== item.id)]);
+        setSelectedId(item.id);
+      } catch (error) {
+        toast.error(getRequestErrorMessage(error, "Could not open this file"));
+      }
+    },
+    [items, toast],
+  );
 
   const uploadSelectedFiles = useCallback(
     async (fileList) => {
@@ -229,6 +256,7 @@ export function useFileManager() {
       selectedId,
       textPreview,
       isBusy,
+      hasLoadedFiles,
       addToCollectionItem,
       deleteItem,
       isDeleting,
@@ -245,6 +273,7 @@ export function useFileManager() {
       setInsightQueue,
       addWebLink,
       loadMoreFiles,
+      openFileById,
     },
   };
 }

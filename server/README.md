@@ -50,6 +50,7 @@ The complete variable list and local defaults are in [`.env.example`](.env.examp
 | Database and server | `MONGODB_URI`, `PORT`, `NODE_ENV` |
 | Authentication | `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN` |
 | Request limits | `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS` |
+| Metrics endpoint | `METRICS_TOKEN` |
 | Client CORS and OAuth redirect | `CLIENT_URL`, `GOOGLE_OAUTH_SUCCESS_REDIRECT` |
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_OAUTH_SCOPES` |
 | AI providers | `OPENAI_API_KEY`, `GEMINI_API_KEY`, model settings, and `EMBEDDING_PROVIDER` |
@@ -78,8 +79,17 @@ Routes are mounted in [`src/server.js`](src/server.js):
 | `/api/focus` | Focus sessions |
 | `/api/insights` | Extracted content insights |
 | `/health` | API and MongoDB readiness |
+| `/metrics` | Prometheus metrics (token-protected in production) |
 
 The root route `/` returns the API name, version, and endpoint list. Unknown paths return a JSON 404 response.
+
+## Logging and metrics
+
+The API writes one JSON log entry per completed request, including a request ID, route template, status code, duration, and authenticated user ID when available. Authentication events record sign-in success, invalid credentials, lockouts, registration, and Google sign-in with the internal user ID and username when known; passwords, tokens, email addresses, request bodies, and query strings are not logged. The response includes `X-Request-Id` so a user-reported request can be matched to server logs.
+
+`GET /metrics` exposes Prometheus text metrics for request counts and latency buckets, in-flight requests, process uptime and memory, MongoDB/Redis connectivity, and sign-in outcomes. In development it is available without a token. In production, set a long random `METRICS_TOKEN` and scrape with `Authorization: Bearer <METRICS_TOKEN>`; requests without the token receive 404. Metrics are held in process memory and reset when the server restarts, so use a Prometheus-compatible scraper for history and alerting.
+
+For local inspection, run `curl http://localhost:5000/metrics`. Generate a production token with `openssl rand -hex 32`, save it in the host’s secret settings as `METRICS_TOKEN`, then configure your scraper to send it as a bearer token. Keep that endpoint private to your monitoring system.
 
 ## Server structure
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import CalendarAgendaPanel from "./calendar/components/CalendarAgendaPanel";
 import CalendarHeader from "./calendar/components/CalendarHeader";
@@ -11,7 +11,7 @@ import { useCalendar } from "../../../hooks/useCalendar";
 import { calendarAPI } from "../../../services/modules/calendarApi";
 import DeleteConfirmModal from "../../../shared/ui/modals/DeleteConfirmModal";
 
-export default function CalendarPage() {
+export default function CalendarPage({ focusDate = "", focusDateRequestId = "" }) {
   const today = useMemo(() => new Date(), []);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [deletingEventId, setDeletingEventId] = useState(null);
@@ -43,6 +43,15 @@ export default function CalendarPage() {
     selectedDate,
     setSelectedDate,
   });
+
+  useEffect(() => {
+    if (!focusDate) return;
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(focusDate)
+      ? new Date(`${focusDate}T12:00:00`)
+      : new Date(focusDate);
+    if (Number.isNaN(date.getTime())) return;
+    selectDate(date);
+  }, [focusDate, focusDateRequestId, selectDate]);
 
   const selectedDayEvents = useMemo(() => {
     const key = dayKey(selectedDate);

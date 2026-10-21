@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { CalendarDays, Check, ExternalLink, LoaderCircle, NotebookPen, Plus, X } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, ExternalLink, LoaderCircle, NotebookPen, Plus, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -46,7 +46,7 @@ function getSafeSourceUrl(value) {
   }
 }
 
-function SourceList({ sources = [] }) {
+function SourceList({ sources = [], onNavigate }) {
   if (!sources.length) return null;
 
   return (
@@ -60,9 +60,14 @@ function SourceList({ sources = [] }) {
           const label = source.sourceLabel || SOURCE_TYPE_LABELS[source.sourceType] || "Workspace source";
           const url = getSafeSourceUrl(source.url);
           const title = `${citation} · ${label}`;
+          const canOpenInApp =
+            ["collection", "file", "youtube", "youtube_transcript", "calendar_event"].includes(
+              source.sourceType,
+            ) || (source.sourceType === "planner_note" && Boolean(source.metadata?.collectionId));
           return (
-            <li key={`${source.sourceType}-${source.sourceId || citation}`}>
-              {url ? (
+            <li key={`${source.sourceType}-${source.sourceId || citation}`} className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <span className="min-w-0">
+                {url ? (
                 <a
                   href={url}
                   target="_blank"
@@ -79,7 +84,19 @@ function SourceList({ sources = [] }) {
                   <span className="truncate">{label}</span>
                   <span className="shrink-0 text-muted-soft">{SOURCE_TYPE_LABELS[source.sourceType] || "Workspace source"}</span>
                 </span>
-              )}
+                )}
+              </span>
+              <span className="flex shrink-0 items-center gap-3">
+                {canOpenInApp && onNavigate ? (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate(source)}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary transition hover:underline"
+                  >
+                    Open in DashPoint <ArrowUpRight size={12} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </span>
             </li>
           );
         })}
@@ -161,7 +178,7 @@ function ChatActionDraft({ action, collections = [], onApprove, onDismiss }) {
   );
 }
 
-function ChatMessageBubble({ entry, collections, onApproveAction, onDismissAction }) {
+function ChatMessageBubble({ entry, collections, onApproveAction, onDismissAction, onNavigateSource }) {
   const isUser = entry.role === "user";
   const isError = entry.role === "error";
 
@@ -194,7 +211,9 @@ function ChatMessageBubble({ entry, collections, onApproveAction, onDismissActio
               />
             </div>
           )}
-          {entry.status === "done" ? <SourceList sources={entry.meta?.retrieval?.sources} /> : null}
+          {entry.status === "done" ? (
+            <SourceList sources={entry.meta?.retrieval?.sources} onNavigate={onNavigateSource} />
+          ) : null}
           {entry.status === "done" && Array.isArray(entry.meta?.pendingActions)
             ? entry.meta.pendingActions.map((action) => (
                 <ChatActionDraft

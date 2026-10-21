@@ -11,6 +11,7 @@ const {
 } = require('../../../services/embeddingsService');
 const { runAtlasVectorSearch } = require('../../../services/vectorSearchService');
 const { searchChatWorkspace } = require('./chatWorkspaceSearchService');
+const { findCollectionsForItems } = require('../../search/services/adapters/collectionMembership');
 
 const DEFAULT_TOP_K = 6;
 const MAX_TOP_K = 8;
@@ -22,6 +23,36 @@ const YOUTUBE_TRANSCRIPT_VECTOR_INDEX =
   process.env.VIDEO_INTELLIGENCE_VECTOR_INDEX ||
   process.env.YOUTUBE_TRANSCRIPT_VECTOR_INDEX ||
   'video_intelligence_embedding_idx';
+
+const WORKSPACE_SOURCE_PATTERN =
+  /\b(collections?|files?|documents?|pdfs?|uploads?|youtube|videos?|transcripts?|calendar|events?|meetings?|notes?|tasks?|planner|workspace)\b/i;
+const WORKSPACE_LOOKUP_PATTERN =
+  /\b(find|search|look\s+up|show|list|summari[sz]e|recall|remember|explain|where|when|which|what\s+(?:did|does|do|was|were|is|are|have)|tell\s+me(?:\s+about)?|open)\b/i;
+const WORKSPACE_ACTION_PATTERN =
+  /^\s*(?:please\s+)?(?:create|make|draft|add|save|schedule|book|write)\b/i;
+const SELECTED_CONTEXT_REFERENCE_PATTERN = /\b(this|these|that|it|here|selected|above)\b/i;
+const WORKSPACE_RECALL_PATTERN =
+  /\bwhat\s+(?:did|have)\s+i\s+(?:save|upload|add|watch|read|write|schedule)\b|\b(?:my|our)\s+(?:saved|uploaded|watched|workspace|collections?|files?|documents?|videos?|notes?|tasks?|calendar|events?)\b/i;
+
+const isWorkspaceSearchIntent = (query, collectionIds = []) => {
+  const text = String(query || '').trim();
+  if (!text) return false;
+
+  const isDefinitionQuestion =
+    /\b(?:what\s+is|define|explain)\s+(?:a|an|the)?\s*(?:collection|file|document|calendar|task|note|video|youtube)\b/i.test(text) &&
+    !/\b(my|our|workspace|saved|uploaded|selected)\b/i.test(text);
+  if (isDefinitionQuestion) return false;
+
+  const hasLookupIntent = WORKSPACE_LOOKUP_PATTERN.test(text);
+  if (WORKSPACE_SOURCE_PATTERN.test(text)) {
+    if (WORKSPACE_ACTION_PATTERN.test(text) && !hasLookupIntent) return false;
+    return true;
+  }
+
+  if (WORKSPACE_RECALL_PATTERN.test(text)) return true;
+
+  return Boolean(collectionIds.length && SELECTED_CONTEXT_REFERENCE_PATTERN.test(text) && hasLookupIntent);
+};
 
 const toObjectId = (value) => {
   if (value instanceof mongoose.Types.ObjectId) {
@@ -161,17 +192,28 @@ const searchPlannerNoteContext = async ({
       }
     });
 
+    const collectionMap = await findCollectionsForItems({
+      userId: userObjectId,
+      itemType: 'planner',
+      itemIds: rows.map((row) => row._id)
+    });
+
     return rows
       .map((row) => {
         const body = typeof row?.data?.text === 'string' ? row.data.text : '';
         const content = [String(row?.title || '').trim(), body].filter(Boolean).join('\n\n');
+        const collection = collectionMap.get(String(row?._id || '')) || {};
 
         return {
           sourceType: 'planner_note',
           sourceId: String(row?._id || ''),
           sourceLabel: String(row?.title || '').trim() || 'Planner note',
           content: truncateText(content),
-          score: Number(row?.score) || 0
+          score: Number(row?.score) || 0,
+          metadata: {
+            collectionId: collection.collectionId || '',
+            collectionName: collection.collectionName || ''
+          }
         };
       })
       .filter((row) => row.sourceId && row.content);
@@ -340,6 +382,24 @@ const retrieveChatContext = async ({
 }) => {
   const normalizedQuery = normalizeText(query);
   const resolvedTopK = clampTopK(topK);
+
+  if (!isWorkspaceSearchIntent(normalizedQuery, collectionIds)) {
+    return {
+      topK: resolvedTopK,
+      items: [],
+      contextText: '',
+      embeddingProvider: null,
+      warnings: [],
+      searchPerformed: false,
+      scope: {
+        mode: 'not_searched',
+        requestedCollectionIds: [],
+        appliedCollectionIds: [],
+        appliedCollectionNames: []
+      }
+    };
+  }
+
   const userObjectId = toObjectId(userId);
   const scope = await buildCollectionScope({
     userObjectId,
@@ -352,6 +412,8 @@ const retrieveChatContext = async ({
       items: [],
       contextText: '',
       embeddingProvider: null,
+      warnings: [],
+      searchPerformed: false,
       scope: {
         mode: scope.mode,
         requestedCollectionIds: scope.requestedCollectionIds,
@@ -445,6 +507,7 @@ const retrieveChatContext = async ({
     contextText: formatContextText(merged),
     embeddingProvider: queryEmbedding.provider,
     warnings: workspaceSearch.warnings,
+    searchPerformed: true,
     scope: {
       mode: scope.mode,
       requestedCollectionIds: scope.requestedCollectionIds,

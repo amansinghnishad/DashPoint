@@ -1,14 +1,10 @@
 const mongoose = require('mongoose');
+const { logger } = require('../utils/observability');
 
 // errorHandler middleware
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
-
-  // Log error for debugging
-  if (process.env.NODE_ENV !== 'test') {
-    console.error(err);
-  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -40,6 +36,17 @@ const errorHandler = (err, req, res, next) => {
   }
 
   const statusCode = error.statusCode || 500;
+  if (process.env.NODE_ENV !== 'test') {
+    logger.error('http.request_failed', {
+      requestId: req.requestId,
+      method: req.method,
+      route: req.route?.path || 'unmatched',
+      statusCode,
+      errorName: err.name || 'Error',
+      errorCode: err.code
+    });
+  }
+
   const safeMessage = statusCode >= 500 && process.env.NODE_ENV === 'production'
     ? 'An unexpected server error occurred'
     : error.message || 'Server Error';

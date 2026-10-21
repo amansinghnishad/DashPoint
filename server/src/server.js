@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -13,6 +12,7 @@ const { connectRedis, disconnectRedis } = require('./config/redis');
 const errorHandler = require('./middleware/errorHandler');
 const createCsrfProtection = require('./middleware/csrfProtection');
 const { assertJwtConfiguration } = require('./utils/jwt');
+const { logger, requestMetricsMiddleware, metricsHandler } = require('./utils/observability');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -54,6 +54,7 @@ const limiter = rateLimit({
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+app.use(requestMetricsMiddleware);
 app.use(limiter);
 
 // CORS configuration
@@ -89,14 +90,14 @@ const corsOptions = {
       callback(null, true);
     } else {
       if (process.env.NODE_ENV === 'development') {
-        console.log('CORS blocked origin:', origin);
+        logger.warn('http.cors_origin_blocked', { origin });
       }
       callback(new Error('Not allowed by CORS'));
     }
   }, credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Authorization'],
+  exposedHeaders: ['Authorization', 'X-Request-Id'],
   preflightContinue: false,
   optionsSuccessStatus: 200
 };
@@ -105,7 +106,6 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
@@ -115,6 +115,8 @@ app.use(createCsrfProtection({ allowedOrigins }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
+app.get('/metrics', metricsHandler);
+
 app.get('/health', (req, res) => {
   const databaseReady = mongoose.connection.readyState === 1;
   res.status(databaseReady ? 200 : 503).json({
@@ -134,6 +136,7 @@ app.get('/', (req, res) => {
     message: 'Welcome to the DashPoint Dashboard API',
     endpoints: {
       health: '/health',
+      metrics: '/metrics',
       auth: '/api/auth',
       youtube: '/api/youtube',
       collections: '/api/collections',
@@ -178,15 +181,16 @@ const startServer = async () => {
   await connectDB();
   await connectRedis();
   server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-    console.log(`Dashboard API available at http://localhost:${PORT}`);
-    console.log(`Health check at http://localhost:${PORT}/health`);
+    logger.info('server.started', { port: PORT, environment: process.env.NODE_ENV });
+    logger.info('server.endpoint', { name: 'api', url: `http://localhost:${PORT}` });
+    logger.info('server.endpoint', { name: 'health', url: `http://localhost:${PORT}/health` });
+    logger.info('server.endpoint', { name: 'metrics', url: `http://localhost:${PORT}/metrics` });
   });
 };
 
 if (process.env.NODE_ENV !== 'test') {
   startServer().catch((error) => {
-    console.error('Server startup failed:', error.message);
+    logger.error('server.startup_failed', { errorName: error.name, errorCode: error.code });
     process.exitCode = 1;
   });
 }
@@ -195,7 +199,7 @@ let isShuttingDown = false;
 const shutdown = (signal) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  console.log(`${signal} received. Shutting down gracefully...`);
+  logger.info('server.shutdown_started', { signal });
 
   (async () => {
     try {
@@ -208,13 +212,16 @@ const shutdown = (signal) => {
       const results = await Promise.allSettled([mongoose.disconnect(), disconnectRedis()]);
       const failed = results.find((result) => result.status === 'rejected');
       if (failed) {
-        console.error('One or more services failed to close cleanly:', failed.reason);
+        logger.error('server.shutdown_dependency_failed', {
+          errorName: failed.reason?.name,
+          errorCode: failed.reason?.code
+        });
         process.exitCode = 1;
       } else {
-        console.log('Process terminated');
+        logger.info('server.shutdown_completed');
       }
     } catch (error) {
-      console.error('HTTP server failed to close cleanly:', error);
+      logger.error('server.shutdown_failed', { errorName: error.name, errorCode: error.code });
       process.exitCode = 1;
     }
   })();

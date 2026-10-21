@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const { recordAuthEvent } = require('../utils/observability');
 const {
   generateToken,
   generateRefreshToken,
@@ -161,6 +162,11 @@ exports.register = async (req, res, next) => {
 
     await saveUserRefreshToken(user, refreshToken, req);
     setAuthCookies(res, { accessToken: token, refreshToken });
+    recordAuthEvent('register', 'success', {
+      requestId: req.requestId,
+      userId: String(user._id),
+      username: user.username
+    });
 
     // Remove password from response
     const userResponse = user.toObject();
@@ -275,6 +281,12 @@ exports.googleAuth = async (req, res, next) => {
 
     await saveUserRefreshToken(user, refreshToken, req);
     setAuthCookies(res, { accessToken: token, refreshToken });
+    recordAuthEvent('google', 'success', {
+      requestId: req.requestId,
+      userId: String(user._id),
+      username: user.username,
+      isNewUser
+    });
 
     res.status(200).json({
       success: true,
@@ -295,6 +307,7 @@ exports.login = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      recordAuthEvent('password', 'validation_failed', { requestId: req.requestId });
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -309,6 +322,7 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
+      recordAuthEvent('password', 'invalid_credentials', { requestId: req.requestId });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -317,6 +331,11 @@ exports.login = async (req, res, next) => {
 
     // Check if account is temporarily locked
     if (user.isLocked()) {
+      recordAuthEvent('password', 'account_locked', {
+        requestId: req.requestId,
+        userId: String(user._id),
+        username: user.username
+      });
       const lockMinutesRemaining = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
       return res.status(423).json({
         success: false,
@@ -331,12 +350,22 @@ exports.login = async (req, res, next) => {
       await user.incLoginAttempts();
       const updatedUser = await User.findById(user._id);
       if (updatedUser.isLocked()) {
+        recordAuthEvent('password', 'account_locked', {
+          requestId: req.requestId,
+          userId: String(user._id),
+          username: user.username
+        });
         return res.status(423).json({
           success: false,
           message: 'Account is temporarily locked due to excessive failed attempts. Please try again in 15 minutes.'
         });
       }
 
+      recordAuthEvent('password', 'invalid_credentials', {
+        requestId: req.requestId,
+        userId: String(user._id),
+        username: user.username
+      });
       const attemptsLeft = Math.max(0, 5 - (updatedUser.failedLoginAttempts || 0));
       return res.status(401).json({
         success: false,
@@ -360,6 +389,11 @@ exports.login = async (req, res, next) => {
 
     await saveUserRefreshToken(user, refreshToken, req);
     setAuthCookies(res, { accessToken: token, refreshToken });
+    recordAuthEvent('password', 'success', {
+      requestId: req.requestId,
+      userId: String(user._id),
+      username: user.username
+    });
 
     // Remove password from response
     const userResponse = user.toObject();

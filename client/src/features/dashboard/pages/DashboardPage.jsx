@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const searchTriggerRef = useRef(null);
   const [youtubeSearch, setYoutubeSearch] = useState("");
   const [fileSearch, setFileSearch] = useState("");
+  const [workspaceSourceTarget, setWorkspaceSourceTarget] = useState(null);
   const [openHistoryOnAssistant, setOpenHistoryOnAssistant] = useState(false);
 
   const setActiveTab = useCallback((value) => {
@@ -116,6 +117,45 @@ export default function DashboardPage() {
     dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: String(id) });
     dispatchUi({ type: "SET_SIDEBAR_OPEN", payload: false });
   }, []);
+
+  const onOpenWorkspaceSource = useCallback(
+    (source) => {
+      const sourceType = String(source?.sourceType || "");
+      const sourceId = String(source?.sourceId || "");
+      const metadata = source?.metadata || {};
+      const collectionId = String(
+        metadata.collectionId || (sourceType === "collection" ? sourceId : ""),
+      );
+
+      const requestId = `${Date.now()}-${sourceId}`;
+      if (sourceType === "file") {
+        setWorkspaceSourceTarget({ type: "file", id: metadata.fileId || sourceId, requestId });
+        setFileSearch("");
+        dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null });
+        dispatchUi({ type: "SET_ACTIVE_TAB", payload: "files" });
+      } else if (sourceType === "youtube" || sourceType === "youtube_transcript") {
+        setWorkspaceSourceTarget({
+          type: "youtube",
+          id: metadata.youtubeId || sourceId,
+          requestId,
+        });
+        setYoutubeSearch("");
+        dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null });
+        dispatchUi({ type: "SET_ACTIVE_TAB", payload: "youtube" });
+      } else if (sourceType === "calendar_event") {
+        setWorkspaceSourceTarget({
+          type: "calendar",
+          date: metadata.start || "",
+          requestId,
+        });
+        dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null });
+        dispatchUi({ type: "SET_ACTIVE_TAB", payload: "calendar" });
+      } else if (collectionId) {
+        onOpenCollection(collectionId);
+      }
+    },
+    [onOpenCollection],
+  );
 
   const onShortcutNavigate = useCallback((value) => {
     dispatchUi({ type: "SET_OPEN_COLLECTION_ID", payload: null });
@@ -172,18 +212,27 @@ export default function DashboardPage() {
       case "focus":
         return null;
       case "calendar":
-        return <CalendarPage />;
+        return (
+          <CalendarPage
+            focusDate={workspaceSourceTarget?.type === "calendar" ? workspaceSourceTarget.date : ""}
+            focusDateRequestId={workspaceSourceTarget?.type === "calendar" ? workspaceSourceTarget.requestId : ""}
+          />
+        );
       case "youtube":
         return (
           <YoutubePage
             search={youtubeSearch}
             onClearSearch={clearYoutubeSearch}
+            openVideoId={workspaceSourceTarget?.type === "youtube" ? workspaceSourceTarget.id : ""}
+            openVideoRequestId={workspaceSourceTarget?.type === "youtube" ? workspaceSourceTarget.requestId : ""}
           />
         );
       case "files":
         return (
           <FileManagerPage
             searchTriggerRef={searchTriggerRef}
+            openFileId={workspaceSourceTarget?.type === "file" ? workspaceSourceTarget.id : ""}
+            openFileRequestId={workspaceSourceTarget?.type === "file" ? workspaceSourceTarget.requestId : ""}
           />
         );
       case "collections":
@@ -194,7 +243,7 @@ export default function DashboardPage() {
           />
         );
     }
-      }, [clearYoutubeSearch, onOpenCollection, uiState.activeTab, youtubeSearch]);
+      }, [clearYoutubeSearch, onOpenCollection, uiState.activeTab, workspaceSourceTarget, youtubeSearch]);
 
   const currentSectionLabel = SECTION_LABEL_BY_TAB[uiState.activeTab] || "";
 
@@ -310,6 +359,7 @@ export default function DashboardPage() {
               <ChatInterface
                 showEmptyStateDetails={uiState.activeTab === "focus"}
                 isFloating={uiState.activeTab !== "focus"}
+                onNavigateSource={onOpenWorkspaceSource}
               />
             </div>
           </main>

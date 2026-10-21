@@ -40,6 +40,7 @@ export default function ChatInterface({
   showEmptyStateDetails = false,
   isFloating = false,
   placeholder = "Ask your workspace...",
+  onNavigateSource,
 }) {
   const {
     provider,
@@ -226,6 +227,7 @@ export default function ChatInterface({
                     collections={collections}
                     onApproveAction={approvePendingAction}
                     onDismissAction={dismissPendingAction}
+                    onNavigateSource={onNavigateSource}
                   />
                 ))}
                 <div ref={scrollAnchorRef} />
@@ -243,6 +245,7 @@ export default function ChatInterface({
                       collections={collections}
                       onApproveAction={approvePendingAction}
                       onDismissAction={dismissPendingAction}
+                      onNavigateSource={onNavigateSource}
                     />
                   ))}
                 </div>

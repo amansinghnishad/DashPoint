@@ -7,7 +7,12 @@ import { SEARCH_INITIAL_STATE, searchReducer } from "../state/searchReducer";
 import { UI_INITIAL_STATE, uiReducer } from "../state/uiReducer";
 import { parseYouTubeId } from "../utils/parseYouTubeId";
 
-export default function useYoutubePageController({ search: searchInput = "", onClearSearch } = {}) {
+export default function useYoutubePageController({
+  search: searchInput = "",
+  onClearSearch,
+  openVideoId = "",
+  openVideoRequestId = "",
+} = {}) {
   const toast = useToast();
   const [searchState, dispatchSearch] = useReducer(searchReducer, SEARCH_INITIAL_STATE);
   const [savedItems, setSavedItems] = useState([]);
@@ -239,6 +244,14 @@ export default function useYoutubePageController({ search: searchInput = "", onC
     if (!selectedId) return;
     if (!selected) setSelectedId(null);
   }, [selected, selectedId]);
+
+  useEffect(() => {
+    if (!openVideoId || savedLoading) return;
+    const target = savedItems.find(
+      (video) => String(video.id) === String(openVideoId) || String(video.videoId) === String(openVideoId),
+    );
+    if (target) setSelectedId(target.id);
+  }, [openVideoId, openVideoRequestId, savedItems, savedLoading]);
 
   const confirmDelete = useCallback(async () => {
     const id = uiState.deleteItem?.id;

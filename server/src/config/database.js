@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { logger } = require('../utils/observability');
 require('dotenv').config();
 
 // connectDatabase function
@@ -6,19 +7,23 @@ const connectDatabase = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info('dependency.connected', { dependency: 'mongodb', host: conn.connection.host });
 
     // Handle connection events
     mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
+      logger.error('dependency.error', { dependency: 'mongodb', errorName: err.name, errorCode: err.code });
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
+      logger.warn('dependency.disconnected', { dependency: 'mongodb' });
     });
 
   } catch (error) {
-    console.error('Database connection failed:', error.message);
+    logger.error('dependency.connection_failed', {
+      dependency: 'mongodb',
+      errorName: error.name,
+      errorCode: error.code
+    });
     throw error;
   }
 };
