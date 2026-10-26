@@ -13,7 +13,7 @@ const { runAtlasVectorSearch } = require('../../../services/vectorSearchService'
 const { searchChatWorkspace } = require('./chatWorkspaceSearchService');
 const { findCollectionsForItems } = require('../../search/services/adapters/collectionMembership');
 
-const DEFAULT_TOP_K = 6;
+const DEFAULT_TOP_K = 3;
 const MAX_TOP_K = 8;
 const MAX_CONTEXT_CHARS = 900;
 const NUM_CANDIDATES = 120;

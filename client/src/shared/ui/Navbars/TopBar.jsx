@@ -2,10 +2,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { APP_ROUTES } from "../../../app/routes/paths";
-import useTheme from "../../../hooks/useTheme";
 import darkFullLogo from "@/assets/brand/dashpoint-dark.png";
 import lightFullLogo from "@/assets/brand/dashpoint-light.png";
+
+import { APP_ROUTES } from "../../../app/routes/paths";
+import useTheme from "../../../hooks/useTheme";
 
 export default function TopBar() {
   const [isScrolled, setIsScrolled] = useState(false);

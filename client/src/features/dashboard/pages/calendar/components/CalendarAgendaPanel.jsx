@@ -1,5 +1,7 @@
-import { CalendarDays } from "@/shared/ui/icons/icons";
 import { Trash2 } from "lucide-react";
+
+import { CalendarDays } from "@/shared/ui/icons/icons";
+
 import { formatEventTimeLabel } from "../utils/eventUtils";
 
 const getTypeLabel = (type) => {

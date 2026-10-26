@@ -12,13 +12,13 @@ import {
 
 import { IconMenu } from "@/shared/ui/icons/icons";
 
+import ChatInterface from "../../../shared/ui/Chat/ChatInterface";
+import TabAmbient from "../../../shared/ui/Chat/TabAmbient";
 import Clock from "../../../shared/ui/Clock/Clock";
 import InfoModal from "../../../shared/ui/modals/InfoModal";
 import { SideBar } from "../../../shared/ui/Navbars/SideBar";
 import FloatingInstallDownloadButtons from "../../../shared/ui/PWAStatus/FloatingInstallDownloadButtons";
 import UniversalSearch from "../../../shared/ui/Search/UniversalSearch";
-import ChatInterface from "../../../shared/ui/Chat/ChatInterface";
-import TabAmbient from "../../../shared/ui/Chat/TabAmbient";
 import { styleTheme } from "../../../shared/ui/theme/styleTheme";
 import DashboardAccountDialog from "../components/DashboardAccountDialog";
 import DashboardSettingsPanel from "../components/DashboardSettingsPanel";
