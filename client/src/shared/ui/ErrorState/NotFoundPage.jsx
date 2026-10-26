@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 
-import { APP_ROUTES } from "../../../app/routes/paths";
 import ErrorState from "./ErrorState";
+import { APP_ROUTES } from "../../../app/routes/paths";
 
 export default function NotFoundPage() {
   const navigate = useNavigate();

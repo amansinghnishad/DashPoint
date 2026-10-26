@@ -1,9 +1,9 @@
 import { Settings, UserRoundCog } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { AccountSettings } from "./DashboardSettingsPanel";
 import { useAuth } from "../../../context/AuthContext";
 import Modal from "../../../shared/ui/modals/Modal";
-import { AccountSettings } from "./DashboardSettingsPanel";
 
 function getAccountName(user) {
   return (

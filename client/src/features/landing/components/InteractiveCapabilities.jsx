@@ -15,9 +15,10 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import brandMark from "@/assets/brand/dashpoint-mark.png";
+
 import { APP_ROUTES } from "../../../app/routes/paths";
 import UserCursor from "../../../shared/ui/Cursor/UserCursor";
-import brandMark from "@/assets/brand/dashpoint-mark.png";
 
 const CAPABILITY_TABS = [
   {

@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import UserCursor from "../../../shared/ui/Cursor/UserCursor";
 import brandMark from "@/assets/brand/dashpoint-mark.png";
+
+import UserCursor from "../../../shared/ui/Cursor/UserCursor";
 
 const SAMPLE_CONVERSATIONS = [
   {

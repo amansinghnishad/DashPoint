@@ -1,5 +1,5 @@
-import { memo, useState } from "react";
 import { ArrowUpRight, CalendarDays, Check, ExternalLink, LoaderCircle, NotebookPen, Plus, X } from "lucide-react";
+import { memo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 

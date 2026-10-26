@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { ChevronLeft, ChevronRight } from "@/shared/ui/icons/icons";
+
 import { dayKey, isSameDay } from "../utils/dateUtils";
 
 const getMonthWeeks = (date) => {

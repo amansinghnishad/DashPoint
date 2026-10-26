@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { APP_ROUTES } from "../../../app/routes/paths";
-import InteractiveLines from "../../../features/landing/components/InteractiveLines";
 import darkFullLogo from "@/assets/brand/dashpoint-dark.png";
 import lightFullLogo from "@/assets/brand/dashpoint-light.png";
+
+import { APP_ROUTES } from "../../../app/routes/paths";
+import InteractiveLines from "../../../features/landing/components/InteractiveLines";
 
 export default function Footer({ embedded = false }) {
   const [isDark, setIsDark] = useState(() => {
